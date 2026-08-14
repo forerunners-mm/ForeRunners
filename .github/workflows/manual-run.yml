@@ -1,0 +1,31 @@
+# Manual trigger workflow
+
+name: Manual Run
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas openpyxl
+
+      - name: Generate Excel file
+        run: |
+          python scripts/generate_roadmap_excel.py
+
+      - name: Show output
+        run: |
+          echo "✅ Excel file generated successfully!"
+          ls -la docs/

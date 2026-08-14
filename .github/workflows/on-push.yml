@@ -1,0 +1,37 @@
+# Auto-update when CSV or Python script changes
+
+name: On Push Update
+
+on:
+  push:
+    paths:
+      - 'data/*.csv'
+      - 'scripts/*.py'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pandas openpyxl
+
+      - name: Generate Excel file
+        run: |
+          python scripts/generate_roadmap_excel.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/*.xlsx
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-generate Excel [skip ci]"
+          git push

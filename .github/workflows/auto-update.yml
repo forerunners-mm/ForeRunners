@@ -1,0 +1,38 @@
+# Auto Update Roadmap - Runs on schedule (monthly) and can be triggered manually
+
+name: Auto Update Roadmap
+
+on:
+  schedule:
+    # လစဉ် ပထမနေ့၊ UTC 2:30 AM (မြန်မာစံတော်ချိန် 9:00 AM)
+    - cron: '30 2 1 * *'
+  workflow_dispatch:  # Manual trigger option
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas openpyxl
+
+      - name: Generate Excel file
+        run: |
+          python scripts/generate_roadmap_excel.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/Forerunners_Roadmap_and_Indicators_2026-2029.xlsx
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update roadmap Excel [skip ci]"
+          git push
