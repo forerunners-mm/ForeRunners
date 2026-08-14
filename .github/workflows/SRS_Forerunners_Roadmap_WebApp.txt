@@ -1,0 +1,423 @@
+# SRS — Forerunners Roadmap Web Application
+
+**Project Name:** Forerunners Roadmap Web App  
+**Version:** 1.0  
+**Date:** August 14, 2026  
+**Tech Stack:** Next.js 14 (App Router), TypeScript, Supabase, Tailwind CSS, ShadCN UI
+
+---
+
+## 1. Project Overview
+
+Forerunners Organization needs a web application to manage and visualize their 2026–2029 strategic roadmap. The application will allow team members to create, edit, and track roadmaps, product lines, outcomes, milestones, and indicators. The system will support multi-language workflows (Python, Java, C#) and integrate with GitHub Actions for automated Excel generation.
+
+---
+
+## 2. System Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           Frontend (User See)           │
+│  Next.js 14 + TypeScript + Tailwind    │
+│  ShadCN UI Components                   │
+└──────────────┬──────────────────────────┘
+               │
+               │ API Calls (REST/GraphQL)
+               │
+┌──────────────▼──────────────────────────┐
+│           Backend Functions             │
+│  Next.js API Routes / Server Actions    │
+│  Edge Functions (Vercel)                │
+└──────────────┬──────────────────────────┘
+               │
+               │ Database Queries
+               │
+┌──────────────▼──────────────────────────┐
+│           Database Layer                │
+│  Supabase (PostgreSQL + RLS)            │
+│  Auth, Storage, Realtime                │
+└─────────────────────────────────────────┘
+```
+
+---
+
+## 3. Tech Stack Details
+
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend Framework** | Next.js 14 (App Router) | SSR, SSG, API routes |
+| **Language** | TypeScript | Type safety |
+| **Package Manager** | pnpm | Fast, disk-efficient |
+| **UI Components** | ShadCN UI | Pre-built accessible components |
+| **Styling** | Tailwind CSS | Utility-first CSS |
+| **Database** | Supabase (PostgreSQL) | Relational DB with RLS |
+| **Authentication** | Supabase Auth | Email/password, OAuth |
+| **Storage** | Supabase Storage | File uploads (Excel, docs) |
+| **Hosting** | Vercel | Auto-deploy from GitHub |
+| **Security** | Cloudflare (WAF, Turnstile) | Bot protection, rate limit |
+| **Testing** | Vitest + Playwright | Unit + E2E testing |
+
+---
+
+## 4. Database Schema (Supabase)
+
+### 4.1 Users (managed by Supabase Auth)
+- `auth.users` (automatic)
+
+### 4.2 Organizations
+```sql
+CREATE TABLE organizations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 4.3 Roadmaps
+```sql
+CREATE TABLE roadmaps (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID REFERENCES organizations(id),
+  title TEXT NOT NULL,
+  description TEXT,
+  start_year INTEGER NOT NULL,
+  end_year INTEGER NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 4.4 Product Lines
+```sql
+CREATE TABLE product_lines (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  roadmap_id UUID REFERENCES roadmaps(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  code TEXT NOT NULL, -- P1, P2, P3, etc.
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 4.5 Yearly Outcomes
+```sql
+CREATE TABLE yearly_outcomes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID REFERENCES product_lines(id) ON DELETE CASCADE,
+  year INTEGER NOT NULL,
+  outcomes TEXT NOT NULL,
+  outputs TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 4.6 Milestones
+```sql
+CREATE TABLE milestones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID REFERENCES product_lines(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  target_date TEXT NOT NULL,
+  status TEXT DEFAULT 'not_started',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 4.7 Indicators
+```sql
+CREATE TABLE indicators (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  roadmap_id UUID REFERENCES roadmaps(id) ON DELETE CASCADE,
+  type TEXT NOT NULL, -- Output, Outcome, Impact
+  name TEXT NOT NULL,
+  definition TEXT NOT NULL,
+  data_source TEXT NOT NULL,
+  target_2027 TEXT,
+  target_2028 TEXT,
+  target_2029 TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### 4.8 Files (Excel uploads)
+```sql
+CREATE TABLE files (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  roadmap_id UUID REFERENCES roadmaps(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  file_type TEXT NOT NULL,
+  uploaded_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+---
+
+## 5. Row Level Security (RLS) Policies
+
+```sql
+-- Enable RLS on all tables
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE roadmaps ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_lines ENABLE ROW LEVEL SECURITY;
+ALTER TABLE yearly_outcomes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE milestones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE indicators ENABLE ROW LEVEL SECURITY;
+ALTER TABLE files ENABLE ROW LEVEL SECURITY;
+
+-- Example: Users can only see their organization's data
+CREATE POLICY "Users can view own org"
+ON organizations FOR SELECT
+USING (auth.uid() IN (
+  SELECT user_id FROM org_members WHERE org_id = id
+));
+
+-- Example: Authenticated users can insert roadmaps
+CREATE POLICY "Auth users can insert roadmaps"
+ON roadmaps FOR INSERT
+TO authenticated
+WITH CHECK (true);
+```
+
+---
+
+## 6. API Routes (Next.js App Router)
+
+```
+app/
+├── api/
+│   ├── roadmaps/
+│   │   ├── route.ts          # GET, POST
+│   │   └── [id]/
+│   │       └── route.ts      # GET, PUT, DELETE
+│   ├── products/
+│   │   └── route.ts
+│   ├── outcomes/
+│   │   └── route.ts
+│   ├── milestones/
+│   │   └── route.ts
+│   ├── indicators/
+│   │   └── route.ts
+│   └── upload/
+│       └── route.ts          # File upload to Supabase Storage
+├── (auth)/
+│   ├── login/
+│   │   └── page.tsx
+│   └── signup/
+│       └── page.tsx
+├── dashboard/
+│   └── page.tsx
+├── roadmaps/
+│   ├── page.tsx              # List all roadmaps
+│   └── [id]/
+│       └── page.tsx          # View single roadmap
+└── layout.tsx
+```
+
+---
+
+## 7. Core Features
+
+### 7.1 Authentication
+- Email/password login via Supabase Auth
+- OAuth (Google, GitHub) optional
+- Protected routes with middleware
+
+### 7.2 Dashboard
+- Overview of all roadmaps
+- Quick stats (total products, milestones, etc.)
+- Recent activity feed
+
+### 7.3 Roadmap Management
+- Create/edit/delete roadmaps
+- Add product lines (P1–P6)
+- Add yearly outcomes (2026–2029)
+- Add milestones with status tracking
+
+### 7.4 Indicators Tracking
+- Add/edit/delete indicators
+- Filter by type (Output, Outcome, Impact)
+- View targets by year
+
+### 7.5 File Management
+- Upload Excel files to Supabase Storage
+- Download generated Excel files
+- Version control for files
+
+### 7.6 Export
+- Export roadmap to Excel (auto-generated)
+- Export to PDF (future)
+- Share via public link (optional)
+
+---
+
+## 8. Security & Compliance
+
+### 8.1 Authentication & Authorization
+- Supabase Auth with JWT
+- RLS policies on all tables
+- Role-based access (Admin, Editor, Viewer)
+
+### 8.2 Bot Protection
+- Cloudflare Turnstile on login/signup forms
+- Honeypot fields on forms
+- Rate limiting via Cloudflare
+
+### 8.3 Data Protection
+- HTTPS only (Vercel auto)
+- Encrypted database (Supabase)
+- Regular backups (Supabase auto)
+
+---
+
+## 9. Environment Variables (.env.local)
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Vercel
+VERCEL_ENV=production
+
+# Cloudflare (optional)
+NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY=your_turnstile_key
+```
+
+---
+
+## 10. Project Setup Commands
+
+```bash
+# 1. Create Next.js app with TypeScript
+pnpm create next-app@latest forerunners-roadmap --typescript --tailwind --app
+
+# 2. Install dependencies
+cd forerunners-roadmap
+pnpm add @supabase/supabase-js @supabase/ssr
+pnpm add lucide-react class-variance-authority clsx tailwind-merge
+pnpm add -D @types/node @types/react
+
+# 3. Install ShadCN UI
+pnpm dlx shadcn-ui@latest init
+pnpm dlx shadcn-ui@latest add button card input table dialog
+
+# 4. Install testing tools
+pnpm add -D vitest @vitejs/plugin-react
+pnpm add -D playwright @playwright/test
+
+# 5. Setup Supabase client
+# Create lib/supabase.ts with your credentials
+```
+
+---
+
+## 11. File Structure
+
+```
+forerunners-roadmap/
+├── app/
+│   ├── api/
+│   ├── (auth)/
+│   ├── dashboard/
+│   ├── roadmaps/
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/
+│   ├── ui/              # ShadCN components
+│   ├── roadmap/
+│   ├── dashboard/
+│   └── shared/
+├── lib/
+│   ├── supabase.ts
+│   ├── utils.ts
+│   └── types.ts
+├── public/
+├── styles/
+│   └── globals.css
+├── tests/
+│   ├── unit/
+│   └── e2e/
+├── .env.local
+├── .env.example
+├── next.config.js
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
+```
+
+---
+
+## 12. Development Workflow
+
+```bash
+# 1. Clone repository
+git clone https://github.com/your-username/forerunners-roadmap.git
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Setup environment variables
+cp .env.example .env.local
+# Edit .env.local with your Supabase credentials
+
+# 4. Run development server
+pnpm dev
+
+# 5. Run tests
+pnpm test          # Vitest
+pnpm test:e2e      # Playwright
+
+# 6. Build for production
+pnpm build
+
+# 7. Deploy to Vercel
+git push origin main
+# Vercel auto-deploys
+```
+
+---
+
+## 13. Deployment Checklist
+
+- [ ] GitHub repo created with README
+- [ ] Supabase project created
+- [ ] Database tables created with RLS
+- [ ] .env.local configured
+- [ ] Vercel project connected to GitHub
+- [ ] Cloudflare Turnstile enabled
+- [ ] Tests passing
+- [ ] Production deployment successful
+
+---
+
+## 14. Next Steps
+
+1) **Download this SRS** as PDF/Markdown
+2) **Share with AI** (Claude, GPT-4, Cursor, etc.) to generate code
+3) **Start with authentication** → Dashboard → Roadmap CRUD
+4) **Iterate** based on feedback
+
+---
+
+## 15. Appendix
+
+### 15.1 Glossary
+- **SRS:** System Requirements Specification
+- **RLS:** Row Level Security
+- **SSR:** Server-Side Rendering
+- **SSG:** Static Site Generation
+- **E2E:** End-to-End (testing)
+
+### 15.2 References
+- Next.js Documentation: https://nextjs.org/docs
+- Supabase Documentation: https://supabase.com/docs
+- ShadCN UI: https://ui.shadcn.com
+- Tailwind CSS: https://tailwindcss.com
+
+---
+
+**Prepared by:** Forerunners Organization  
+**Approved by:** Technical Team  
+**Date:** August 14, 2026
