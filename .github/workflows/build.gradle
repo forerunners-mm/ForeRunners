@@ -1,0 +1,28 @@
+// Java Build Configuration
+// Save as: java-code/build.gradle
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Apache POI for Excel processing
+    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+
+    // Testing
+    testImplementation 'junit:junit:4.13.2'
+}
+
+application {
+    mainClass = 'com.forerunners.Main'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
