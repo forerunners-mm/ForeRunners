@@ -1,0 +1,15 @@
+# Project Concept Note — Public Blank Template
+**Project title:** [Title]
+**Project code:** [Code]
+**Location:** [Location]
+**Duration:** [Months]
+**Target group:** [Group]
+**Problem statement:** [Evidence-based need]
+**Goal:** [Overall change]
+**Objectives:** [Specific measurable objectives]
+**Activities:** [Key activities]
+**Expected results and indicators:** [Outputs, outcomes, measurement]
+**Safeguarding and inclusion:** [Risks and mitigations]
+**Budget summary:** [Public-safe estimates only]
+**Sustainability:** [Continuation plan]
+**Review status:** Draft — adapt to donor requirements.
