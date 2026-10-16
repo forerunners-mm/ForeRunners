@@ -1,0 +1,149 @@
+{
+  "id": "youth-leadership",
+  "title": {
+    "en": "Youth Leadership and Community Participation",
+    "my": "ခေါင်းဆောင်မှုနှင့် လူထုပူးပေါင်းပါဝင်မှု"
+  },
+  "level": "beginner",
+  "languages": [
+    "my",
+    "en"
+  ],
+  "estimated_minutes": 45,
+  "publication_status": "draft_review_required",
+  "lessons": [
+    {
+      "id": "01",
+      "title": {
+        "en": "Understand the basics",
+        "my": "အခြေခံကို နားလည်ခြင်း"
+      },
+      "body": {
+        "en": "Start by noticing a community issue in everyday life. Ask what the issue is, who is affected, and what safe action is possible. Do not collect personal or sensitive information.",
+        "my": "နေ့စဉ်ဘဝမှာ ခေါင်းဆောင်မှုနှင့် လူထုပူးပေါင်းပါဝင်မှု နဲ့ဆိုင်တဲ့ အခြေအနေတွေကို သတိပြုပါ။ ပြဿနာကဘာလဲ၊ ဘယ်သူတွေ ထိခိုက်နိုင်လဲ၊ ဘယ်လို လုံခြုံစွာ ဆောင်ရွက်နိုင်လဲ စဉ်းစားပါ။ ကိုယ်ရေးအချက်အလက် မစုဆောင်းပါနှင့်။"
+      },
+      "reflection": {
+        "en": "Name one safe action you could take.",
+        "my": "သင်လုပ်နိုင်တဲ့ လုံခြုံသော လုပ်ဆောင်ချက်တစ်ခု ရေးပါ။"
+      }
+    }
+  ],
+  "knowledge_check": [
+    {
+      "question_en": "Which action best supports community problem?",
+      "question_my": "ခေါင်းဆောင်မှုနှင့် လူထုပူးပေါင်းပါဝင်မှု အတွက် ဘယ်လုပ်ဆောင်ချက်က အကောင်းဆုံးလဲ။",
+      "options_en": [
+        "Identify the issue and choose a safe practical action",
+        "Ignore the issue",
+        "Share private information publicly"
+      ],
+      "options_my": [
+        "ပြဿနာကို သိရှိပြီး လုံခြုံသင့်လျော်သော လုပ်ဆောင်ချက် ရွေးချယ်မယ်",
+        "ပြဿနာကို လျစ်လျူရှုမယ်",
+        "ကိုယ်ရေးအချက်အလက်ကို လူသိရှင်ကြား မျှဝေမယ်"
+      ],
+      "answer_index": 0,
+      "explanation_en": "Start with informed, safe and practical action.",
+      "explanation_my": "အချက်အလက်ကို အခြေခံပြီး လုံခြုံသင့်လျော်စွာ ဆောင်ရွက်ပါ။"
+    },
+    {
+      "question_en": "What should you do before taking action?",
+      "question_my": "လုပ်ဆောင်မှု မစတင်မီ ဘာလုပ်သင့်သလဲ။",
+      "options_en": [
+        "Ask for consent and consider safety",
+        "Assume everyone agrees",
+        "Collect sensitive details unnecessarily"
+      ],
+      "options_my": [
+        "သဘောတူညီမှု ရယူပြီး လုံခြုံရေး စဉ်းစားမယ်",
+        "လူတိုင်း သဘောတူတယ်လို့ ယူဆမယ်",
+        "မလိုအပ်တဲ့ အရေးကြီးကိုယ်ရေးအချက်အလက်တွေ စုမယ်"
+      ],
+      "answer_index": 0,
+      "explanation_en": "Consent and safety are essential.",
+      "explanation_my": "သဘောတူညီမှုနဲ့ လုံခြုံရေးက အရေးကြီးပါတယ်။"
+    }
+  ],
+  "final_exam": [
+    {
+      "question_en": "Which action best supports community problem?",
+      "question_my": "ခေါင်းဆောင်မှုနှင့် လူထုပူးပေါင်းပါဝင်မှု အတွက် ဘယ်လုပ်ဆောင်ချက်က အကောင်းဆုံးလဲ။",
+      "options_en": [
+        "Identify the issue and choose a safe practical action",
+        "Ignore the issue",
+        "Share private information publicly"
+      ],
+      "options_my": [
+        "ပြဿနာကို သိရှိပြီး လုံခြုံသင့်လျော်သော လုပ်ဆောင်ချက် ရွေးချယ်မယ်",
+        "ပြဿနာကို လျစ်လျူရှုမယ်",
+        "ကိုယ်ရေးအချက်အလက်ကို လူသိရှင်ကြား မျှဝေမယ်"
+      ],
+      "answer_index": 0,
+      "explanation_en": "Start with informed, safe and practical action.",
+      "explanation_my": "အချက်အလက်ကို အခြေခံပြီး လုံခြုံသင့်လျော်စွာ ဆောင်ရွက်ပါ။"
+    },
+    {
+      "question_en": "What should you do before taking action?",
+      "question_my": "လုပ်ဆောင်မှု မစတင်မီ ဘာလုပ်သင့်သလဲ။",
+      "options_en": [
+        "Ask for consent and consider safety",
+        "Assume everyone agrees",
+        "Collect sensitive details unnecessarily"
+      ],
+      "options_my": [
+        "သဘောတူညီမှု ရယူပြီး လုံခြုံရေး စဉ်းစားမယ်",
+        "လူတိုင်း သဘောတူတယ်လို့ ယူဆမယ်",
+        "မလိုအပ်တဲ့ အရေးကြီးကိုယ်ရေးအချက်အလက်တွေ စုမယ်"
+      ],
+      "answer_index": 0,
+      "explanation_en": "Consent and safety are essential.",
+      "explanation_my": "သဘောတူညီမှုနဲ့ လုံခြုံရေးက အရေးကြီးပါတယ်။"
+    },
+    {
+      "question_en": "Which is a useful learning reflection?",
+      "question_my": "ဘယ်အချက်က အသုံးဝင်တဲ့ သင်ယူမှု ပြန်လည်သုံးသပ်ချက်လဲ။",
+      "options_en": [
+        "What did I learn and what can I improve?",
+        "I never need feedback",
+        "I must copy someone else's work"
+      ],
+      "options_my": [
+        "ဘာသင်ယူခဲ့ပြီး ဘာတိုးတက်အောင်လုပ်နိုင်မလဲ",
+        "အကြံပြုချက် မလိုအပ်ဘူး",
+        "သူများအလုပ်ကို ကူးယူရမယ်"
+      ],
+      "answer_index": 0,
+      "explanation_en": "Reflection supports improvement.",
+      "explanation_my": "ပြန်လည်သုံးသပ်ခြင်းက တိုးတက်မှုကို ကူညီပါတယ်။"
+    }
+  ],
+  "assignment": {
+    "title": {
+      "en": "Practical action plan",
+      "my": "လက်တွေ့လုပ်ဆောင်မှု အစီအစဉ်"
+    },
+    "instructions": {
+      "en": "Submit a simple community action plan. Use fictional or non-identifying examples. Include: problem, goal, three actions, safety considerations and reflection (250–400 words or equivalent).",
+      "my": "ကိုယ်ရေးအချက်အလက် မပါသော ဥပမာဖြင့် ပြဿနာ၊ ရည်ရွယ်ချက်၊ လုပ်ဆောင်ချက် (၃) ချက်၊ လုံခြုံရေးနှင့် သင်ယူခဲ့မှုတို့ကို ရေးသားတင်သွင်းပါ။ စာလုံး ၂၅၀–၄၀၀ ခန့် (သို့) ညီမျှသောပုံစံဖြင့် တင်နိုင်သည်။"
+    },
+    "accepted_formats": [
+      "text",
+      "pdf"
+    ],
+    "rubric": {
+      "understanding": 30,
+      "practicality": 30,
+      "safety_and_inclusion": 25,
+      "reflection": 15
+    },
+    "passing_score": 70
+  },
+  "certificate_rules": {
+    "lesson_completion_percent": 80,
+    "exam_pass_percent": 70,
+    "assignment_pass_percent": 70,
+    "requires_human_approval": true,
+    "certificate_type": "completion",
+    "not_professional_accreditation": true
+  }
+}
