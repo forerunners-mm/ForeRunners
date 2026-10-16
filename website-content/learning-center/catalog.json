@@ -1,0 +1,218 @@
+[
+  {
+    "id": "youth-leadership",
+    "title": {
+      "en": "Youth Leadership & Community Participation",
+      "my": "လူငယ်ခေါင်းဆောင်မှုနှင့် လူထုပူးပေါင်းပါဝင်မှု"
+    },
+    "level": "beginner",
+    "access": "free",
+    "registrationRequiredFor": [
+      "assignment",
+      "final_exam",
+      "certificate"
+    ],
+    "lesson": {
+      "en": "Ask community members before planning action",
+      "my": "ရပ်ရွာလုပ်ငန်းမစမီ လူထုအမြင်ကို မေးမြန်းပါ"
+    },
+    "assignment": {
+      "en": "Interview two people about a shared issue and draft a three-step plan."
+    },
+    "assessment": {
+      "quizDraftQuestions": 1,
+      "assignmentRubric": {
+        "relevance": 40,
+        "practicality": 30,
+        "safetyAndInclusion": 30
+      },
+      "proposedPass": {
+        "lessonCompletionPercent": 80,
+        "examPercent": 70,
+        "assignmentPoints": 70
+      },
+      "manualApprovalRequired": true
+    },
+    "status": "draft"
+  },
+  {
+    "id": "mhpss",
+    "title": {
+      "en": "Mental Health & Psychosocial Support",
+      "my": "စိတ်ကျန်းမာရေးနှင့် စိတ်လူမှုဆိုင်ရာပံ့ပိုးမှု"
+    },
+    "level": "beginner",
+    "access": "free",
+    "registrationRequiredFor": [
+      "assignment",
+      "final_exam",
+      "certificate"
+    ],
+    "lesson": {
+      "en": "Listen without judgment; respect confidentiality and referral boundaries",
+      "my": "အပြစ်မတင်ဘဲ နားထောင်၍ ကိုယ်ရေးလုံခြုံမှုကို လေးစားပါ"
+    },
+    "assignment": {
+      "en": "Create a safe one-week self-care plan without sharing personal trauma."
+    },
+    "assessment": {
+      "quizDraftQuestions": 1,
+      "assignmentRubric": {
+        "relevance": 40,
+        "practicality": 30,
+        "safetyAndInclusion": 30
+      },
+      "proposedPass": {
+        "lessonCompletionPercent": 80,
+        "examPercent": 70,
+        "assignmentPoints": 70
+      },
+      "manualApprovalRequired": true
+    },
+    "status": "draft"
+  },
+  {
+    "id": "livelihoods",
+    "title": {
+      "en": "Livelihoods & Entrepreneurship",
+      "my": "အသက်မွေးဝမ်းကျောင်းနှင့် စီးပွားရေးစွမ်းဆောင်ရည်"
+    },
+    "level": "beginner",
+    "access": "free",
+    "registrationRequiredFor": [
+      "assignment",
+      "final_exam",
+      "certificate"
+    ],
+    "lesson": {
+      "en": "List costs before setting a price",
+      "my": "ရောင်းဈေးမသတ်မှတ်မီ ကုန်ကျစရိတ်စာရင်းလုပ်ပါ"
+    },
+    "assignment": {
+      "en": "Draft a one-page business plan with costs, customers and risks."
+    },
+    "assessment": {
+      "quizDraftQuestions": 1,
+      "assignmentRubric": {
+        "relevance": 40,
+        "practicality": 30,
+        "safetyAndInclusion": 30
+      },
+      "proposedPass": {
+        "lessonCompletionPercent": 80,
+        "examPercent": 70,
+        "assignmentPoints": 70
+      },
+      "manualApprovalRequired": true
+    },
+    "status": "draft"
+  },
+  {
+    "id": "digital-safety",
+    "title": {
+      "en": "Digital Literacy & Online Safety",
+      "my": "ဒစ်ဂျစ်တယ်အသိပညာနှင့် အွန်လိုင်းလုံခြုံရေး"
+    },
+    "level": "beginner",
+    "access": "free",
+    "registrationRequiredFor": [
+      "assignment",
+      "final_exam",
+      "certificate"
+    ],
+    "lesson": {
+      "en": "Never share an OTP; enable multi-factor authentication",
+      "my": "OTP မမျှဝေပါနှင့်။ MFA ဖွင့်ထားပါ"
+    },
+    "assignment": {
+      "en": "Create a fictional account security checklist without real credentials."
+    },
+    "assessment": {
+      "quizDraftQuestions": 1,
+      "assignmentRubric": {
+        "relevance": 40,
+        "practicality": 30,
+        "safetyAndInclusion": 30
+      },
+      "proposedPass": {
+        "lessonCompletionPercent": 80,
+        "examPercent": 70,
+        "assignmentPoints": 70
+      },
+      "manualApprovalRequired": true
+    },
+    "status": "draft"
+  },
+  {
+    "id": "environment",
+    "title": {
+      "en": "Environment & Climate Resilience",
+      "my": "ပတ်ဝန်းကျင်ထိန်းသိမ်းရေးနှင့် ရာသီဥတုဒဏ်ခံနိုင်မှု"
+    },
+    "level": "beginner",
+    "access": "free",
+    "registrationRequiredFor": [
+      "assignment",
+      "final_exam",
+      "certificate"
+    ],
+    "lesson": {
+      "en": "Use clean covered containers for stored drinking water",
+      "my": "သောက်ရေကို သန့်ရှင်းသော အဖုံးပါပုံးတွင် ထားပါ"
+    },
+    "assignment": {
+      "en": "Suggest two low-cost household environmental improvements."
+    },
+    "assessment": {
+      "quizDraftQuestions": 1,
+      "assignmentRubric": {
+        "relevance": 40,
+        "practicality": 30,
+        "safetyAndInclusion": 30
+      },
+      "proposedPass": {
+        "lessonCompletionPercent": 80,
+        "examPercent": 70,
+        "assignmentPoints": 70
+      },
+      "manualApprovalRequired": true
+    },
+    "status": "draft"
+  },
+  {
+    "id": "inclusion",
+    "title": {
+      "en": "Gender Equality & Social Inclusion",
+      "my": "ကျားမတန်းတူညီမျှမှုနှင့် လူမှုပါဝင်နိုင်မှု"
+    },
+    "level": "beginner",
+    "access": "free",
+    "registrationRequiredFor": [
+      "assignment",
+      "final_exam",
+      "certificate"
+    ],
+    "lesson": {
+      "en": "Ask about accessibility and participation needs",
+      "my": "လူတိုင်းပါဝင်နိုင်ရန် လိုအပ်ချက်များကို မေးမြန်းပါ"
+    },
+    "assignment": {
+      "en": "Design an inclusive community event checklist."
+    },
+    "assessment": {
+      "quizDraftQuestions": 1,
+      "assignmentRubric": {
+        "relevance": 40,
+        "practicality": 30,
+        "safetyAndInclusion": 30
+      },
+      "proposedPass": {
+        "lessonCompletionPercent": 80,
+        "examPercent": 70,
+        "assignmentPoints": 70
+      },
+      "manualApprovalRequired": true
+    },
+    "status": "draft"
+  }
+]
