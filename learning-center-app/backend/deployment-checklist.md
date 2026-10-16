@@ -1,0 +1,13 @@
+# Production readiness checklist
+- [ ] Supabase project created by owner
+- [ ] Run `schema.sql` from backend package
+- [ ] Confirm RLS with multiple test accounts
+- [ ] Seed and approve complete bilingual lesson and final-exam banks
+- [ ] Deploy `lms-actions` Edge Function with JWT verification
+- [ ] Configure project URL and publishable key in frontend
+- [ ] Connect registration, enrollment, progress and text assignments
+- [ ] Build private PDF assignment uploads and safe retention rules
+- [ ] Build staff review dashboard
+- [ ] Implement certificate PDF rendering, verification and download
+- [ ] Add privacy notice, consent and deletion request process
+- [ ] Publish only after end-to-end testing
