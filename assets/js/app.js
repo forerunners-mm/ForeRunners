@@ -15,7 +15,7 @@ const translations = {
     learnTogether:"LEARN TOGETHER",learningTitle:"Knowledge should open doors.",learningText:"Our planned Learning Center will bring together practical lessons, activities and resources in Myanmar and English. Learning materials will be added as they are prepared and reviewed.",learningUpdates:"Get learning updates",
     learn1:"Digital literacy & responsible AI",learn2:"Wellbeing & psychosocial awareness",learn3:"Small business & livelihoods",learn4:"Leadership & community action",
     workTogether:"WORK WITH US",involvedTitle:"Good change is built together.",involvedText:"We welcome conversations with community groups, trainers, civil society organizations and potential partners who share our commitment to inclusive and sustainable development.",visitWebsite:"Visit our website ↗",viewGithub:"Explore our GitHub ↗",
-    tagline:"Empowering Youth. Strengthening Communities. Creating Change.",footerStatus:"Myanmar-based CBO • Registration in progress"
+    tagline:"Empowering Youth. Strengthening Communities. Creating Change.",footerStatus:"Myanmar-based CBO • Registration not yet complete"
   },
   my: {
     navAbout:"အကြောင်းအရာ",navPrograms:"လုပ်ငန်းအစီအစဉ်များ",navLearning:"သင်ယူရေးစင်တာ",navInvolved:"ပူးပေါင်းပါဝင်ရန်",eyebrow:"လူထုဦးဆောင်သော ပြောင်းလဲမှု • မြန်မာ",
@@ -33,33 +33,72 @@ const translations = {
     learnTogether:"အတူတကွ သင်ယူကြမယ်",learningTitle:"အသိပညာသည် အခွင့်အလမ်းများကို ဖွင့်ပေးသင့်သည်။",learningText:"စီစဉ်နေဆဲဖြစ်သော သင်ယူရေးစင်တာတွင် မြန်မာနှင့် အင်္ဂလိပ်ဘာသာဖြင့် လက်တွေ့သင်ခန်းစာများ၊ လှုပ်ရှားမှုများနှင့် အရင်းအမြစ်များကို စုစည်းပေးသွားမည်ဖြစ်သည်။ သင်ခန်းစာများကို ပြင်ဆင်စစ်ဆေးပြီးမှ ထည့်သွင်းသွားပါမည်။",learningUpdates:"သင်ခန်းစာအသစ်များ သိရှိရန်",
     learn1:"ဒစ်ဂျစ်တယ်အသိပညာနှင့် တာဝန်ယူမှုရှိသော AI",learn2:"စိတ်ကျန်းမာရေးနှင့် စိတ်ပိုင်းဆိုင်ရာအသိပညာ",learn3:"အသေးစားစီးပွားရေးနှင့် အသက်မွေးဝမ်းကျောင်း",learn4:"ခေါင်းဆောင်မှုနှင့် လူထုလုပ်ဆောင်ချက်",
     workTogether:"အတူတကွ လုပ်ဆောင်ကြမယ်",involvedTitle:"ကောင်းမွန်သော အပြောင်းအလဲကို အတူတကွ တည်ဆောက်ကြမယ်။",involvedText:"အားလုံးပါဝင်နိုင်ပြီး ရေရှည်တည်တံ့သော ဖွံ့ဖြိုးရေးကို ယုံကြည်သည့် လူထုအဖွဲ့များ၊ သင်တန်းပို့ချသူများ၊ အရပ်ဘက်လူမှုအဖွဲ့အစည်းများနှင့် မိတ်ဖက်များကို ဆက်သွယ်ပူးပေါင်းရန် ဖိတ်ခေါ်ပါသည်။",visitWebsite:"Website သို့ သွားရန် ↗",viewGithub:"GitHub ကို ကြည့်ရန် ↗",
-    tagline:"လူငယ်များကို စွမ်းအားမြှင့်တင်ခြင်း။ လူမှုအသိုင်းအဝိုင်းကို ခိုင်မာစေခြင်း။ ပြောင်းလဲမှုကို ဖန်တီးခြင်း။",footerStatus:"မြန်မာနိုင်ငံအခြေစိုက် CBO • မှတ်ပုံတင်ခြင်း ဆောင်ရွက်ဆဲ"
+    tagline:"လူငယ်များကို စွမ်းအားမြှင့်တင်ခြင်း။ လူမှုအသိုင်းအဝိုင်းကို ခိုင်မာစေခြင်း။ ပြောင်းလဲမှုကို ဖန်တီးခြင်း။",footerStatus:"မြန်မာနိုင်ငံအခြေစိုက် CBO • မှတ်ပုံတင်ခြင်း မပြီးပြတ်သေးပါ"
   }
 };
-let currentLanguage = "en";
+
 const languageToggle = document.getElementById("languageToggle");
 const menuToggle = document.getElementById("menuToggle");
 const nav = document.getElementById("primaryNav");
-function setLanguage(lang) {
+const year = document.getElementById("year");
+const supportedLanguages = ["en", "my"];
+let currentLanguage = "en";
+
+function setLanguage(language, persist = true) {
+  const lang = supportedLanguages.includes(language) ? language : "en";
   currentLanguage = lang;
-  document.documentElement.lang = lang === "my" ? "my" : "en";
-  document.body.lang = lang === "my" ? "my" : "en";
+  document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach((element) => {
-    const key = element.dataset.i18n;
-    if (translations[lang][key]) element.innerHTML = translations[lang][key];
+    const value = translations[lang][element.dataset.i18n];
+    // All HTML markup is maintained in this local, developer-authored dictionary.
+    if (typeof value === "string") element.innerHTML = value;
   });
-  languageToggle.textContent = lang === "en" ? "မြန်မာ" : "English";
-  languageToggle.setAttribute("aria-label", lang === "en" ? "မြန်မာဘာသာသို့ ပြောင်းရန်" : "Switch to English");
-  document.title = lang === "en" ? "ForeRunners Organization | Empowering Communities" : "ForeRunners Organization | လူမှုအသိုင်းအဝိုင်း ဖွံ့ဖြိုးရေး";
+
+  if (languageToggle) {
+    languageToggle.textContent = lang === "en" ? "မြန်မာ" : "English";
+    languageToggle.setAttribute("aria-label", lang === "en" ? "မြန်မာဘာသာသို့ ပြောင်းရန်" : "Switch to English");
+  }
+  document.title = lang === "en"
+    ? "ForeRunners Organization | Empowering Communities"
+    : "ForeRunners Organization | လူမှုအသိုင်းအဝိုင်း ဖွံ့ဖြိုးရေး";
+
+  if (persist) {
+    try { localStorage.setItem("forerunners-language", lang); } catch (_) { /* Storage may be disabled. */ }
+  }
 }
-languageToggle.addEventListener("click", () => setLanguage(currentLanguage === "en" ? "my" : "en"));
-menuToggle.addEventListener("click", () => {
-  const expanded = menuToggle.getAttribute("aria-expanded") === "true";
-  menuToggle.setAttribute("aria-expanded", String(!expanded));
-  nav.classList.toggle("open", !expanded);
-});
-nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => {
-  nav.classList.remove("open");
+
+if (languageToggle) {
+  languageToggle.addEventListener("click", () => setLanguage(currentLanguage === "en" ? "my" : "en"));
+}
+
+function closeMenu() {
+  if (!menuToggle || !nav) return;
   menuToggle.setAttribute("aria-expanded", "false");
-}));
-document.getElementById("year").textContent = new Date().getFullYear();
+  nav.classList.remove("open");
+}
+
+if (menuToggle && nav) {
+  menuToggle.addEventListener("click", () => {
+    const isExpanded = menuToggle.getAttribute("aria-expanded") === "true";
+    menuToggle.setAttribute("aria-expanded", String(!isExpanded));
+    nav.classList.toggle("open", !isExpanded);
+  });
+
+  nav.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      const wasOpen = nav.classList.contains("open");
+      closeMenu();
+      if (wasOpen) menuToggle.focus();
+    }
+  });
+}
+
+if (year) year.textContent = String(new Date().getFullYear());
+
+let savedLanguage = "en";
+try {
+  const storedLanguage = localStorage.getItem("forerunners-language");
+  if (supportedLanguages.includes(storedLanguage)) savedLanguage = storedLanguage;
+} catch (_) { /* Storage may be disabled. */ }
+setLanguage(savedLanguage, false);
