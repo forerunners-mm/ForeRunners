@@ -1,82 +1,82 @@
 # SRHR Learning Myanmar
 
-**Digital Learning, Community Awareness and Women's Empowerment for Adolescent Girls**  
-**Location:** Six wards, Insein Township, Yangon Region, Myanmar  
-**Duration:** 12 months  
-**Target:** 600 adolescent girls  
-**Proposed budget:** USD 120,000
+**Learn. Play. Grow.**  
+Digital SRHR learning and community awareness for adolescent girls in six selected wards of Insein Township, Yangon Region, Myanmar.
 
-## Partnership
+## Project snapshot
 
-- **Lead organization:** Nway Htway Eain Organization (NHE)
-- **Technical support partner:** ForeRunners Organization (FR)
+- **Duration:** 12 months
+- **Target:** 600 adolescent girls aged 10–19
+- **Lead:** Nway Htway Eain Organization (NHE)
+- **Technical support:** ForeRunners Organization (FR)
+- **Proposed budget:** USD 120,000 (planning estimate; subject to donor eligibility and detailed costing)
 
-NHE leads community awareness sessions, community initiative activities, community engagement and local implementation. FR provides the digital learning website, AI-assisted learning design, quizzes, educational games and technical support.
+## Partnership roles
 
-## Project components
+NHE leads community entry, participant engagement, awareness sessions, community initiatives, local coordination and referral coordination. FR provides the digital learning platform, learning tools, technical support and digital monitoring. Qualified SRHR professionals must review educational content before publication.
 
-1. Community awareness sessions (NHE)
-2. Community initiative activities (NHE)
-3. SRHR Learning Center (FR technical support)
-4. Quiz Center (FR technical support)
-5. Game Center (FR technical support)
-6. AI Learning Companion based on reviewed SRHR resources (FR technical support)
-7. Monitoring, evaluation, safeguarding and referrals (joint)
+## Learning components
 
-## Proposed 100-level learning pathway
+1. Learning Center — structured lessons.
+2. Quiz Center — reviewed questions with a pass threshold.
+3. Game Center — planned interactive learning games; not yet implemented in this Apps Script pilot.
+4. AI Learning Companion — planned; disabled until approved SRHR sources, safety testing and professional review are completed.
+5. Learner dashboard — anonymous learner ID and progress summary.
 
-- Levels 1–20: Puberty and body awareness
-- Levels 21–40: Menstrual health and hygiene
-- Levels 41–60: Reproductive health
-- Levels 61–80: Consent, relationships and personal safety
-- Levels 81–100: SRHR, rights and informed decision-making
+## Repository structure
 
-All educational content must be reviewed by qualified SRHR professionals before publication. The learning pathway is a planning framework, not a completed curriculum.
-
-## Budget allocation
-
-| Category | NHE (USD) | FR (USD) | Total (USD) |
-|---|---:|---:|---:|
-| Project coordination and personnel | 15,000 | 3,000 | 18,000 |
-| Community awareness sessions | 24,000 | 0 | 24,000 |
-| Community initiative activities | 15,000 | 0 | 15,000 |
-| SRHR educational materials and accessibility | 6,000 | 2,000 | 8,000 |
-| Website and AI assistant development | 0 | 20,000 | 20,000 |
-| Digital learning content and gamification | 0 | 10,000 | 10,000 |
-| Monitoring, evaluation and learning | 5,000 | 3,000 | 8,000 |
-| Safeguarding, referral support and staff training | 3,000 | 2,000 | 5,000 |
-| Transportation and field operations | 5,000 | 0 | 5,000 |
-| Administration and communications | 1,500 | 1,500 | 3,000 |
-| Contingency (only if funder permits) | 2,000 | 2,000 | 4,000 |
-| **TOTAL** | **76,500** | **43,500** | **120,000** |
-
-This is a proposed planning budget, not an approved grant budget. Confirm eligible costs, staffing, quantities, procurement estimates and any funder restrictions before submission.
-
-## Prototype status
-
-This repository folder is a project starter. The included Apps Script files are a basic prototype, not a production-ready service. Do not use real child data in testing. Before piloting, complete SRHR expert review, child safeguarding and privacy review, access controls, secure session handling, referral mapping and testing.
+- `docs/PROJECT-CONCEPT.md` — project concept note.
+- `docs/SAFEGUARDING-AND-DATA.md` — minimum safeguarding and privacy requirements.
+- `docs/DEPLOYMENT-GUIDE.md` — Apps Script setup and deployment.
+- `budget/budget.csv` — proposed partner budget.
+- `apps-script/Code.gs` — Apps Script backend.
+- `apps-script/Index.html` — bilingual learner website.
 
 ## Google Apps Script setup
 
-1. Create a dedicated Google Sheet for the project.
+1. Create a dedicated Google Sheet for this pilot.
 2. Open **Extensions → Apps Script** from that Sheet.
-3. Copy `Code.gs` and `Index.html` from this folder into the Apps Script project.
-4. Run `setupProject()` once and authorize it.
-5. Deploy as a web app for a restricted test group first. Review Google Apps Script quotas and access settings before expanding.
-6. Never store API keys in client-side HTML or commit secrets to GitHub.
+3. Replace the default script with the contents of `apps-script/Code.gs`.
+4. Add an HTML file named exactly `Index` and paste `apps-script/Index.html`.
+5. Save the project.
+6. Select and run `setupProject()` once from the Apps Script editor. Review and authorize the requested permissions.
+7. Confirm that the Sheets named Users, Levels, QuizQuestions, UserProgress, ActivityLog and Settings were created.
+8. Add SRHR lessons and quiz questions only after qualified review. Follow the column definitions in the Sheets and the deployment guide.
+9. Deploy first to a restricted test group. Do not make it publicly available to children until the safeguarding, privacy, security and referral requirements are approved.
+10. Test with dummy accounts and dummy content.
 
-The current starter intentionally does not include an AI API integration or public prize registration. Add those only after approved SRHR source materials and safeguarding procedures are in place.
+## Important implementation status
 
-## Data protection principles
+This is a **pilot MVP**, not a production-ready child-facing service.
 
-- Use pseudonymous learner IDs; do not collect names, phone numbers, addresses or school names for ordinary learning.
-- Do not show identifiable public leaderboards.
-- Do not store AI chat transcripts by default.
-- Do not collect guardian contact details in the learning database.
-- Use age-appropriate consent/assent and guardian procedures where required.
-- Provide a clear human referral pathway; the AI is educational and is not a clinician or emergency service.
+Implemented in this version:
+- Anonymous account creation (pseudonymous learner ID; token hash stored in Sheets).
+- Published lesson listing and lesson display.
+- Lesson-read recording.
+- Quiz retrieval and server-side scoring.
+- 70% quiz pass threshold.
+- Sequential level completion and progress dashboard.
 
-## Organizations
+Not implemented:
+- AI chat integration.
+- Interactive Game Center.
+- Admin interface / role-based publishing.
+- Rate limiting and advanced abuse protection.
+- Independent security assessment or production-grade authentication.
+- Full offline mode.
 
-- Lead: Nway Htway Eain Organization (NHE)
-- Technical support: ForeRunners Organization (FR)
+Do not claim these features are operational until they have been built and tested.
+
+## Privacy and safeguarding
+
+- Do not collect learner names, phone numbers, addresses, school names or sensitive health/sexual information in this prototype.
+- The anonymous token is stored in the learner's browser local storage. This is a pilot convenience, not strong authentication.
+- Do not use public leaderboards or publish identifiable learner data.
+- Do not store AI chat transcripts by default; AI integration is currently disabled.
+- Obtain appropriate consent/assent and guardian involvement as required and safe.
+- Establish a designated safeguarding focal person and verified referral pathways before involving minors.
+- See `docs/SAFEGUARDING-AND-DATA.md`.
+
+## Budget note
+
+The USD 120,000 partner allocation is a proposed planning estimate, not an approved grant budget. Confirm donor eligibility, quantities, unit costs, staffing and eligible cost rules before submission.
