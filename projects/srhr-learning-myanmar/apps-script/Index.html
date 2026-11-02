@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SRHR Learning Myanmar</title>
+  <style>
+    :root { --ink:#233047; --muted:#64748b; --brand:#6d4aff; --soft:#f4f1ff; --line:#e5e7eb; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:Arial,"Noto Sans Myanmar",sans-serif; background:#f8fafc; color:var(--ink); line-height:1.6; }
+    header { padding:30px 20px; color:white; background:linear-gradient(135deg,#6548d9,#b24b94); }
+    header .wrap, main { max-width:1000px; margin:auto; }
+    h1 { margin:0 0 8px; font-size:clamp(1.7rem,4vw,2.5rem); }
+    .tag { margin:0; opacity:.95; }
+    main { padding:22px 16px 48px; }
+    .notice { padding:14px 16px; background:#fff8e6; border:1px solid #f3d58a; border-radius:12px; margin-bottom:18px; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .card { background:white; border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:0 4px 18px #18233a0a; }
+    .card h2 { margin-top:0; font-size:1.2rem; }
+    button { cursor:pointer; border:0; border-radius:10px; padding:11px 15px; background:var(--brand); color:white; font-weight:700; }
+    button.secondary { background:var(--soft); color:var(--brand); }
+    button:focus, input:focus { outline:3px solid #c4b5fd; outline-offset:2px; }
+    input { width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:9px; margin:6px 0 12px; }
+    .muted { color:var(--muted); font-size:.95rem; }
+    #status { margin:14px 0; white-space:pre-wrap; }
+    #dashboard { display:none; }
+    .pill { display:inline-block; padding:4px 10px; background:var(--soft); color:var(--brand); border-radius:999px; font-size:.85rem; }
+    footer { text-align:center; color:var(--muted); padding:24px; font-size:.9rem; }
+  </style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="pill">Learn • Play • Grow</span>
+    <h1>SRHR Learning Myanmar</h1>
+    <p class="tag">လိင်နှင့် မျိုးဆက်ပွားကျန်းမာရေးနှင့် အခွင့်အရေးဆိုင်ရာ အသိပညာကို လုံခြုံစွာ လေ့လာကြမယ်။</p>
+  </div>
+</header>
+<main>
+  <div class="notice">
+    <strong>လုံခြုံစွာ လေ့လာရန်</strong><br>
+    ဤ website သည် စမ်းသပ်ဆဲ prototype ဖြစ်သည်။ သင်ခန်းစာများကို SRHR ကျွမ်းကျင်သူများက စစ်ဆေးအတည်ပြုပြီးမှ အသုံးပြုနိုင်မည်ဖြစ်သည်။ ဤစနစ်သည် ဆေးဘက်ဆိုင်ရာ အကြံဉာဏ် သို့မဟုတ် အရေးပေါ်အကူအညီကို အစားမထိုးပါ။
+  </div>
+
+  <section class="grid" aria-label="Learning areas">
+    <article class="card"><h2>📚 Learning Center</h2><p>Puberty, menstrual health, reproductive health, consent and rights အကြောင်း လေ့လာရန်။</p><p class="muted">သင်ခန်းစာများကို ကျွမ်းကျင်သူစစ်ဆေးပြီးမှ ထည့်သွင်းမည်။</p></article>
+    <article class="card"><h2>🧠 Quiz Center</h2><p>သင်ယူထားသော အကြောင်းအရာများကို မေးခွန်းများဖြင့် ပြန်လည်လေ့ကျင့်ရန်။</p><p class="muted">Reviewed question bank လိုအပ်သည်။</p></article>
+    <article class="card"><h2>🎮 Game Center</h2><p>လုံခြုံပြီး အသက်အရွယ်နှင့် သင့်လျော်သော ပညာပေးဂိမ်းများ။</p><p class="muted">Educational games များကို နောက်အဆင့်တွင် ချိတ်ဆက်မည်။</p></article>
+    <article class="card"><h2>💬 AI Learning Companion</h2><p>အတည်ပြုထားသော SRHR အချက်အလက်များအပေါ် အခြေခံသည့် သင်ယူမှုအကူအညီ။</p><p class="muted">AI ချိတ်ဆက်မှုကို safety review ပြီးမှ ဖွင့်မည်။</p></article>
+  </section>
+
+  <section class="card" style="margin-top:16px">
+    <h2>စတင်လေ့လာရန် / Start learning</h2>
+    <p class="muted">အမည်၊ email၊ ဖုန်းနံပါတ် မလိုသော anonymous learner ID ကို ဖန်တီးနိုင်သည်။ Token ကို လုံခြုံစွာ သိမ်းထားပါ။ Token ပျောက်ဆုံးပါက account ကို ပြန်လည်ရယူနိုင်မည်ဟု အာမခံမထားပါ။</p>
+    <button id="createBtn" onclick="createAccount()">Anonymous Account ဖန်တီးမည်</button>
+    <div id="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section id="dashboard" class="card" style="margin-top:16px">
+    <h2>My Learning Dashboard</h2>
+    <div id="dashInfo"></div>
+    <button class="secondary" onclick="refreshDashboard()">Progress ပြန်စစ်မည်</button>
+  </section>
+</main>
+<footer>
+  Lead organization: Nway Htway Eain Organization · Technical support: ForeRunners Organization<br>
+  Restricted prototype — do not enter personal or sensitive information.
+</footer>
+<script>
+  const TOKEN_KEY = 'srhr_learning_token';
+  const ID_KEY = 'srhr_learning_id';
+  const statusEl = document.getElementById('status');
+
+  function showStatus(message) { statusEl.textContent = message; }
+
+  function createAccount() {
+    const btn = document.getElementById('createBtn');
+    btn.disabled = true;
+    showStatus('Account ဖန်တီးနေပါသည်…');
+    google.script.run
+      .withSuccessHandler(result => {
+        localStorage.setItem(TOKEN_KEY, result.token);
+        localStorage.setItem(ID_KEY, result.learnerId);
+        showStatus('သင့် Learner ID: ' + result.learnerId +
+          '\nသင့် session token ကို လုံခြုံစွာ သိမ်းထားပါ။ ၎င်းကို အခြားသူများနှင့် မမျှဝေပါနှင့်။');
+        document.getElementById('dashboard').style.display = 'block';
+        refreshDashboard();
+        btn.disabled = false;
+      })
+      .withFailureHandler(err => {
+        showStatus('အမှားဖြစ်နေပါသည်။ နောက်တစ်ကြိမ် ကြိုးစားပါ။');
+        btn.disabled = false;
+      })
+      .createAnonymousAccount();
+  }
+
+  function refreshDashboard() {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    google.script.run
+      .withSuccessHandler(data => {
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('dashInfo').textContent =
+          'Learner ID: ' + data.learnerId +
+          ' · Completed levels: ' + data.completedLevels + '/' + data.totalLevels +
+          ' · Points: ' + data.points;
+      })
+      .withFailureHandler(() => showStatus('Progress ကို ယခုစစ်ဆေး၍ မရပါ။'))
+      .getDashboard(token);
+  }
+
+  window.addEventListener('load', () => {
+    if (localStorage.getItem(TOKEN_KEY)) refreshDashboard();
+  });
+</script>
+</body>
+</html>
