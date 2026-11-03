@@ -27,6 +27,8 @@ jobs:
           test -s livelihood-learning-center/styles.css
           test -s livelihood-learning-center/app.js
           test -s livelihood-learning-center/config.js
+          test -s livelihood-learning-center/supabase/recovery/live_schema_snapshot_20261103.sql
+          test -s livelihood-learning-center/supabase/recovery/live_seed_data_20261103.sql
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const html = fs.readFileSync('livelihood-learning-center/index.html', 'utf8');
@@ -38,5 +40,13 @@ jobs:
             if (!ids.includes(id)) throw new Error('Missing required HTML element: ' + id);
           }
           if (!app.includes('learner_notifications')) throw new Error('Notification integration is missing from the client.');
+          const snapshot = fs.readFileSync('livelihood-learning-center/supabase/recovery/live_schema_snapshot_20261103.sql', 'utf8');
+          const seed = fs.readFileSync('livelihood-learning-center/supabase/recovery/live_seed_data_20261103.sql', 'utf8');
+          for (const token of ['create schema if not exists private','enable row level security','create policy','create trigger','cron.schedule']) {
+            if (!snapshot.toLowerCase().includes(token)) throw new Error('Recovery snapshot missing: ' + token);
+          }
+          for (const table of ['public.courses','public.modules','public.lessons','public.quizzes','public.quiz_questions','private.quiz_answer_keys']) {
+            if (!seed.includes('insert into ' + table)) throw new Error('Seed data missing: ' + table);
+          }
           console.log('LMS static checks passed.');
           NODE
