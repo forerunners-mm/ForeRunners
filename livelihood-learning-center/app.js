@@ -314,7 +314,7 @@ async function loadAdmin(){
   supabase.from("enrollments").select("id,learner_id,course_id,status,applied_at,profiles(full_name,phone),courses(title_my,title_en,level)").order("applied_at",{ascending:false}),
   supabase.from("courses").select("id,title_my,title_en,level,is_published,sort_order").order("sort_order"),
   supabase.from("modules").select("id,course_id,title_my,title_en,sort_order").order("sort_order"),
-  supabase.from("lessons").select("id,module_id,title_my,title_en,is_published,sort_order").order("sort_order"),
+  supabase.from("lessons").select("id,module_id,title_my,title_en,content_my,content_en,video_url,resource_path,is_published,content_status,version_no,updated_at,sort_order").order("sort_order"),
   supabase.from("quizzes").select("id,course_id,title_my,title_en,pass_mark,is_published,created_at"),
   supabase.from("quiz_questions").select("id,quiz_id"),
   supabase.from("lesson_progress").select("id,learner_id,lesson_id,status"),
@@ -503,6 +503,55 @@ function renderAdminSupportThread(id){
  el("admin-support-reply").onsubmit=async e=>{e.preventDefault();const body=el("admin-support-body").value.trim();const {error}=await supabase.from("support_messages").insert({request_id:id,sender_id:currentUser.id,body});if(error){alert(error.message);return;}await supabase.from("support_requests").update({updated_at:new Date().toISOString(),status:"in_progress"}).eq("id",id);await loadAdmin();renderAdminSupportThread(id);};
  el("support-resolve").onclick=async()=>{await adminSave(supabase.from("support_requests").update({status:"resolved",updated_at:new Date().toISOString()}).eq("id",id));};
 }
+function setupLessonEditor(){
+ const sel=el("lesson-module"),keep=sel.value;
+ sel.innerHTML=adminCache.modules.map(m=>'<option value="'+m.id+'">'+adminEsc(language==="my"?m.title_my:m.title_en)+'</option>').join("");
+ if(adminCache.modules.some(m=>m.id===keep))sel.value=keep;
+ el("lesson-editor-reset").onclick=()=>{el("lesson-editor-form").reset();el("lesson-edit-id").value="";el("lesson-revision-history").innerHTML="";};
+ el("lesson-editor-form").onsubmit=saveLessonDraft;
+ document.querySelectorAll("[data-lesson-edit]").forEach(b=>b.onclick=()=>editLesson(b.dataset.lessonEdit));
+ document.querySelectorAll("[data-lesson-status]").forEach(b=>b.onclick=()=>changeLessonStatus(b.dataset.lessonStatus,b.dataset.next));
+}
+function editLesson(id){
+ const l=adminCache.lessons.find(x=>x.id===id);if(!l)return;
+ el("lesson-edit-id").value=l.id;el("lesson-module").value=l.module_id;
+ el("lesson-title-my").value=l.title_my;el("lesson-title-en").value=l.title_en;
+ el("lesson-content-my").value=l.content_my||"";el("lesson-content-en").value=l.content_en||"";
+ el("lesson-video-url").value=l.video_url||"";el("lesson-change-note").value="";
+ loadLessonRevisions(id);
+}
+async function loadLessonRevisions(id){
+ const root=el("lesson-revision-history");
+ const {data,error}=await supabase.from("lesson_revisions").select("version_no,change_note,created_at,profiles:changed_by(full_name)").eq("lesson_id",id).order("version_no",{ascending:false});
+ if(error){root.textContent=error.message;return;}
+ root.innerHTML="<h4>Version history / ပြင်ဆင်မှုမှတ်တမ်း</h4>"+(data||[]).map(v=>'<p>v'+v.version_no+' · '+adminEsc(v.change_note||"Updated")+' · '+new Date(v.created_at).toLocaleString()+'</p>').join("")||"<p>No revision history.</p>";
+}
+async function saveLessonDraft(event){
+ event.preventDefault();const msg=el("lesson-editor-message");msg.textContent="";
+ const id=el("lesson-edit-id").value;
+ const payload={module_id:el("lesson-module").value,title_my:el("lesson-title-my").value.trim(),title_en:el("lesson-title-en").value.trim(),content_my:el("lesson-content-my").value.trim(),content_en:el("lesson-content-en").value.trim(),video_url:el("lesson-video-url").value.trim()||null,content_status:"draft",is_published:false,updated_at:new Date().toISOString()};
+ if(!payload.title_my||!payload.title_en){msg.textContent="Myanmar and English titles are required.";return;}
+ try{
+  if(id){
+   const old=adminCache.lessons.find(x=>x.id===id);const nextVersion=(old.version_no||1)+1;
+   const rev={lesson_id:id,version_no:nextVersion,title_my:old.title_my,title_en:old.title_en,content_my:old.content_my,content_en:old.content_en,resource_path:old.resource_path,video_url:old.video_url,changed_by:currentUser.id,change_note:el("lesson-change-note").value.trim()||"Updated lesson"};
+   const {error:re}=await supabase.from("lesson_revisions").insert(rev);if(re)throw re;
+   const {error}=await supabase.from("lessons").update({...payload,version_no:nextVersion}).eq("id",id);if(error)throw error;
+  }else{
+   const {error}=await supabase.from("lessons").insert({...payload,sort_order:adminCache.lessons.filter(x=>x.module_id===payload.module_id).length+1,created_by:currentUser.id});if(error)throw error;
+  }
+  msg.textContent="Saved as draft. It is not visible to learners.";
+  el("lesson-editor-form").reset();el("lesson-edit-id").value="";el("lesson-revision-history").innerHTML="";
+  await loadAdmin();
+ }catch(error){msg.textContent=error.message||"Could not save lesson.";msg.classList.add("error");}
+}
+async function changeLessonStatus(id,status){
+ const l=adminCache.lessons.find(x=>x.id===id);if(!l)return;
+ if(status==="published"&&(!l.content_my?.trim()||!l.content_en?.trim())){alert("Both Myanmar and English content are required before publishing.");return;}
+ const patch={content_status:status,is_published:status==="published",updated_at:new Date().toISOString(),reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()};
+ const {error}=await supabase.from("lessons").update(patch).eq("id",id);
+ if(error){alert(error.message);return;}await loadAdmin();
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -514,7 +563,7 @@ function renderAdmin(){
  el("admin-enrollments").innerHTML=adminTable(["Learner","Course","Status","Action"],adminCache.enrollments.map(a=>'<tr><td>'+adminEsc(a.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(a.courses?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+adminEsc(a.status)+'</td><td>'+(a.status==="pending"?'<button class="small-btn approve" data-app-approve="'+a.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-app-reject="'+a.id+'">'+t("reject")+'</button>':"—")+'</td></tr>'));
  el("admin-courses").innerHTML=adminTable(["Level","Course","Status","Action"],adminCache.courses.map(q=>'<tr><td>'+adminEsc(q.level)+'</td><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+(q.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-course-publish="'+q.id+'" data-next="'+(!q.is_published)+'">'+(q.is_published?"Unpublish":"Publish")+'</button></td></tr>'));
  const mods=new Map(adminCache.modules.map(m=>[m.id,m]));
- el("admin-lessons").innerHTML=adminTable(["Module","Lesson","Status"],adminCache.lessons.map(l=>'<tr><td>'+adminEsc(mods.get(l.module_id)?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+adminEsc(language==="my"?l.title_my:l.title_en)+'</td><td>'+(l.is_published?"Published":"Draft")+'</td></tr>'));
+ el("admin-lessons").innerHTML=adminTable(["Module","Lesson","Version","Status","Actions"],adminCache.lessons.map(l=>'<tr><td>'+adminEsc(mods.get(l.module_id)?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+adminEsc(language==="my"?l.title_my:l.title_en)+'</td><td>v'+(l.version_no||1)+'</td><td>'+adminEsc(l.content_status|| (l.is_published?"published":"draft"))+'</td><td><button class="small-btn" data-lesson-edit="'+l.id+'">Edit</button> <button class="small-btn approve" data-lesson-status="'+l.id+'" data-next="in_review">Submit review</button> <button class="small-btn approve" data-lesson-status="'+l.id+'" data-next="published">Publish</button> <button class="small-btn reject" data-lesson-status="'+l.id+'" data-next="archived">Archive</button></td></tr>'));
  const qc=new Map();adminCache.questions.forEach(q=>qc.set(q.quiz_id,(qc.get(q.quiz_id)||0)+1));
  el("admin-quizzes").innerHTML=adminTable(["Quiz","Level","Questions","Pass mark","Status","Action"],adminCache.quizzes.map(q=>'<tr><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+adminEsc(adminCache.courses.find(x=>x.id===q.course_id)?.level||"—")+'</td><td>'+(qc.get(q.id)||0)+'</td><td>'+Number(q.pass_mark)+'%</td><td>'+(q.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-quiz-publish="'+q.id+'" data-next="'+(!q.is_published)+'" '+((qc.get(q.id)||0)===0&&!q.is_published?"disabled":"")+'>'+(q.is_published?"Unpublish":"Publish")+'</button></td></tr>'));
  el("admin-report-progress").innerHTML=adminTable(["Course","Approved learners","Lessons","Completed records"],adminCache.courses.map(q=>{const mids=adminCache.modules.filter(m=>m.course_id===q.id).map(m=>m.id),lids=adminCache.lessons.filter(l=>mids.includes(l.module_id)).map(l=>l.id),en=adminCache.enrollments.filter(e=>e.course_id===q.id&&["approved","completed"].includes(e.status)).length,done=adminCache.progress.filter(p=>lids.includes(p.lesson_id)&&p.status==="completed").length;return '<tr><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+en+'</td><td>'+lids.length+'</td><td>'+done+'</td></tr>';}));
@@ -523,6 +572,7 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ setupLessonEditor();
  renderAdminSupport();
  el("admin-announcement-form").onsubmit=async e=>{e.preventDefault();const {error}=await supabase.from("announcements").insert({title_my:el("announce-title-my").value.trim(),title_en:el("announce-title-en").value.trim(),body_my:el("announce-body-my").value.trim(),body_en:el("announce-body-en").value.trim(),is_published:true,published_at:new Date().toISOString(),created_by:currentUser.id});el("announce-form-message").textContent=error?error.message:"Announcement published.";if(!error){e.target.reset();await loadAdmin();}};
  renderMEL();
