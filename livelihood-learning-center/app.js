@@ -362,7 +362,7 @@ async function loadAdmin(){
   supabase.from("announcements").select("id,title_my,title_en,body_my,body_en,is_published,published_at").order("created_at",{ascending:false}),
   supabase.from("support_requests").select("id,learner_id,subject,category,status,created_at,updated_at,profiles(full_name)").order("updated_at",{ascending:false}),
   supabase.from("support_messages").select("id,request_id,sender_id,body,created_at").order("created_at"),
-  supabase.from("course_trainers").select("id,course_id,trainer_id,assigned_at,profiles:trainer_id(full_name,phone),courses(title_my,title_en,level)").order("assigned_at",{ascending:false})
+  supabase.from("course_trainers").select("id,course_id,trainer_id,assigned_at,trainer:profiles!course_trainers_trainer_id_fkey(full_name,phone),courses(title_my,title_en,level)").order("assigned_at",{ascending:false})
  ]);
  const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
@@ -593,7 +593,7 @@ function renderAdminTrainers(){
  const trainers=adminCache.users.filter(u=>u.role==="trainer"&&u.account_status==="approved");
  el("trainer-user-select").innerHTML=trainers.map(u=>'<option value="'+u.id+'">'+adminEsc(u.full_name||u.phone||u.id)+'</option>').join("");
  el("trainer-course-select").innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
- el("admin-trainer-assignments").innerHTML=adminTable(["Trainer","Course","Assigned","Action"],adminCache.courseTrainers.map(x=>'<tr><td>'+adminEsc(x.profiles?.full_name||"Trainer")+'</td><td>'+adminEsc(x.courses?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+new Date(x.assigned_at).toLocaleDateString()+'</td><td><button class="small-btn reject" data-trainer-unassign="'+x.id+'">Remove</button></td></tr>'));
+ el("admin-trainer-assignments").innerHTML=adminTable(["Trainer","Course","Assigned","Action"],adminCache.courseTrainers.map(x=>'<tr><td>'+adminEsc(x.trainer?.full_name||"Trainer")+'</td><td>'+adminEsc(x.courses?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+new Date(x.assigned_at).toLocaleDateString()+'</td><td><button class="small-btn reject" data-trainer-unassign="'+x.id+'">Remove</button></td></tr>'));
  document.querySelectorAll("[data-trainer-unassign]").forEach(b=>b.onclick=()=>adminSave(supabase.from("course_trainers").delete().eq("id",b.dataset.trainerUnassign)));
 }
 async function assignTrainer(event){
