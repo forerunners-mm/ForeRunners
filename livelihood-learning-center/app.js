@@ -169,7 +169,25 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;}
+  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);}
+}
+async function loadCareerOpportunities(){
+ const [{data:opportunities,error:opError},{data:applications,error:appError}]=await Promise.all([
+  supabase.from("career_opportunities").select("*").eq("status","published").order("application_deadline",{ascending:true}),
+  supabase.from("career_opportunity_applications").select("id,opportunity_id,status,cover_note,applied_at,reviewed_at,career_opportunities(title,organization_name,opportunity_type,application_deadline)").eq("learner_id",currentUser.id).order("applied_at",{ascending:false})
+ ]);
+ if(opError)throw opError;if(appError)throw appError;
+ const applied=new Set((applications||[]).map(a=>a.opportunity_id));
+ el("career-opportunity-list").innerHTML=(opportunities||[]).map(o=>'<article class="assignment-card"><h3>'+escapeHtml(o.title)+'</h3><p><b>'+escapeHtml(o.organization_name||"Opportunity")+'</b> · '+escapeHtml(o.opportunity_type)+'</p><p>'+escapeHtml(o.description)+'</p><p><small>'+escapeHtml(o.location_text||"Location not specified")+' · '+escapeHtml(o.work_mode)+' · '+escapeHtml(o.compensation_text||"Compensation not specified")+'</small></p><p><b>Required skills:</b> '+escapeHtml((o.required_skills||[]).join(", ")||"Not specified")+'</p><p><b>Deadline:</b> '+escapeHtml(o.application_deadline||"Not specified")+'</p>'+(o.application_url?'<p><a href="'+escapeHtml(o.application_url)+'" target="_blank" rel="noopener">External application details</a></p>':'')+(applied.has(o.id)?'<span class="muted">Application submitted</span>':'<button class="primary-btn" data-apply-opportunity="'+o.id+'">Apply / လျှောက်ထားရန်</button>')+'</article>').join("")||'<p class="muted">No opportunities are currently published.</p>';
+ el("my-career-applications").innerHTML=(applications||[]).map(a=>'<article class="assignment-card"><b>'+escapeHtml(a.career_opportunities?.title||"Opportunity")+'</b><p>'+escapeHtml(a.career_opportunities?.organization_name||"")+'</p><p>Status: '+escapeHtml(a.status)+'</p><small>Applied: '+new Date(a.applied_at).toLocaleDateString()+'</small>'+(a.status==="submitted"?'<button class="small-btn reject" data-withdraw-application="'+a.id+'">Withdraw</button>':'')+'</article>').join("")||'<p class="muted">You have not applied for any opportunities yet.</p>';
+ el("my-career-applications").querySelectorAll("[data-withdraw-application]").forEach(b=>b.onclick=async()=>{if(!confirm("Withdraw this application?"))return;const {error}=await supabase.from("career_opportunity_applications").update({status:"withdrawn"}).eq("id",b.dataset.withdrawApplication);if(error){alert(error.message);return;}await loadCareerOpportunities();});
+}
+async function applyForCareerOpportunity(event){
+ const b=event.target.closest("[data-apply-opportunity]");if(!b)return;
+ const note=prompt("Add a short cover note (optional):");if(note===null)return;
+ b.disabled=true;
+ const {error}=await supabase.from("career_opportunity_applications").insert({opportunity_id:b.dataset.applyOpportunity,learner_id:currentUser.id,cover_note:note.trim()||null});
+ if(error){alert(error.message);b.disabled=false;return;}await loadCareerOpportunities();
 }
 function csvText(value){return (value||"").split(",").map(x=>x.trim()).filter(Boolean);}
 async function loadCareerPortfolio(){
@@ -416,7 +434,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -443,11 +461,13 @@ async function loadAdmin(){
   supabase.from("course_trainers").select("id,course_id,trainer_id,assigned_at,trainer:profiles!course_trainers_trainer_id_fkey(full_name,phone),courses(title_my,title_en,level)").order("assigned_at",{ascending:false}),
   supabase.from("learner_evaluations").select("id,course_id,learner_id,trainer_id,assessment_type,practical_skills_score,task_completion_score,problem_solving_score,communication_score,participation_score,overall_score,strengths,improvement_areas,evidence_notes,recommendation,trainer_feedback,status,assessed_at,reviewed_at,learner:profiles!learner_evaluations_learner_id_fkey(full_name),trainer:profiles!learner_evaluations_trainer_id_fkey(full_name),courses(title_my,title_en,level)").order("assessed_at",{ascending:false}),
   supabase.from("career_readiness_assessments").select("id,learner_id,pathway,career_interest,overall_score,support_needs,next_steps,status,created_at,learner:profiles!career_readiness_assessments_learner_id_fkey(full_name)").order("created_at",{ascending:false}),
-  supabase.from("learner_skill_profiles").select("learner_id,career_pathway,career_goal,skills,languages,location_text,learner:profiles!learner_skill_profiles_learner_id_fkey(full_name)").order("updated_at",{ascending:false})
+  supabase.from("learner_skill_profiles").select("learner_id,career_pathway,career_goal,skills,languages,location_text,learner:profiles!learner_skill_profiles_learner_id_fkey(full_name)").order("updated_at",{ascending:false}),
+  supabase.from("career_opportunities").select("*").order("created_at",{ascending:false}),
+  supabase.from("career_opportunity_applications").select("id,opportunity_id,learner_id,cover_note,status,applied_at,admin_notes,career_opportunities(title,organization_name),profiles!career_opportunity_applications_learner_id_fkey(full_name)").order("applied_at",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -684,6 +704,19 @@ async function assignTrainer(event){
  msg.textContent=error?error.message:"Trainer assigned to course.";
  if(error)msg.classList.add("error");else{msg.classList.remove("error");await loadAdmin();}
 }
+function renderAdminCareerOpportunities(){
+ el("admin-career-opportunities").innerHTML=adminTable(["Opportunity","Type","Pathway","Deadline","Status","Actions"],adminCache.opportunities.map(o=>'<tr><td>'+adminEsc(o.title)+'<br><small>'+adminEsc(o.organization_name||"")+'</small></td><td>'+adminEsc(o.opportunity_type)+'</td><td>'+adminEsc(o.pathway)+'</td><td>'+adminEsc(o.application_deadline||"—")+'</td><td>'+adminEsc(o.status)+'</td><td>'+['draft','published','closed','archived'].filter(s=>s!==o.status).map(s=>'<button class="small-btn" data-op-status="'+o.id+'" data-status="'+s+'">'+s+'</button>').join(" ")+'</td></tr>'));
+ document.querySelectorAll("[data-op-status]").forEach(b=>b.onclick=async()=>{const {error}=await supabase.from("career_opportunities").update({status:b.dataset.status,updated_at:new Date().toISOString()}).eq("id",b.dataset.opStatus);if(error){alert(error.message);return;}await loadAdmin();});
+ el("admin-career-applications").innerHTML=adminTable(["Learner","Opportunity","Cover note","Applied","Status","Admin notes"],adminCache.careerApplications.map(a=>'<tr><td>'+adminEsc(a.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(a.career_opportunities?.title||"")+'</td><td>'+adminEsc(a.cover_note||"—")+'</td><td>'+new Date(a.applied_at).toLocaleDateString()+'</td><td><select data-career-app-status="'+a.id+'">'+["submitted","under_review","shortlisted","accepted","rejected","withdrawn"].map(s=>'<option value="'+s+'" '+(a.status===s?"selected":"")+'>'+s+'</option>').join("")+'</select></td><td><textarea data-career-app-notes="'+a.id+'" rows="2">'+adminEsc(a.admin_notes||"")+'</textarea><button class="small-btn" data-save-career-app="'+a.id+'">Save</button></td></tr>'));
+ document.querySelectorAll("[data-save-career-app]").forEach(b=>b.onclick=async()=>{const id=b.dataset.saveCareerApp,status=document.querySelector('[data-career-app-status="'+id+'"]').value,admin_notes=document.querySelector('[data-career-app-notes="'+id+'"]').value.trim()||null;const {error}=await supabase.from("career_opportunity_applications").update({status,admin_notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq("id",id);if(error){alert(error.message);return;}await loadAdmin();});
+}
+async function saveCareerOpportunity(event){
+ event.preventDefault();const msg=el("op-message");msg.textContent="";
+ const url=el("op-url").value.trim();if(url&&!/^https?:\/\//i.test(url)){msg.textContent="Application URL must start with http:// or https://";msg.classList.add("error");return;}
+ const deadline=el("op-deadline").value||null;if(deadline&&deadline<new Date().toISOString().slice(0,10)&&el("op-status").value==="published"){msg.textContent="A published opportunity cannot have a past deadline.";msg.classList.add("error");return;}
+ const payload={title:el("op-title").value.trim(),organization_name:el("op-org").value.trim()||null,opportunity_type:el("op-type").value,pathway:el("op-pathway").value,description:el("op-description").value.trim(),location_text:el("op-location").value.trim()||null,work_mode:el("op-mode").value,compensation_text:el("op-compensation").value.trim()||null,application_deadline:deadline,application_url:url||null,required_skills:csvText(el("op-required-skills").value),preferred_skills:csvText(el("op-preferred-skills").value),status:el("op-status").value,created_by:currentUser.id};
+ const {error}=await supabase.from("career_opportunities").insert(payload);if(error){msg.textContent=error.message;msg.classList.add("error");return;}msg.textContent="Opportunity saved.";msg.classList.remove("error");event.currentTarget.reset();await loadAdmin();
+}
 function renderAdminCareerReadiness(){
  const rows=adminCache.careerAssessments.map(a=>'<tr><td>'+adminEsc(a.learner?.full_name||"Learner")+'</td><td>'+adminEsc(a.pathway)+'</td><td>'+adminEsc(a.career_interest||"—")+'</td><td>'+Number(a.overall_score).toFixed(1)+'%</td><td>'+adminEsc(a.support_needs||"—")+'</td><td>'+adminEsc(a.next_steps||"—")+'</td><td>'+adminEsc(a.status)+'</td></tr>');
  el("admin-career-readiness").innerHTML=adminTable(["Learner","Pathway","Interest","Score","Support needs","Next steps","Status"],rows);
@@ -719,6 +752,8 @@ function bindAdminActions(){
  renderAdminSupport();
  renderAdminEvaluations();
  renderAdminCareerReadiness();
+ renderAdminCareerOpportunities();
+ el("career-opportunity-form").onsubmit=saveCareerOpportunity;
  el("admin-announcement-form").onsubmit=async e=>{e.preventDefault();const {error}=await supabase.from("announcements").insert({title_my:el("announce-title-my").value.trim(),title_en:el("announce-title-en").value.trim(),body_my:el("announce-body-my").value.trim(),body_en:el("announce-body-en").value.trim(),is_published:true,published_at:new Date().toISOString(),created_by:currentUser.id});el("announce-form-message").textContent=error?error.message:"Announcement published.";if(!error){e.target.reset();await loadAdmin();}};
  renderMEL();
  el("attendance-course").onchange=renderMEL;el("attendance-date").onchange=renderMEL;el("mel-export").onclick=exportMELCSV;
