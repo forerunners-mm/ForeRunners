@@ -156,4 +156,4 @@ async function handleSession(session){
 applyLanguage();
 const {data:{session}}=await supabase.auth.getSession();
 await handleSession(session);
-supabase.auth.onAuthStateChange((_event,nextSession)=>{handleSession(nextSession);});
+supabase.auth.onAuthStateChange((_event,nextSession)=>{queueMicrotask(()=>handleSession(nextSession));});
