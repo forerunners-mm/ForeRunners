@@ -68,6 +68,15 @@
         <div id="learner-assignments" class="assignment-list"></div>
         <div id="learner-certificates" class="assignment-list"></div>
       </div>
+      <section class="panel" id="learner-support">
+        <h3>Announcements / ကြေညာချက်များ</h3><div id="learner-announcements"></div>
+        <h3>Learning Support / သင်တန်းအကူအညီ</h3>
+        <form id="support-request-form"><div class="field"><label for="support-subject">Subject / အကြောင်းအရာ</label><input id="support-subject" maxlength="180" required></div>
+        <div class="field"><label for="support-category">Category / အမျိုးအစား</label><select id="support-category"><option value="general">General</option><option value="course">Course</option><option value="technical">Technical</option><option value="safeguarding">Safeguarding</option><option value="complaint">Complaint</option><option value="other">Other</option></select></div>
+        <div class="field"><label for="support-message">Message / အသေးစိတ်</label><textarea id="support-message" rows="3" maxlength="10000" required></textarea></div>
+        <button class="primary-btn" type="submit">Send request / အကူအညီတောင်းရန်</button><p id="support-form-message" class="message" role="status"></p></form>
+        <div id="learner-support-requests"></div>
+      </section>
       <div id="lesson-reader" class="panel lesson-reader hidden">
         <button id="lesson-back-btn" class="ghost" type="button" data-i18n="lessonBack">သင်ခန်းစာစာရင်းသို့ ပြန်ရန်</button>
         <p id="lesson-reader-module" class="eyebrow"></p>
@@ -79,7 +88,7 @@
 
     <section id="admin-section" class="hidden">
       <div class="section-heading"><div><p class="eyebrow">ADMINISTRATION / စီမံခန့်ခွဲမှု</p><h2 data-i18n="adminTitle">Learning Center Dashboard</h2></div><span class="chip admin-chip">ADMIN</span></div>
-      <nav class="admin-nav"><button class="admin-tab active" data-admin-tab="overview">Overview</button><button class="admin-tab" data-admin-tab="learners">Learners</button><button class="admin-tab" data-admin-tab="enrollments">Enrollments</button><button class="admin-tab" data-admin-tab="courses">Courses & Lessons</button><button class="admin-tab" data-admin-tab="quizzes">Quizzes</button><button class="admin-tab" data-admin-tab="assignments">Assignments</button><button class="admin-tab" data-admin-tab="certificates">Certificates</button><button class="admin-tab" data-admin-tab="mel">MEL & Attendance</button><button class="admin-tab" data-admin-tab="reports">Reports</button></nav>
+      <nav class="admin-nav"><button class="admin-tab active" data-admin-tab="overview">Overview</button><button class="admin-tab" data-admin-tab="learners">Learners</button><button class="admin-tab" data-admin-tab="enrollments">Enrollments</button><button class="admin-tab" data-admin-tab="courses">Courses & Lessons</button><button class="admin-tab" data-admin-tab="quizzes">Quizzes</button><button class="admin-tab" data-admin-tab="assignments">Assignments</button><button class="admin-tab" data-admin-tab="certificates">Certificates</button><button class="admin-tab" data-admin-tab="mel">MEL & Attendance</button><button class="admin-tab" data-admin-tab="support">Support & News</button><button class="admin-tab" data-admin-tab="reports">Reports</button></nav>
       <div id="admin-alert" class="message" role="status"></div>
       <section class="admin-view" data-admin-view="overview"><div id="admin-stats" class="admin-stats"></div><div class="admin-grid"><div class="panel"><h3>Pending learner accounts</h3><div id="pending-users" class="admin-list"></div></div><div class="panel"><h3>Pending course applications</h3><div id="pending-enrollments" class="admin-list"></div></div></div></section>
       <section class="admin-view hidden" data-admin-view="learners"><div class="panel"><h3>Learner accounts / သင်တန်းသားများ</h3><input id="learner-search" class="admin-search" type="search" placeholder="Search name or phone"><div id="admin-learners" class="admin-table-wrap"></div></div></section>
@@ -95,6 +104,12 @@
  <p class="muted">Attendance records are saved per learner, course and session date. Re-saving updates the existing record.</p>
  </div>
  <div class="panel"><h3>MEL Summary / စောင့်ကြည့်အကဲဖြတ်မှု အကျဉ်းချုပ်</h3><div id="mel-summary" class="admin-stats"></div><div id="mel-course-report" class="admin-table-wrap"></div><button type="button" id="mel-export" class="small-btn">Export MEL CSV</button></div>
+</section>
+<section class="admin-view hidden" data-admin-view="support">
+ <div class="panel"><h3>Publish announcement / ကြေညာချက်တင်ရန်</h3>
+ <form id="admin-announcement-form"><div class="field"><label>Title (Myanmar)</label><input id="announce-title-my" required maxlength="180"></div><div class="field"><label>Title (English)</label><input id="announce-title-en" required maxlength="180"></div><div class="field"><label>Message (Myanmar)</label><textarea id="announce-body-my" required rows="3" maxlength="10000"></textarea></div><div class="field"><label>Message (English)</label><textarea id="announce-body-en" required rows="3" maxlength="10000"></textarea></div><button class="primary-btn" type="submit">Publish announcement</button><p id="announce-form-message" class="message"></p></form>
+ <div id="admin-announcements"></div></div>
+ <div class="panel"><h3>Learner support requests / အကူအညီတောင်းခံမှုများ</h3><div id="admin-support-requests"></div><div id="admin-support-thread"></div></div>
 </section>
 <section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div></section>
     </section>
