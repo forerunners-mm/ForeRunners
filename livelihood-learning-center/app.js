@@ -186,22 +186,35 @@ async function renderLearnerAssignments(courseRows){
  const courseIds=courseRows.map(x=>x.course_id);
  const {data:assignments,error}=await supabase.from("assignments").select("id,course_id,title_my,title_en,instructions_my,instructions_en,due_at").in("course_id",courseIds).eq("is_published",true).order("created_at");
  if(error)throw error;
- const {data:submissions,error:subError}=await supabase.from("assignment_submissions").select("assignment_id,status,score,feedback").eq("learner_id",currentUser.id);
+ const {data:submissions,error:subError}=await supabase.from("assignment_submissions").select("assignment_id,status,score,feedback,file_path").eq("learner_id",currentUser.id);
  if(subError)throw subError;
  const submitted=new Map((submissions||[]).map(x=>[x.assignment_id,x]));
  root.innerHTML=(assignments||[]).map(a=>{
   const s=submitted.get(a.id),title=language==="my"?a.title_my:a.title_en,inst=language==="my"?a.instructions_my:a.instructions_en;
   const state=s?(s.status==="approved"?"Approved":s.status==="needs_revision"?"Needs revision":"Submitted"):"Not submitted";
-  return '<article class="assignment-card"><h4>'+escapeHtml(title)+'</h4><p>'+escapeHtml(inst||"")+'</p><small class="muted">'+(a.due_at?new Date(a.due_at).toLocaleString():"No due date")+' · '+state+'</small>'+(s?'<p>'+((s.score===null||s.score===undefined)?"":"Score: "+Number(s.score)+"/100")+'</p><p>'+escapeHtml(s.feedback||"")+'</p>':'<form class="assignment-submit-form" data-assignment-submit="'+a.id+'"><textarea name="response" rows="3" required placeholder="Write your response / လုပ်ဆောင်ချက်ရေးပါ"></textarea><button class="small-btn" type="submit">Submit / တင်သွင်းရန်</button></form>')+'</article>';
+  const form=s?"":'<form class="assignment-submit-form" data-assignment-submit="'+a.id+'"><label>Written response / စာဖြင့်ဖြေဆိုရန်<textarea name="response" rows="3" placeholder="Write your response / လုပ်ဆောင်ချက်ရေးပါ"></textarea></label><label>Attach file (optional) / ဖိုင်တွဲရန်<input name="attachment" type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" /></label><small class="muted">Maximum 10 MB. PDF, Office documents and images.</small><button class="small-btn" type="submit">Submit / တင်သွင်းရန်</button></form>';
+  return '<article class="assignment-card"><h4>'+escapeHtml(title)+'</h4><p>'+escapeHtml(inst||"")+'</p><small class="muted">'+(a.due_at?new Date(a.due_at).toLocaleString():"No due date")+' · '+state+'</small>'+(s?'<p>'+((s.score===null||s.score===undefined)?"":"Score: "+Number(s.score)+"/100")+'</p><p>'+escapeHtml(s.feedback||"")+'</p>':form)+'</article>';
  }).join("")||'<p class="muted">No assignments available / လက်တွေ့လုပ်ငန်း မရှိသေးပါ။</p>';
  root.querySelectorAll("[data-assignment-submit]").forEach(form=>form.addEventListener("submit",submitLearnerAssignment));
 }
 async function submitLearnerAssignment(event){
- event.preventDefault();const form=event.currentTarget,button=form.querySelector("button");
- button.disabled=true;
- const {error}=await supabase.from("assignment_submissions").insert({assignment_id:form.dataset.assignmentSubmit,learner_id:currentUser.id,text_response:form.elements.response.value.trim()});
- if(error){alert(error.message);button.disabled=false;return;}
- alert(language==="my"?"လုပ်ငန်းတင်သွင်းပြီးပါပြီ။":"Assignment submitted.");await loadLearning();
+ event.preventDefault();const form=event.currentTarget,button=form.querySelector("button"),response=form.elements.response.value.trim(),file=form.elements.attachment.files[0];
+ if(!response&&!file){alert("Write a response or attach a file before submitting.");return;}
+ const allowed=["application/pdf","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.ms-excel","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","application/vnd.ms-powerpoint","application/vnd.openxmlformats-officedocument.presentationml.presentation","image/jpeg","image/png"];
+ if(file&&file.size>10*1024*1024){alert("File must be 10 MB or smaller.");return;}
+ if(file&&!allowed.includes(file.type)){alert("Unsupported file type. Please upload PDF, Office document or JPG/PNG.");return;}
+ button.disabled=true;let filePath=null;
+ try{
+  if(file){
+   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_").slice(-100);
+   filePath=currentUser.id+"/assignments/"+form.dataset.assignmentSubmit+"/"+Date.now()+"_"+safeName;
+   const {error:uploadError}=await supabase.storage.from("lvc-learning-files").upload(filePath,file,{upsert:false,contentType:file.type});
+   if(uploadError)throw uploadError;
+  }
+  const {error}=await supabase.from("assignment_submissions").insert({assignment_id:form.dataset.assignmentSubmit,learner_id:currentUser.id,text_response:response||null,file_path:filePath});
+  if(error){if(filePath)await supabase.storage.from("lvc-learning-files").remove([filePath]);throw error;}
+  alert(language==="my"?"လုပ်ငန်းတင်သွင်းပြီးပါပြီ။":"Assignment submitted.");await loadLearning();
+ }catch(error){alert(error.message||String(error));button.disabled=false;}
 }
 async function openLesson(id){
   const lesson=learningLessons.get(id);if(!lesson)return;
@@ -353,7 +366,7 @@ function renderAdminAssignments(){
   return '<tr><td>'+adminEsc(language==="my"?a.title_my:a.title_en)+'</td><td>'+adminEsc(course?.level||"—")+'</td><td>'+adminEsc(a.due_at?new Date(a.due_at).toLocaleString():"—")+'</td><td>'+(a.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-assignment-publish="'+a.id+'" data-next="'+(!a.is_published)+'">'+(a.is_published?"Unpublish":"Publish")+'</button></td></tr>';
  }));
  el("admin-submissions").innerHTML=adminTable(["Learner","Assignment","Submitted","Work","Score","Review"],adminCache.submissions.map(s=>{
-  return '<tr><td>'+adminEsc(s.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?s.assignments?.title_my:s.assignments?.title_en)+'</td><td>'+new Date(s.submitted_at).toLocaleDateString()+'</td><td><details><summary>View</summary><p>'+adminEsc(s.text_response||"")+'</p></details></td><td><input type="number" min="0" max="100" step="0.5" data-score="'+s.id+'" value="'+(s.score??"")+'" placeholder="0–100"></td><td><select data-status="'+s.id+'"><option value="submitted" '+(s.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewing" '+(s.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="needs_revision" '+(s.status==="needs_revision"?"selected":"")+'>Needs revision</option><option value="approved" '+(s.status==="approved"?"selected":"")+'>Approved</option></select><textarea rows="2" data-feedback="'+s.id+'" placeholder="Feedback">'+adminEsc(s.feedback||"")+'</textarea><button class="small-btn" data-review="'+s.id+'">Save</button></td></tr>';
+  return '<tr><td>'+adminEsc(s.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?s.assignments?.title_my:s.assignments?.title_en)+'</td><td>'+new Date(s.submitted_at).toLocaleDateString()+'</td><td><details><summary>View</summary><p>'+adminEsc(s.text_response||"")+'</p>'+(s.file_path?'<button type="button" class="small-btn" data-submission-file="'+adminEsc(s.file_path)+'">Open attachment</button>':'')+'</details></td><td><input type="number" min="0" max="100" step="0.5" data-score="'+s.id+'" value="'+(s.score??"")+'" placeholder="0–100"></td><td><select data-status="'+s.id+'"><option value="submitted" '+(s.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewing" '+(s.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="needs_revision" '+(s.status==="needs_revision"?"selected":"")+'>Needs revision</option><option value="approved" '+(s.status==="approved"?"selected":"")+'>Approved</option></select><textarea rows="2" data-feedback="'+s.id+'" placeholder="Feedback">'+adminEsc(s.feedback||"")+'</textarea><button class="small-btn" data-review="'+s.id+'">Save</button></td></tr>';
  }));
 }
 async function createAdminAssignment(event){
@@ -398,6 +411,7 @@ function bindAdminActions(){
  el("admin-assignment-form").onsubmit=createAdminAssignment;
  document.querySelectorAll("[data-assignment-publish]").forEach(b=>b.onclick=()=>adminSave(supabase.from("assignments").update({is_published:b.dataset.next==="true"}).eq("id",b.dataset.assignmentPublish)));
  document.querySelectorAll("[data-review]").forEach(b=>b.onclick=()=>saveAdminReview(b.dataset.review));
+ document.querySelectorAll("[data-submission-file]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{const {data,error}=await supabase.storage.from("lvc-learning-files").createSignedUrl(b.dataset.submissionFile,120);if(error)throw error;window.open(data.signedUrl,"_blank","noopener,noreferrer");}catch(error){alert(error.message||String(error));}finally{b.disabled=false;}});
 
  renderAdminQuizForm();
  el("admin-quiz-form").onsubmit=submitAdminQuiz;
