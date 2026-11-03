@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="my">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ForeRunners Livelihood & Vocational Learning Center — Build Skills. Create Livelihoods.">
+  <title>ForeRunners | Livelihood Learning Center</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">F</span><span>ForeRunners<small>Livelihood & Vocational Learning Center</small></span></a>
+    <div class="top-actions">
+      <button id="lang-toggle" class="ghost" type="button">English</button>
+      <button id="signout-btn" class="ghost hidden" type="button" data-i18n="signout">ထွက်ရန်</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="eyebrow">FORE RUNNERS ORGANIZATION</p>
+        <h1 data-i18n="heroTitle">ကျွမ်းကျင်မှု တည်ဆောက်ပါ။ အသက်မွေးဝမ်းကျောင်း ဖန်တီးပါ။</h1>
+        <p data-i18n="heroText">အခြေခံမှ အဆင့်မြင့်အထိ လက်တွေ့အခြေပြု သင်ယူမှုဖြင့် မိမိအသက်မွေးဝမ်းကျောင်းကို တည်ဆောက်ပါ။</p>
+        <div class="hero-pills"><span>BASIC</span><span>ADVANCED</span><span>MYANMAR + ENGLISH</span></div>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="art-circle"></div><div class="art-card"><b>Learn</b><span>Practice</span><strong>Grow</strong></div></div>
+    </section>
+
+    <section id="auth-section" class="panel auth-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow" data-i18n="access">LEARNER ACCESS</p><h2 data-i18n="welcome">သင်ယူမှုစတင်ရန် ဝင်ရောက်ပါ</h2></div>
+        <p class="muted" data-i18n="approvalNote">သင်တန်းဝင်ခွင့်ကို ForeRunners အဖွဲ့မှ အတည်ပြုပေးရပါမည်။</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="tab active" id="login-tab" data-i18n="loginTab">အကောင့်ဝင်ရန်</button>
+        <button class="tab" id="signup-tab" data-i18n="signupTab">အကောင့်ဖွင့်ရန်</button>
+      </div>
+      <form id="auth-form">
+        <div id="name-field" class="field hidden"><label for="full-name" data-i18n="fullName">အမည်</label><input id="full-name" autocomplete="name"></div>
+        <div class="field"><label for="email" data-i18n="email">အီးမေးလ်</label><input id="email" type="email" required autocomplete="email"></div>
+        <div class="field"><label for="password" data-i18n="password">စကားဝှက်</label><input id="password" type="password" required minlength="8" autocomplete="current-password"></div>
+        <button id="auth-submit" class="primary-btn" type="submit" data-i18n="login">အကောင့်ဝင်ရန်</button>
+        <p id="auth-message" class="message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="pending-section" class="panel status-panel hidden">
+      <div class="status-icon">⌛</div><div><h2 data-i18n="pendingTitle">အတည်ပြုရန် စောင့်ဆိုင်းနေပါသည်</h2><p data-i18n="pendingText">သင့်အကောင့်ကို အဖွဲ့မှ စစ်ဆေးအတည်ပြုပြီးနောက် သင်တန်းလျှောက်ထားနိုင်ပါမည်။</p></div>
+    </section>
+
+    <section id="learner-section" class="hidden">
+      <div class="section-heading"><div><p class="eyebrow" data-i18n="learnerSpace">LEARNER SPACE</p><h2><span data-i18n="hello">မင်္ဂလာပါ</span> <span id="learner-name"></span></h2></div><span id="account-chip" class="chip">APPROVED</span></div>
+      <section class="panel" id="learner-notifications" aria-live="polite">
+        <div class="section-heading"><div><h3>Notifications / သတိပေးချက်များ</h3><p class="muted">Private reminders for your learning and graduate follow-ups.</p></div><span id="notification-count" class="chip hidden">0</span></div>
+        <div id="learner-notification-list"><p class="muted">Loading notifications…</p></div>
+      </section>
+      <div class="panel">
+        <h3 data-i18n="coursesTitle">သင်တန်းများ</h3>
+        <p class="muted" data-i18n="coursesText">သင်ယူလိုသော အဆင့်ကို ရွေးချယ်ပြီး လျှောက်ထားပါ။ အတည်ပြုပြီးမှ သင်ခန်းစာများကို ဝင်ရောက်နိုင်ပါမည်။</p>
+        <div id="course-list" class="course-grid"></div>
+      </div>
+      <div class="panel">
+        <h3 data-i18n="myEnrollments">ကျွန်ုပ်၏ သင်တန်းလျှောက်ထားမှုများ</h3>
+        <div id="enrollment-list" class="list-empty muted" data-i18n="noEnrollments">လျှောက်ထားမှု မရှိသေးပါ။</div>
+      </div>
+      <div class="panel learning-panel">
+        <h3 data-i18n="learningTitle">ကျွန်ုပ်၏ သင်ယူမှု</h3>
+        <p class="muted" data-i18n="learningIntro">အတည်ပြုပြီးသော သင်တန်းများ၏ သင်ခန်းစာများကို လေ့လာပါ။</p>
+        <div id="learning-course-list"></div>
+        <div id="quiz-runner" class="quiz-runner hidden"></div>
+        <div id="learner-assignments" class="assignment-list"></div>
+        <div id="learner-certificates" class="assignment-list"></div>
+        <div class="panel"><h3>Trainer competency feedback / သင်တန်းဆရာ၏ အကဲဖြတ်ချက်</h3><div id="learner-evaluations"></div></div>
+      </div>
+      <section class="panel" id="learner-opportunities">
+        <h2>Employment & Self-employment Opportunities / အလုပ်အကိုင်နှင့် ကိုယ်ပိုင်လုပ်ငန်းအခွင့်အလမ်းများ</h2>
+        <p class="muted">Explore published opportunities and submit or track your applications.</p>
+        <div id="career-opportunity-list"></div>
+        <h3>My Applications / လျှောက်ထားမှုမှတ်တမ်း</h3><div id="my-career-applications"></div>
+      </section>
+      <section class="panel" id="learner-career-portfolio">
+        <h2>My Skills Portfolio & Career Readiness / ကျွမ်းကျင်မှုမှတ်တမ်းနှင့် အလုပ်အကိုင်အဆင်သင့်ဖြစ်မှု</h2>
+        <p class="muted">Create your learner profile, showcase practical work, assess your career readiness and prepare a printable CV. Your portfolio is private and visible only to you and authorized Admins.</p>
+        <form id="skill-profile-form">
+          <div class="field"><label>Career pathway / လမ်းကြောင်း</label><select id="career-pathway"><option value="employment">Employment / အလုပ်အကိုင်</option><option value="self_employment">Self-employment / ကိုယ်ပိုင်လုပ်ငန်း</option><option value="apprenticeship">Apprenticeship / အလုပ်သင်</option><option value="further_training">Further training / ဆက်လက်သင်ယူရေး</option><option value="undecided">Undecided / မဆုံးဖြတ်ရသေး</option></select></div>
+          <div class="field"><label>Career goal / ရည်မှန်းချက်</label><input id="career-goal" maxlength="300"></div>
+          <div class="field"><label>Professional summary / ကိုယ်ရေးအကျဉ်း</label><textarea id="career-summary" rows="3" maxlength="3000"></textarea></div>
+          <div class="field"><label>Education / ပညာရေး</label><textarea id="career-education" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Work experience / လုပ်ငန်းအတွေ့အကြုံ</label><textarea id="career-experience" rows="3" maxlength="5000"></textarea></div>
+          <div class="field"><label>Skills (comma separated) / ကျွမ်းကျင်မှုများ</label><input id="career-skills" maxlength="1500" placeholder="e.g. communication, bookkeeping, tailoring"></div>
+          <div class="field"><label>Languages (comma separated) / ဘာသာစကားများ</label><input id="career-languages" maxlength="500"></div>
+          <div class="field"><label>Location / နေထိုင်ရာ</label><input id="career-location" maxlength="180"></div>
+          <button class="primary-btn" type="submit">Save Skills Profile / သိမ်းဆည်းရန်</button><button class="small-btn" id="career-print-cv" type="button">Print CV / CV ထုတ်ရန်</button><p id="career-profile-message" class="message" role="status"></p>
+        </form>
+        <hr><h3>Practical Work Portfolio / လက်တွေ့လုပ်ဆောင်မှုမှတ်တမ်း</h3>
+        <form id="portfolio-item-form">
+          <div class="field"><label>Project / Work title</label><input id="portfolio-title" required maxlength="180"></div>
+          <div class="field"><label>Description / ဖော်ပြချက်</label><textarea id="portfolio-description" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Type</label><select id="portfolio-type"><option value="project">Project</option><option value="practical_work">Practical work</option><option value="work_sample">Work sample</option><option value="volunteer_experience">Volunteer experience</option><option value="certificate">Certificate</option><option value="other">Other</option></select></div>
+          <div class="field"><label>Skills demonstrated (comma separated)</label><input id="portfolio-skills" maxlength="1000"></div>
+          <div class="field"><label>Evidence URL (optional)</label><input id="portfolio-url" type="url" maxlength="1000" placeholder="https://..."></div>
+          <button class="primary-btn" type="submit">Add portfolio item</button><p id="portfolio-message" class="message" role="status"></p>
+        </form><div id="portfolio-items"></div>
+        <hr><h3>Career Readiness Self-Assessment / အလုပ်အကိုင်အဆင်သင့်ဖြစ်မှု ကိုယ်တိုင်အကဲဖြတ်ခြင်း</h3>
+        <form id="career-readiness-form">
+          <div class="field"><label>Pathway</label><select id="readiness-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option></select></div>
+          <div class="field"><label>Career interest / စိတ်ဝင်စားသည့်လုပ်ငန်း</label><input id="readiness-interest" maxlength="300"></div>
+          <p class="muted">Rate your current confidence from 0 to 100. This is a self-assessment, not a formal certification.</p>
+          <div class="admin-grid"><div class="field"><label>Skills confidence</label><input id="readiness-skills" type="number" min="0" max="100" required></div><div class="field"><label>Communication</label><input id="readiness-communication" type="number" min="0" max="100" required></div><div class="field"><label>Digital readiness</label><input id="readiness-digital" type="number" min="0" max="100" required></div><div class="field"><label>Problem solving</label><input id="readiness-problem" type="number" min="0" max="100" required></div><div class="field"><label>Job search / Business planning</label><input id="readiness-planning" type="number" min="0" max="100" required></div></div>
+          <div class="field"><label>Support needs / လိုအပ်သောအကူအညီ</label><textarea id="readiness-support" rows="2" maxlength="2000"></textarea></div><div class="field"><label>Next steps / နောက်တစ်ဆင့်</label><textarea id="readiness-next" rows="2" maxlength="2000"></textarea></div>
+          <button class="primary-btn" type="submit">Submit Self-Assessment</button><p id="readiness-message" class="message" role="status"></p>
+        </form><div id="readiness-history"></div>
+      </section>
+      <section class="panel" id="graduate-followup">
+        <h2>Graduate Follow-up / သင်တန်းဆင်းပြီးနောက် အခြေအနေစစ်တမ်း</h2>
+        <p class="muted">Available after your enrollment is marked completed. Follow-ups are due at 30, 90 and 180 days. Income details are optional and confidential.</p>
+        <form id="graduate-followup-form">
+          <div class="field"><label>Completed course / ပြီးဆုံးခဲ့သောသင်တန်း</label><select id="graduate-enrollment" required></select></div>
+          <div class="field"><label>Follow-up period / စစ်တမ်းကာလ</label><select id="graduate-period" required><option value="30_day">30 days</option><option value="90_day">90 days</option><option value="180_day">180 days</option></select></div>
+          <div class="field"><label>Current status / လက်ရှိအခြေအနေ</label><select id="graduate-employment" required><option value="employed">Employed / အလုပ်ရှိ</option><option value="self_employed">Self-employed / ကိုယ်ပိုင်လုပ်ငန်း</option><option value="unemployed_seeking">Unemployed, seeking work / အလုပ်ရှာနေ</option><option value="unemployed_not_seeking">Not seeking work / အလုပ်မရှာသေး</option><option value="studying">Studying / ပညာဆက်လက်သင်ယူ</option><option value="apprenticeship">Apprenticeship / အလုပ်သင်</option><option value="other">Other / အခြား</option></select></div>
+          <div class="field"><label>Pathway / လမ်းကြောင်း</label><select id="graduate-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option><option value="other">Other</option></select></div>
+          <div class="field"><label>Job or business / အလုပ်အကိုင် သို့မဟုတ် လုပ်ငန်းအမည်</label><input id="graduate-title" maxlength="180"></div>
+          <div class="field"><label>Sector / လုပ်ငန်းကဏ္ဍ</label><input id="graduate-sector" maxlength="180"></div>
+          <div class="field"><label>Current monthly income (optional) / လက်ရှိလစဉ်ဝင်ငွေ</label><input id="graduate-income" type="number" min="0" step="0.01"><select id="graduate-currency"><option value="MMK">MMK</option><option value="USD">USD</option><option value="other">Other</option></select></div>
+          <div class="field"><label>Previous monthly income (optional) / ယခင်လစဉ်ဝင်ငွေ</label><input id="graduate-previous-income" type="number" min="0" step="0.01"></div>
+          <div class="field"><label>Skills used (comma separated) / အသုံးချခဲ့သောကျွမ်းကျင်မှုများ</label><input id="graduate-skills" maxlength="1200"></div>
+          <div class="field"><label>How relevant was the training? (1–5) / သင်တန်းအသုံးဝင်မှု</label><select id="graduate-relevance"><option value="">Prefer not to answer</option><option value="1">1 – Not useful</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 – Very useful</option></select></div>
+          <div class="field"><label>Key outcome / အဓိကရလဒ်</label><textarea id="graduate-outcome" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Challenges / ကြုံတွေ့ရသောအခက်အခဲ</label><textarea id="graduate-challenges" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Support needed / လိုအပ်သောအကူအညီ</label><textarea id="graduate-support" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label><input id="graduate-contact-consent" type="checkbox"> I agree to be contacted for follow-up / နောက်ဆက်တွဲဆက်သွယ်ရန် သဘောတူပါသည်</label></div>
+          <div class="field"><label><input id="graduate-story-consent" type="checkbox"> I separately consent to a success story being considered for publication / အောင်မြင်မှုအတွေ့အကြုံကို ထုတ်ပြန်ရန် သီးခြားသဘောတူပါသည်</label></div>
+          <div class="field"><label>Story text (only if consent given) / မျှဝေလိုသောအတွေ့အကြုံ</label><textarea id="graduate-story" rows="3" maxlength="4000"></textarea></div>
+          <button class="primary-btn" type="submit">Submit follow-up / တင်သွင်းရန်</button><p id="graduate-message" class="message" role="status"></p>
+        </form>
+        <h3>My follow-up history / ကျွန်ုပ်၏နောက်ဆက်တွဲမှတ်တမ်း</h3><div id="graduate-history"></div>
+      </section>
+      <section class="panel" id="learner-support">
+        <h3>Announcements / ကြေညာချက်များ</h3><div id="learner-announcements"></div>
+        <h3>Learning Support / သင်တန်းအကူအညီ</h3>
+        <form id="support-request-form"><div class="field"><label for="support-subject">Subject / အကြောင်းအရာ</label><input id="support-subject" maxlength="180" required></div>
+        <div class="field"><label for="support-category">Category / အမျိုးအစား</label><select id="support-category"><option value="general">General</option><option value="course">Course</option><option value="technical">Technical</option><option value="safeguarding">Safeguarding</option><option value="complaint">Complaint</option><option value="other">Other</option></select></div>
+        <div class="field"><label for="support-message">Message / အသေးစိတ်</label><textarea id="support-message" rows="3" maxlength="10000" required></textarea></div>
+        <button class="primary-btn" type="submit">Send request / အကူအညီတောင်းရန်</button><p id="support-form-message" class="message" role="status"></p></form>
+        <div id="learner-support-requests"></div>
+      </section>
+      <div id="lesson-reader" class="panel lesson-reader hidden">
+        <button id="lesson-back-btn" class="ghost" type="button" data-i18n="lessonBack">သင်ခန်းစာစာရင်းသို့ ပြန်ရန်</button>
+        <p id="lesson-reader-module" class="eyebrow"></p>
+        <h2 id="lesson-reader-title"></h2>
+        <div id="lesson-reader-content" class="lesson-content"></div>
+        <button id="lesson-complete-btn" class="primary-btn" type="button">သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်သားရန်</button>
+      </div>
+    </section>
+    <section id="trainer-section" class="hidden">
+      <div class="section-heading"><div><p class="eyebrow">TRAINER WORKSPACE / သင်တန်းဆရာ Workspace</p><h2>My Assigned Courses / တာဝန်ပေးထားသော သင်တန်းများ</h2></div><span class="chip">TRAINER</span></div>
+      <div id="trainer-course-list" class="admin-grid"></div>
+      <div class="panel"><h3>Lesson Editor / သင်ခန်းစာ မူကြမ်း</h3>
+        <form id="trainer-lesson-form">
+          <input type="hidden" id="trainer-lesson-id">
+          <div class="field"><label>Module</label><select id="trainer-module" required></select></div>
+          <div class="field"><label>Title (Myanmar)</label><input id="trainer-title-my" maxlength="250" required></div>
+          <div class="field"><label>Title (English)</label><input id="trainer-title-en" maxlength="250" required></div>
+          <div class="field"><label>Content (Myanmar)</label><textarea id="trainer-content-my" rows="6"></textarea></div>
+          <div class="field"><label>Content (English)</label><textarea id="trainer-content-en" rows="6"></textarea></div>
+          <div class="field"><label>Video URL (optional)</label><input id="trainer-video-url" type="url" placeholder="https://"></div>
+          <div class="field"><label>Change note</label><input id="trainer-change-note" maxlength="500"></div>
+          <button class="primary-btn" type="submit">Save and submit for review</button><button class="small-btn" id="trainer-lesson-reset" type="button">New draft</button>
+          <p id="trainer-lesson-message" class="message" role="status"></p>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>Competency Assessment / ကျွမ်းကျင်မှု အကဲဖြတ်ခြင်း</h3>
+        <p class="muted">Evaluate learners enrolled in your assigned courses. Scores are 0–100 and are visible to the learner and Admin.</p>
+        <form id="trainer-assessment-form">
+          <div class="field"><label>Course / သင်တန်း</label><select id="assessment-course" required></select></div>
+          <div class="field"><label>Learner / သင်တန်းသား</label><select id="assessment-learner" required></select></div>
+          <div class="field"><label>Assessment type</label><select id="assessment-type"><option value="baseline">Baseline</option><option value="midterm">Midterm</option><option value="final">Final</option><option value="practical">Practical skills</option></select></div>
+          <div class="admin-grid">
+            <div class="field"><label>Practical skills (0–100)</label><input id="assessment-practical" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Task completion (0–100)</label><input id="assessment-task" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Problem solving (0–100)</label><input id="assessment-problem" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Communication (0–100)</label><input id="assessment-communication" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Participation (0–100)</label><input id="assessment-participation" type="number" min="0" max="100" step="0.5" required></div>
+          </div>
+          <div class="field"><label>Strengths</label><textarea id="assessment-strengths" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Areas to improve</label><textarea id="assessment-improve" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Evidence / Practical observations</label><textarea id="assessment-evidence" rows="3" maxlength="5000"></textarea></div>
+          <div class="field"><label>Recommendation</label><select id="assessment-recommendation"><option value="">Select recommendation</option><option value="continue_learning">Continue learning</option><option value="ready_for_next_level">Ready for next level</option><option value="course_completion_recommended">Course completion recommended</option><option value="needs_support">Needs additional support</option></select></div>
+          <button class="primary-btn" type="submit">Save assessment</button><p id="assessment-message" class="message" role="status"></p>
+        </form>
+        <h4>My recent assessments</h4><div id="trainer-assessment-list" class="admin-table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="admin-section" class="hidden">
+      <div class="section-heading"><div><p class="eyebrow">ADMINISTRATION / စီမံခန့်ခွဲမှု</p><h2 data-i18n="adminTitle">Learning Center Dashboard</h2></div><span class="chip admin-chip">ADMIN</span></div>
+      <nav class="admin-nav"><button class="admin-tab active" data-admin-tab="overview">Overview</button><button class="admin-tab" data-admin-tab="learners">Learners</button><button class="admin-tab" data-admin-tab="trainers">Trainers</button><button class="admin-tab" data-admin-tab="enrollments">Enrollments</button><button class="admin-tab" data-admin-tab="courses">Courses & Lessons</button><button class="admin-tab" data-admin-tab="quizzes">Quizzes</button><button class="admin-tab" data-admin-tab="assignments">Assignments</button><button class="admin-tab" data-admin-tab="certificates">Certificates</button><button class="admin-tab" data-admin-tab="mel">MEL & Attendance</button><button class="admin-tab" data-admin-tab="support">Support & News</button><button class="admin-tab" data-admin-tab="reports">Reports</button></nav>
+      <div id="admin-alert" class="message" role="status"></div>
+      <section class="admin-view" data-admin-view="overview"><div id="admin-stats" class="admin-stats"></div><div class="admin-grid"><div class="panel"><h3>Pending learner accounts</h3><div id="pending-users" class="admin-list"></div></div><div class="panel"><h3>Pending course applications</h3><div id="pending-enrollments" class="admin-list"></div></div></div></section>
+      <section class="admin-view hidden" data-admin-view="learners"><div class="panel"><h3>Learner accounts / သင်တန်းသားများ</h3><input id="learner-search" class="admin-search" type="search" placeholder="Search name or phone"><div id="admin-learners" class="admin-table-wrap"></div></div></section>
+      <section class="admin-view hidden" data-admin-view="trainers">
+ <div class="panel"><h3>Assign trainer to course / သင်တန်းဆရာ တာဝန်ပေးရန်</h3>
+ <form id="trainer-assignment-form"><div class="field"><label>Approved trainer</label><select id="trainer-user-select" required></select></div><div class="field"><label>Course</label><select id="trainer-course-select" required></select></div><button class="primary-btn" type="submit">Assign course</button><p id="trainer-assignment-message" class="message" role="status"></p></form></div>
+ <div class="panel"><h3>Current trainer assignments</h3><div id="admin-trainer-assignments"></div></div>
+</section>
+<section class="admin-view hidden" data-admin-view="enrollments"><div class="panel"><h3>Course applications / သင်တန်းလျှောက်ထားမှု</h3><div id="admin-enrollments" class="admin-table-wrap"></div></div></section>
+      <section class="admin-view hidden" data-admin-view="courses">
+ <div class="panel"><h3>Course catalogue / သင်တန်းများ</h3><div id="admin-courses" class="admin-table-wrap"></div></div>
+ <div class="panel"><h3>Lesson catalogue / သင်ခန်းစာများ</h3><div id="admin-lessons" class="admin-table-wrap"></div></div>
+ <div class="panel"><h3>Lesson Editor / သင်ခန်းစာရေးသားပြင်ဆင်ရန်</h3>
+ <form id="lesson-editor-form">
+ <input type="hidden" id="lesson-edit-id">
+ <div class="field"><label>Module / သင်ခန်းစာအုပ်စု</label><select id="lesson-module" required></select></div>
+ <div class="field"><label>Title (Myanmar)</label><input id="lesson-title-my" maxlength="250" required></div>
+ <div class="field"><label>Title (English)</label><input id="lesson-title-en" maxlength="250" required></div>
+ <div class="field"><label>Content (Myanmar)</label><textarea id="lesson-content-my" rows="7"></textarea></div>
+ <div class="field"><label>Content (English)</label><textarea id="lesson-content-en" rows="7"></textarea></div>
+ <div class="field"><label>Video URL (optional)</label><input id="lesson-video-url" type="url" placeholder="https://"></div>
+ <div class="field"><label>Change note / ပြင်ဆင်ချက်မှတ်ချက်</label><input id="lesson-change-note" maxlength="500"></div>
+ <div class="row-actions"><button class="primary-btn" type="submit">Save draft / မူကြမ်းသိမ်းရန်</button><button class="small-btn" type="button" id="lesson-editor-reset">New lesson</button></div><p id="lesson-editor-message" class="message" role="status"></p>
+ </form><div id="lesson-revision-history"></div></div>
+</section>
+      <section class="admin-view hidden" data-admin-view="quizzes"><div class="panel"><h3>Create a bilingual quiz / နှစ်ဘာသာ Quiz အသစ်ဖန်တီးရန်</h3><form id="admin-quiz-form"><div class="field"><label for="quiz-course">Course / သင်တန်း</label><select id="quiz-course" required></select></div><div class="field"><label for="quiz-title-my">Quiz title (မြန်မာ)</label><input id="quiz-title-my" required maxlength="180"></div><div class="field"><label for="quiz-title-en">Quiz title (English)</label><input id="quiz-title-en" required maxlength="180"></div><div class="field"><label for="quiz-pass-mark">Pass mark (%)</label><input id="quiz-pass-mark" type="number" min="1" max="100" value="70" required></div><div id="quiz-question-editor"></div><div class="row-actions"><button id="quiz-add-question" class="ghost" type="button">+ Add question / မေးခွန်းထပ်ထည့်ရန်</button><button class="primary-btn" type="submit" style="max-width:260px">Save as draft / မူကြမ်းသိမ်းရန်</button></div><p id="quiz-form-message" class="message" role="status"></p><p class="muted">New quizzes are saved as unpublished drafts. Correct answers are sent to a protected database function and stored privately.</p></form></div><div class="panel"><h3>Quiz management / စာမေးပွဲများ</h3><p class="muted">Review question counts, pass marks and publish status. Answer keys remain in the private database schema.</p><div id="admin-quizzes" class="admin-table-wrap"></div></div></section>
+      <section class="admin-view hidden" data-admin-view="assignments"><div class="panel"><h3>Create assignment / လက်တွေ့လုပ်ငန်းအသစ်</h3><form id="admin-assignment-form"><div class="field"><label for="assignment-course">Course / သင်တန်း</label><select id="assignment-course" required></select></div><div class="field"><label for="assignment-title-my">Title (မြန်မာ)</label><input id="assignment-title-my" required maxlength="200"></div><div class="field"><label for="assignment-title-en">Title (English)</label><input id="assignment-title-en" required maxlength="200"></div><div class="field"><label for="assignment-instructions-my">Instructions (မြန်မာ)</label><textarea id="assignment-instructions-my" rows="3"></textarea></div><div class="field"><label for="assignment-instructions-en">Instructions (English)</label><textarea id="assignment-instructions-en" rows="3"></textarea></div><div class="field"><label for="assignment-due">Due date / နောက်ဆုံးတင်ရမည့်ရက်</label><input id="assignment-due" type="datetime-local"></div><button class="primary-btn" type="submit" style="max-width:260px">Save as draft / မူကြမ်းသိမ်းရန်</button><p id="assignment-form-message" class="message" role="status"></p></form></div><div class="panel"><h3>Assignments / လက်တွေ့လုပ်ငန်းများ</h3><div id="admin-assignments" class="admin-table-wrap"></div></div><div class="panel"><h3>Submission review / တင်သွင်းချက်များ စစ်ဆေးရန်</h3><div id="admin-submissions" class="admin-table-wrap"></div></div></section>
+  <section class="admin-view hidden" data-admin-view="certificates"><div class="panel"><h3>Certificate issuance / သင်တန်းဆင်းလက်မှတ်ထုတ်ပေးခြင်း</h3><p class="muted">Issuance is checked securely: all published lessons must be completed and every published quiz must be passed.</p><div id="admin-certificates" class="admin-table-wrap"></div></div></section>
+      <section class="admin-view hidden" data-admin-view="mel">
+ <div class="panel"><h3>Attendance Register / တက်ရောက်မှုမှတ်တမ်း</h3>
+ <div class="admin-grid"><div class="field"><label for="attendance-course">Course / သင်တန်း</label><select id="attendance-course"></select></div><div class="field"><label for="attendance-date">Session date / သင်တန်းရက်</label><input id="attendance-date" type="date"></div></div>
+ <div id="attendance-register" class="admin-table-wrap"></div>
+ <p class="muted">Attendance records are saved per learner, course and session date. Re-saving updates the existing record.</p>
+ </div>
+  <div class="panel" id="donor-outcome-panel"><h3>Donor Outcome Dashboard / အလှူရှင်အစီရင်ခံစာ Dashboard</h3><p class="muted">Aggregated graduate outcomes only. Rates are calculated from follow-ups due by today. Small samples (fewer than 5 responses) are withheld from percentage reporting.</p><div class="field"><label for="donor-course-filter">Course / သင်တန်း</label><select id="donor-course-filter"><option value="all">All courses / သင်တန်းအားလုံး</option></select></div><div id="donor-outcome-stats" class="admin-stats"></div><div id="donor-outcome-periods" class="admin-table-wrap"></div><div id="donor-outcome-notes" class="muted"></div><button type="button" id="donor-outcome-export" class="small-btn">Export aggregated donor outcomes CSV</button></div>\n <div class="panel"><h3>MEL Summary / စောင့်ကြည့်အကဲဖြတ်မှု အကျဉ်းချုပ်</h3><div id="mel-summary" class="admin-stats"></div><div id="mel-course-report" class="admin-table-wrap"></div><button type="button" id="mel-export" class="small-btn">Export MEL CSV</button></div>
+</section>
+<section class="admin-view hidden" data-admin-view="support">
+ <div class="panel"><h3>Publish announcement / ကြေညာချက်တင်ရန်</h3>
+ <form id="admin-announcement-form"><div class="field"><label>Title (Myanmar)</label><input id="announce-title-my" required maxlength="180"></div><div class="field"><label>Title (English)</label><input id="announce-title-en" required maxlength="180"></div><div class="field"><label>Message (Myanmar)</label><textarea id="announce-body-my" required rows="3" maxlength="10000"></textarea></div><div class="field"><label>Message (English)</label><textarea id="announce-body-en" required rows="3" maxlength="10000"></textarea></div><button class="primary-btn" type="submit">Publish announcement</button><p id="announce-form-message" class="message"></p></form>
+ <div id="admin-announcements"></div></div>
+ <div class="panel"><h3>Learner support requests / အကူအညီတောင်းခံမှုများ</h3><div id="admin-support-requests"></div><div id="admin-support-thread"></div></div>
+</section>
+<section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Career Opportunities Management / အလုပ်အကိုင်အခွင့်အလမ်း စီမံခန့်ခွဲမှု</h3>
+<form id="career-opportunity-form">
+ <div class="admin-grid">
+  <div class="field"><label>Opportunity title (Myanmar)</label><input id="op-title-my" maxlength="180"></div><div class="field"><label>Opportunity title (English)</label><input id="op-title-en" required maxlength="180"></div>
+  <div class="field"><label>Organization</label><input id="op-org" maxlength="180"></div>
+  <div class="field"><label>Type</label><select id="op-type"><option value="job">Job</option><option value="internship">Internship</option><option value="apprenticeship">Apprenticeship</option><option value="self_employment">Self-employment</option><option value="grant">Grant</option><option value="training">Training</option></select></div>
+  <div class="field"><label>Pathway</label><select id="op-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option></select></div>
+  <div class="field"><label>Location</label><input id="op-location" maxlength="180"></div>
+  <div class="field"><label>Work mode</label><select id="op-mode"><option value="onsite">On-site</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="flexible">Flexible</option></select></div>
+  <div class="field"><label>Compensation / support</label><input id="op-compensation" maxlength="180"></div>
+  <div class="field"><label>Application deadline</label><input id="op-deadline" type="date"></div>
+  <div class="field"><label>Application URL</label><input id="op-url" type="url" maxlength="1000"></div>
+  <div class="field"><label>Required skills (comma separated)</label><input id="op-required-skills" maxlength="1500"></div>
+  <div class="field"><label>Preferred skills (comma separated)</label><input id="op-preferred-skills" maxlength="1500"></div>
+ </div>
+ <div class="field"><label>Description (Myanmar)</label><textarea id="op-description-my" rows="3" maxlength="10000"></textarea></div><div class="field"><label>Description (English)</label><textarea id="op-description-en" rows="4" required maxlength="10000"></textarea></div>
+ <div class="field"><label>Status</label><select id="op-status"><option value="draft">Draft</option><option value="published">Published</option><option value="closed">Closed</option><option value="archived">Archived</option></select></div>
+ <button class="primary-btn" type="submit">Save opportunity</button><p id="op-message" class="message" role="status"></p>
+</form><h4>Manage existing opportunities</h4><div id="admin-career-opportunities" class="admin-table-wrap"></div>
+<h4>Applications</h4><div id="admin-career-applications" class="admin-table-wrap"></div></div><div class="panel"><h3>Graduate outcomes / သင်တန်းဆင်းရလဒ်များ</h3><p class="muted">Confidential learner-reported data. Use aggregated results carefully; do not publish small-group or identifiable records.</p><div id="admin-graduate-summary" class="admin-stats"></div><div id="admin-graduate-table" class="admin-table-wrap"></div><button type="button" id="graduate-export" class="small-btn">Export graduate follow-ups CSV</button></div><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner competency assessments / ကျွမ်းကျင်မှု အကဲဖြတ်ချက်များ</h3><div id="admin-evaluations" class="admin-table-wrap"></div><div class="panel"><h3>Career readiness self-assessments</h3><div id="admin-career-readiness" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner skills profiles</h3><div id="admin-skill-profiles" class="admin-table-wrap"></div></div></div></section>
+    </section>
+
+    <section id="certificate-verification" class="panel hidden"><p class="eyebrow">FORERUNNERS · VERIFICATION</p><h2>Certificate Verification / လက်မှတ်စစ်ဆေးခြင်း</h2><form id="certificate-verify-form" class="row-actions"><input id="certificate-verify-code" placeholder="Enter certificate code" required><button class="primary-btn" type="submit">Verify / စစ်ဆေးရန်</button></form><div id="certificate-verify-result" role="status"></div></section>
+
+    <section class="info-strip">
+      <div><strong>01</strong><span data-i18n="basicInfo">BASIC — အခြေခံကျွမ်းကျင်မှု</span></div>
+      <div><strong>02</strong><span data-i18n="advancedInfo">ADVANCED — တိုးတက်ဖွံ့ဖြိုးမှု</span></div>
+      <div><strong>100</strong><span data-i18n="capacityInfo">စီစဉ်ထားသော သင်တန်းသားဦးရေ</span></div>
+    </section>
+  </main>
+
+  <footer><span>© 2026 ForeRunners Organization</span><span>Build Skills. Create Livelihoods.</span></footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

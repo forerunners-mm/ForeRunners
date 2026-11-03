@@ -1,36 +1,65 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+    branches: ["main"]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  validate-livelihood-learning-center:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check JavaScript syntax
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          node --check livelihood-learning-center/app.js
+          node --input-type=module --check < livelihood-learning-center/app.js
+          node --check livelihood-learning-center/config.js
+      - name: Install Chromium browser test dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium
+      - name: Run browser smoke tests
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/lvc-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/livelihood-learning-center/ >/dev/null && break || sleep 1; done
+          node livelihood-learning-center/tests/browser-smoke.mjs
+      - name: Check required LMS files and key interface elements
+        run: |
+          test -s livelihood-learning-center/index.html
+          test -s livelihood-learning-center/styles.css
+          test -s livelihood-learning-center/app.js
+          test -s livelihood-learning-center/config.js
+          test -s livelihood-learning-center/tests/browser-smoke.mjs
+          test -s livelihood-learning-center/supabase/recovery/live_schema_snapshot_20261103.sql
+          test -s livelihood-learning-center/supabase/recovery/live_seed_data_20261103.sql
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const html = fs.readFileSync('livelihood-learning-center/index.html', 'utf8');
+          const app = fs.readFileSync('livelihood-learning-center/app.js', 'utf8');
+          const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m => m[1]);
+          const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
+          if (duplicates.length) throw new Error('Duplicate HTML IDs: ' + [...new Set(duplicates)].join(', '));
+          for (const id of ['auth-section','learner-section','trainer-section','admin-section','graduate-followup-form','learner-notification-list','admin-graduate-table']) {
+            if (!ids.includes(id)) throw new Error('Missing required HTML element: ' + id);
+          }
+          if (!app.includes('learner_notifications')) throw new Error('Notification integration is missing from the client.');
+          const snapshot = fs.readFileSync('livelihood-learning-center/supabase/recovery/live_schema_snapshot_20261103.sql', 'utf8');
+          const seed = fs.readFileSync('livelihood-learning-center/supabase/recovery/live_seed_data_20261103.sql', 'utf8');
+          for (const token of ['create schema if not exists private','enable row level security','create policy','create trigger','cron.schedule']) {
+            if (!snapshot.toLowerCase().includes(token)) throw new Error('Recovery snapshot missing: ' + token);
+          }
+          for (const table of ['public.courses','public.modules','public.lessons','public.quizzes','public.quiz_questions','private.quiz_answer_keys']) {
+            if (!seed.includes('insert into ' + table)) throw new Error('Seed data missing: ' + table);
+          }
+          console.log('LMS static checks passed.');
+          NODE
