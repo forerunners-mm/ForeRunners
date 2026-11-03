@@ -904,4 +904,5 @@ async function handleSession(session){
 applyLanguage();
 const {data:{session}}=await supabase.auth.getSession();
 await handleSession(session);
+document.documentElement.dataset.lvcReady = "true";
 supabase.auth.onAuthStateChange((_event,nextSession)=>{queueMicrotask(()=>handleSession(nextSession));});
