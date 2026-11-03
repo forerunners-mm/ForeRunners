@@ -647,6 +647,7 @@ function exportDonorOutcomeCSV(){
  const csv=rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n"),blob=new Blob(["\\uFEFF",csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="forerunners-donor-outcomes-aggregated.csv";a.click();URL.revokeObjectURL(url);
 }
 \nfunction renderMEL(){
+ renderDonorOutcomeDashboard();
  const courseSel=el("attendance-course"),keep=courseSel.value;
  courseSel.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
  if(adminCache.courses.some(c=>c.id===keep))courseSel.value=keep;
