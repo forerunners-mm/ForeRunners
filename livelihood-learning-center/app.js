@@ -261,27 +261,60 @@ async function submitQuiz(event){
 }
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
+
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[]};
+const adminEsc=v=>escapeHtml(v??"");
+function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
+function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
+document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>setAdminTab(b.dataset.adminTab)));
 async function loadAdmin(){
-  const [{data:users,error:userErr},{data:apps,error:appErr}]=await Promise.all([
-    supabase.from("profiles").select("id,full_name,phone,created_at").eq("account_status","pending").order("created_at"),
-    supabase.from("enrollments").select("id,status,applied_at,profiles(full_name),courses(title_my,title_en,level)").eq("status","pending").order("applied_at")
-  ]);
-  if(userErr)throw userErr;if(appErr)throw appErr;
-  el("pending-users").innerHTML=(users||[]).map(u=>`<div class="admin-row"><span><b>${escapeHtml(u.full_name||"Learner")}</b><br><small class="muted">${escapeHtml(u.phone||"")}</small></span><div class="row-actions"><button class="small-btn approve" data-user-approve="${u.id}">${t("approve")}</button><button class="small-btn reject" data-user-reject="${u.id}">${t("reject")}</button></div></div>`).join("")||`<p class="muted">${t("noPending")}</p>`;
-  el("pending-enrollments").innerHTML=(apps||[]).map(a=>`<div class="admin-row"><span><b>${escapeHtml(a.profiles?.full_name||"Learner")}</b><br><small class="muted">${escapeHtml(a.courses?.[language==="my"?"title_my":"title_en"]||"Course")}</small></span><div class="row-actions"><button class="small-btn approve" data-app-approve="${a.id}">${t("approve")}</button><button class="small-btn reject" data-app-reject="${a.id}">${t("reject")}</button></div></div>`).join("")||`<p class="muted">${t("noPending")}</p>`;
-  document.querySelectorAll("[data-user-approve]").forEach(b=>b.addEventListener("click",()=>reviewUser(b.dataset.userApprove,"approved")));
-  document.querySelectorAll("[data-user-reject]").forEach(b=>b.addEventListener("click",()=>reviewUser(b.dataset.userReject,"rejected")));
-  document.querySelectorAll("[data-app-approve]").forEach(b=>b.addEventListener("click",()=>reviewEnrollment(b.dataset.appApprove,"approved")));
-  document.querySelectorAll("[data-app-reject]").forEach(b=>b.addEventListener("click",()=>reviewEnrollment(b.dataset.appReject,"rejected")));
+ const rs=await Promise.all([
+  supabase.from("profiles").select("id,full_name,phone,role,account_status,created_at").order("created_at",{ascending:false}),
+  supabase.from("enrollments").select("id,learner_id,course_id,status,applied_at,profiles(full_name,phone),courses(title_my,title_en,level)").order("applied_at",{ascending:false}),
+  supabase.from("courses").select("id,title_my,title_en,level,is_published,sort_order").order("sort_order"),
+  supabase.from("modules").select("id,course_id,title_my,title_en,sort_order").order("sort_order"),
+  supabase.from("lessons").select("id,module_id,title_my,title_en,is_published,sort_order").order("sort_order"),
+  supabase.from("quizzes").select("id,course_id,title_my,title_en,pass_mark,is_published,created_at"),
+  supabase.from("quiz_questions").select("id,quiz_id"),
+  supabase.from("lesson_progress").select("id,learner_id,lesson_id,status"),
+  supabase.from("quiz_attempts").select("*")
+ ]);
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts"];
+ rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts]=rs.map(r=>r.data||[]);
+ renderAdmin();
 }
-async function reviewUser(id,status){
-  const {error}=await supabase.from("profiles").update({account_status:status,updated_at:new Date().toISOString()}).eq("id",id);
-  if(error){alert(error.message);return;}await loadAdmin();
+function renderAdmin(){
+ const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
+ const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
+ el("admin-stats").innerHTML=stats.map(([k,v])=>'<article class="admin-stat"><span>'+k+'</span><strong>'+v+'</strong></article>').join("");
+ el("pending-users").innerHTML=pending.slice(0,8).map(u=>'<div class="admin-row"><span><b>'+adminEsc(u.full_name||"Learner")+'</b><br><small class="muted">'+adminEsc(u.phone||"")+'</small></span><div class="row-actions"><button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button><button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button></div></div>').join("")||'<p class="muted">'+t("noPending")+'</p>';
+ el("pending-enrollments").innerHTML=apps.slice(0,8).map(a=>'<div class="admin-row"><span><b>'+adminEsc(a.profiles?.full_name||"Learner")+'</b><br><small class="muted">'+adminEsc(a.courses?.[language==="my"?"title_my":"title_en"]||"Course")+'</small></span><div class="row-actions"><button class="small-btn approve" data-app-approve="'+a.id+'">'+t("approve")+'</button><button class="small-btn reject" data-app-reject="'+a.id+'">'+t("reject")+'</button></div></div>').join("")||'<p class="muted">'+t("noPending")+'</p>';
+ const userRows=adminCache.users.filter(u=>u.role!=="admin").map(u=>'<tr><td>'+adminEsc(u.full_name||"—")+'</td><td>'+adminEsc(u.phone||"—")+'</td><td>'+adminEsc(u.account_status)+'</td><td>'+new Date(u.created_at).toLocaleDateString()+'</td><td>'+(u.account_status==="pending"?'<button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button>':"—")+'</td></tr>');
+ el("admin-learners").innerHTML=adminTable(["Name","Phone","Status","Joined","Action"],userRows);
+ el("admin-enrollments").innerHTML=adminTable(["Learner","Course","Status","Action"],adminCache.enrollments.map(a=>'<tr><td>'+adminEsc(a.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(a.courses?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+adminEsc(a.status)+'</td><td>'+(a.status==="pending"?'<button class="small-btn approve" data-app-approve="'+a.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-app-reject="'+a.id+'">'+t("reject")+'</button>':"—")+'</td></tr>'));
+ el("admin-courses").innerHTML=adminTable(["Level","Course","Status","Action"],adminCache.courses.map(q=>'<tr><td>'+adminEsc(q.level)+'</td><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+(q.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-course-publish="'+q.id+'" data-next="'+(!q.is_published)+'">'+(q.is_published?"Unpublish":"Publish")+'</button></td></tr>'));
+ const mods=new Map(adminCache.modules.map(m=>[m.id,m]));
+ el("admin-lessons").innerHTML=adminTable(["Module","Lesson","Status"],adminCache.lessons.map(l=>'<tr><td>'+adminEsc(mods.get(l.module_id)?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+adminEsc(language==="my"?l.title_my:l.title_en)+'</td><td>'+(l.is_published?"Published":"Draft")+'</td></tr>'));
+ const qc=new Map();adminCache.questions.forEach(q=>qc.set(q.quiz_id,(qc.get(q.quiz_id)||0)+1));
+ el("admin-quizzes").innerHTML=adminTable(["Quiz","Level","Questions","Pass mark","Status","Action"],adminCache.quizzes.map(q=>'<tr><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+adminEsc(adminCache.courses.find(x=>x.id===q.course_id)?.level||"—")+'</td><td>'+(qc.get(q.id)||0)+'</td><td>'+Number(q.pass_mark)+'%</td><td>'+(q.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-quiz-publish="'+q.id+'" data-next="'+(!q.is_published)+'" '+((qc.get(q.id)||0)===0&&!q.is_published?"disabled":"")+'>'+(q.is_published?"Unpublish":"Publish")+'</button></td></tr>'));
+ el("admin-report-progress").innerHTML=adminTable(["Course","Approved learners","Lessons","Completed records"],adminCache.courses.map(q=>{const mids=adminCache.modules.filter(m=>m.course_id===q.id).map(m=>m.id),lids=adminCache.lessons.filter(l=>mids.includes(l.module_id)).map(l=>l.id),en=adminCache.enrollments.filter(e=>e.course_id===q.id&&["approved","completed"].includes(e.status)).length,done=adminCache.progress.filter(p=>lids.includes(p.lesson_id)&&p.status==="completed").length;return '<tr><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+en+'</td><td>'+lids.length+'</td><td>'+done+'</td></tr>';}));
+ const attempts=adminCache.attempts,passed=attempts.filter(a=>a.passed===true).length;
+ el("admin-report-quizzes").innerHTML='<div class="admin-stats"><article class="admin-stat"><span>Total attempts</span><strong>'+attempts.length+'</strong></article><article class="admin-stat"><span>Passed</span><strong>'+passed+'</strong></article><article class="admin-stat"><span>Pass rate</span><strong>'+(attempts.length?Math.round(passed/attempts.length*100):0)+'%</strong></article></div>';
+ bindAdminActions();
 }
-async function reviewEnrollment(id,status){
-  const {error}=await supabase.from("enrollments").update({status,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq("id",id);
-  if(error){alert(error.message);return;}await loadAdmin();
+function bindAdminActions(){
+ document.querySelectorAll("[data-user-approve]").forEach(b=>b.onclick=()=>reviewUser(b.dataset.userApprove,"approved"));
+ document.querySelectorAll("[data-user-reject]").forEach(b=>b.onclick=()=>reviewUser(b.dataset.userReject,"rejected"));
+ document.querySelectorAll("[data-app-approve]").forEach(b=>b.onclick=()=>reviewEnrollment(b.dataset.appApprove,"approved"));
+ document.querySelectorAll("[data-app-reject]").forEach(b=>b.onclick=()=>reviewEnrollment(b.dataset.appReject,"rejected"));
+ document.querySelectorAll("[data-course-publish]").forEach(b=>b.onclick=()=>adminSave(supabase.from("courses").update({is_published:b.dataset.next==="true"}).eq("id",b.dataset.coursePublish)));
+ document.querySelectorAll("[data-quiz-publish]").forEach(b=>b.onclick=()=>adminSave(supabase.from("quizzes").update({is_published:b.dataset.next==="true"}).eq("id",b.dataset.quizPublish)));
 }
+async function adminSave(p){const {error}=await p;if(error){el("admin-alert").textContent=error.message;el("admin-alert").classList.add("error");return;}el("admin-alert").textContent=language==="my"?"သိမ်းဆည်းပြီးပါပြီ။":"Changes saved.";el("admin-alert").classList.remove("error");await loadAdmin();}
+async function reviewUser(id,status){await adminSave(supabase.from("profiles").update({account_status:status,updated_at:new Date().toISOString()}).eq("id",id));}
+async function reviewEnrollment(id,status){await adminSave(supabase.from("enrollments").update({status,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq("id",id));}
+el("learner-search").addEventListener("input",()=>{const q=el("learner-search").value.toLowerCase().trim(),users=adminCache.users.filter(u=>u.role!=="admin"&&((u.full_name||"").toLowerCase().includes(q)||(u.phone||"").toLowerCase().includes(q)));el("admin-learners").innerHTML=adminTable(["Name","Phone","Status","Joined","Action"],users.map(u=>'<tr><td>'+adminEsc(u.full_name||"—")+'</td><td>'+adminEsc(u.phone||"—")+'</td><td>'+adminEsc(u.account_status)+'</td><td>'+new Date(u.created_at).toLocaleDateString()+'</td><td>'+(u.account_status==="pending"?'<button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button>':"—")+'</td></tr>'));bindAdminActions();});
 function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 
 async function handleSession(session){
