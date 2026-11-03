@@ -4,6 +4,13 @@ const errors = [];
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
+  await page.addInitScript(() => {
+    window.addEventListener("error", event => {
+      window.__lvcBrowserErrors = (window.__lvcBrowserErrors || []).concat(
+        event.filename + ":" + event.lineno + ":" + event.colno + " " + event.message
+      );
+    });
+  });
   page.on("pageerror", error => errors.push("pageerror: " + (error.stack || error.message)));
   page.on("console", message => { if (message.type() === "error") errors.push("console: " + message.text()); });
   page.on("requestfailed", request => errors.push("requestfailed: " + request.url() + " " + request.failure()?.errorText));
@@ -24,7 +31,7 @@ try {
   try {
     await page.waitForFunction(() => document.documentElement.dataset.lvcReady === "true", { timeout: 10000 });
   } catch (error) {
-    throw new Error("LMS JavaScript did not initialize. Browser errors: " + errors.join(" | "));
+    throw new Error("LMS JavaScript did not initialize. Browser errors: " + errors.join(" | ") + " | window errors: " + JSON.stringify(await page.evaluate(() => window.__lvcBrowserErrors || [])));
   }
 
   if (!(await page.title()).includes("Livelihood Learning Center")) {
