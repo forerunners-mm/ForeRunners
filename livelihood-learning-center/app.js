@@ -6,6 +6,7 @@ let language = localStorage.getItem("lvc-language") || "my";
 let authMode = "login";
 let currentUser = null;
 let currentProfile = null;
+let learningLessons = new Map();
 
 const translations = {
   my: {
@@ -25,6 +26,7 @@ const translations = {
     authError:"လုပ်ဆောင်မှု မအောင်မြင်ပါ။", appliedMsg:"သင်တန်းလျှောက်ထားမှုကို လက်ခံရရှိပါပြီ။",
     signUpSuccess:"အီးမေးလ်ကို အတည်ပြုပြီးမှ အကောင့်ဝင်ပါ။", courseBasic:"အခြေခံအဆင့်", courseAdvanced:"အဆင့်မြင့်",
     basicDesc:"အသက်မွေးဝမ်းကျောင်းအတွက် အခြေခံကျွမ်းကျင်မှု၊ ဘဝကျွမ်းကျင်မှုနှင့် ငွေကြေးစီမံမှု။",
+    learningTitle:"ကျွန်ုပ်၏ သင်ယူမှု", learningIntro:"အတည်ပြုပြီးသော သင်တန်းများ၏ သင်ခန်းစာများကို လေ့လာပါ။", noLessons:"ဤသင်တန်းတွင် သင်ခန်းစာ မတင်ရသေးပါ။", openLesson:"သင်ခန်းစာ ဖတ်ရန်", markComplete:"သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်သားရန်", completedLabel:"ပြီးဆုံးပြီး", inProgressLabel:"လေ့လာနေဆဲ", progressLabel:"တိုးတက်မှု", lessonBack:"သင်ခန်းစာစာရင်းသို့ ပြန်ရန်",
     advancedDesc:"အသက်မွေးဝမ်းကျောင်း တိုးချဲ့ခြင်း၊ စီးပွားရေးစီမံမှုနှင့် ဈေးကွက်ချိတ်ဆက်မှု။"
   },
   en: {
@@ -44,6 +46,7 @@ const translations = {
     authError:"The action could not be completed.", appliedMsg:"Your course application has been received.",
     signUpSuccess:"Please verify your email before signing in.", courseBasic:"Basic Level", courseAdvanced:"Advanced Level",
     basicDesc:"Foundational vocational skills, life skills and basic financial literacy for livelihoods.",
+    learningTitle:"My Learning", learningIntro:"Open lessons in the courses approved for you.", noLessons:"No lessons have been published for this course yet.", openLesson:"Open lesson", markComplete:"Mark lesson as complete", completedLabel:"Completed", inProgressLabel:"In progress", progressLabel:"Progress", lessonBack:"Back to lesson list",
     advancedDesc:"Livelihood growth, business management, financial planning and market linkages."
   }
 };
@@ -96,7 +99,7 @@ async function loadProfile(){
   show("pending-section",false);el("learner-name").textContent=data.full_name||currentUser.email;
   show("learner-section",true);
   if(data.role==="admin"){show("admin-section",true);await loadAdmin();}
-  await loadCourses();await loadEnrollments();
+  await loadCourses();await loadEnrollments();await loadLearning();
 }
 async function loadCourses(){
   const {data,error}=await supabase.from("courses").select("id,title_my,title_en,description_my,description_en,level").eq("is_published",true).order("sort_order");
@@ -125,6 +128,78 @@ async function loadEnrollments(){
     return `<div class="enrol-row"><span><b>${escapeHtml(course)}</b><br><small class="muted">${row.batches?.name||""}</small></span><span class="chip">${escapeHtml(status)}</span></div>`;
   }).join("")||`<div class="list-empty muted">${t("noEnrollments")}</div>`;
 }
+
+async function loadLearning(){
+  const {data:enrollments,error}=await supabase.from("enrollments")
+    .select("course_id,courses(id,title_my,title_en,level)")
+    .eq("learner_id",currentUser.id).in("status",["approved","completed"]);
+  if(error)throw error;
+  const courseRows=(enrollments||[]).filter(x=>x.courses);
+  const root=el("learning-course-list");
+  const pane=el("lesson-reader");
+  learningLessons=new Map();
+  if(!courseRows.length){
+    root.innerHTML='<p class="muted">'+(language==="my"?"သင်ခန်းစာများကို ဖွင့်ရန် သင်တန်းဝင်ခွင့် အတည်ပြုချက် လိုအပ်ပါသည်။":"An approved course enrollment is required to access lessons.")+'</p>';
+    pane.classList.add("hidden");return;
+  }
+  const courseBlocks=[];
+  for(const row of courseRows){
+    const course=row.courses;
+    const [{data:modules,error:moduleError},{data:progress,error:progressError}]=await Promise.all([
+      supabase.from("modules").select("id,title_my,title_en,sort_order,lessons(id,title_my,title_en,content_my,content_en,sort_order,is_published)").eq("course_id",course.id).order("sort_order"),
+      supabase.from("lesson_progress").select("lesson_id,status").eq("learner_id",currentUser.id)
+    ]);
+    if(moduleError)throw moduleError;if(progressError)throw progressError;
+    const progressMap=new Map((progress||[]).map(p=>[p.lesson_id,p.status]));
+    let total=0,done=0;
+    const moduleHtml=(modules||[]).map(module=>{
+      const lessons=(module.lessons||[]).filter(l=>l.is_published).sort((a,b)=>a.sort_order-b.sort_order);
+      const lessonHtml=lessons.map(lesson=>{
+        total++;const status=progressMap.get(lesson.id)||"not_started";if(status==="completed")done++;
+        learningLessons.set(lesson.id,{...lesson,moduleTitleMy:module.title_my,moduleTitleEn:module.title_en,status});
+        const title=language==="my"?lesson.title_my:lesson.title_en;
+        const statusText=status==="completed"?t("completedLabel"):status==="in_progress"?t("inProgressLabel"):"";
+        return '<button class="lesson-link" data-open-lesson="'+lesson.id+'"><span>'+escapeHtml(title)+'</span><small>'+escapeHtml(statusText)+'</small></button>';
+      }).join("");
+      return '<div class="module-block"><h4>'+escapeHtml(language==="my"?module.title_my:module.title_en)+'</h4>'+(lessonHtml||'<p class="muted">'+t("noLessons")+'</p>')+'</div>';
+    }).join("");
+    const percent=total?Math.round(done/total*100):0;
+    courseBlocks.push('<article class="learning-course"><div class="learning-course-head"><div><span class="level">'+escapeHtml(course.level)+'</span><h3>'+escapeHtml(language==="my"?course.title_my:course.title_en)+'</h3></div><div class="progress-wrap"><strong>'+percent+'%</strong><small>'+t("progressLabel")+'</small><div class="progress-track"><span style="width:'+percent+'%"></span></div></div></div>'+moduleHtml+'</article>');
+  }
+  root.innerHTML=courseBlocks.join("");
+  root.querySelectorAll("[data-open-lesson]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.openLesson)));
+  pane.classList.add("hidden");
+}
+async function openLesson(id){
+  const lesson=learningLessons.get(id);if(!lesson)return;
+  const {error}=await supabase.from("lesson_progress").upsert(
+    {learner_id:currentUser.id,lesson_id:id,status:lesson.status==="completed"?"completed":"in_progress",updated_at:new Date().toISOString()},
+    {onConflict:"learner_id,lesson_id"}
+  );
+  if(error){alert(error.message);return;}
+  lesson.status=lesson.status==="completed"?"completed":"in_progress";
+  const title=language==="my"?lesson.title_my:lesson.title_en;
+  const content=language==="my"?lesson.content_my:lesson.content_en;
+  el("lesson-reader-title").textContent=title;
+  el("lesson-reader-module").textContent=language==="my"?lesson.moduleTitleMy:lesson.moduleTitleEn;
+  el("lesson-reader-content").innerHTML=escapeHtml(content||"").replace(/\n/g,"<br>");
+  el("lesson-reader").classList.remove("hidden");
+  el("lesson-reader").scrollIntoView({behavior:"smooth",block:"start"});
+  el("lesson-complete-btn").textContent=lesson.status==="completed"?t("completedLabel"):t("markComplete");
+  el("lesson-complete-btn").disabled=lesson.status==="completed";
+  el("lesson-complete-btn").onclick=()=>completeLesson(id);
+}
+async function completeLesson(id){
+  const {error}=await supabase.from("lesson_progress").upsert(
+    {learner_id:currentUser.id,lesson_id:id,status:"completed",completed_at:new Date().toISOString(),updated_at:new Date().toISOString()},
+    {onConflict:"learner_id,lesson_id"}
+  );
+  if(error){alert(error.message);return;}
+  await loadLearning();
+  alert(language==="my"?"သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်တမ်းတင်ပြီးပါပြီ။":"Lesson marked as completed.");
+}
+el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
+
 async function loadAdmin(){
   const [{data:users,error:userErr},{data:apps,error:appErr}]=await Promise.all([
     supabase.from("profiles").select("id,full_name,phone,created_at").eq("account_status","pending").order("created_at"),
