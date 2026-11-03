@@ -287,7 +287,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -302,11 +302,13 @@ async function loadAdmin(){
   supabase.from("quizzes").select("id,course_id,title_my,title_en,pass_mark,is_published,created_at"),
   supabase.from("quiz_questions").select("id,quiz_id"),
   supabase.from("lesson_progress").select("id,learner_id,lesson_id,status"),
-  supabase.from("quiz_attempts").select("*")
+  supabase.from("quiz_attempts").select("*"),
+  supabase.from("assignments").select("id,course_id,title_my,title_en,due_at,is_published,created_at").order("created_at",{ascending:false}),
+  supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -341,6 +343,37 @@ async function submitAdminQuiz(event){
  }catch(err){msg.textContent=err.message||"Could not save quiz.";msg.classList.add("error");}
  finally{btn.disabled=false;}
 }
+
+function renderAdminAssignments(){
+ const sel=el("assignment-course"),keep=sel.value;
+ sel.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
+ if(adminCache.courses.some(c=>c.id===keep))sel.value=keep;
+ el("admin-assignments").innerHTML=adminTable(["Assignment","Course","Due","Status","Action"],adminCache.assignments.map(a=>{
+  const course=adminCache.courses.find(c=>c.id===a.course_id);
+  return '<tr><td>'+adminEsc(language==="my"?a.title_my:a.title_en)+'</td><td>'+adminEsc(course?.level||"—")+'</td><td>'+adminEsc(a.due_at?new Date(a.due_at).toLocaleString():"—")+'</td><td>'+(a.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-assignment-publish="'+a.id+'" data-next="'+(!a.is_published)+'">'+(a.is_published?"Unpublish":"Publish")+'</button></td></tr>';
+ }));
+ el("admin-submissions").innerHTML=adminTable(["Learner","Assignment","Submitted","Work","Score","Review"],adminCache.submissions.map(s=>{
+  return '<tr><td>'+adminEsc(s.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?s.assignments?.title_my:s.assignments?.title_en)+'</td><td>'+new Date(s.submitted_at).toLocaleDateString()+'</td><td><details><summary>View</summary><p>'+adminEsc(s.text_response||"")+'</p></details></td><td><input type="number" min="0" max="100" step="0.5" data-score="'+s.id+'" value="'+(s.score??"")+'" placeholder="0–100"></td><td><select data-status="'+s.id+'"><option value="submitted" '+(s.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewing" '+(s.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="needs_revision" '+(s.status==="needs_revision"?"selected":"")+'>Needs revision</option><option value="approved" '+(s.status==="approved"?"selected":"")+'>Approved</option></select><textarea rows="2" data-feedback="'+s.id+'" placeholder="Feedback">'+adminEsc(s.feedback||"")+'</textarea><button class="small-btn" data-review="'+s.id+'">Save</button></td></tr>';
+ }));
+}
+async function createAdminAssignment(event){
+ event.preventDefault();const msg=el("assignment-form-message"),due=el("assignment-due").value;
+ msg.textContent="";
+ const payload={course_id:el("assignment-course").value,title_my:el("assignment-title-my").value.trim(),title_en:el("assignment-title-en").value.trim(),instructions_my:el("assignment-instructions-my").value.trim(),instructions_en:el("assignment-instructions-en").value.trim(),due_at:due?new Date(due).toISOString():null,is_published:false};
+ const {error}=await supabase.from("assignments").insert(payload);
+ if(error){msg.textContent=error.message;msg.classList.add("error");return;}
+ msg.textContent=language==="my"?"မူကြမ်းအဖြစ် သိမ်းဆည်းပြီးပါပြီ။":"Assignment saved as draft.";
+ event.currentTarget.reset();await loadAdmin();
+}
+async function saveAdminReview(id){
+ const scoreText=document.querySelector('[data-score="'+id+'"]').value,score=scoreText===""?null:Number(scoreText);
+ if(score!==null&&(!Number.isFinite(score)||score<0||score>100)){alert("Score must be between 0 and 100.");return;}
+ const status=document.querySelector('[data-status="'+id+'"]').value,feedback=document.querySelector('[data-feedback="'+id+'"]').value.trim();
+ const {error}=await supabase.from("assignment_submissions").update({score,status,feedback,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq("id",id);
+ if(error){alert(error.message);return;}
+ el("admin-alert").textContent=language==="my"?"အမှတ်နှင့် Feedback သိမ်းဆည်းပြီးပါပြီ။":"Review saved.";
+ await loadAdmin();
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -361,6 +394,11 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminAssignments();
+ el("admin-assignment-form").onsubmit=createAdminAssignment;
+ document.querySelectorAll("[data-assignment-publish]").forEach(b=>b.onclick=()=>adminSave(supabase.from("assignments").update({is_published:b.dataset.next==="true"}).eq("id",b.dataset.assignmentPublish)));
+ document.querySelectorAll("[data-review]").forEach(b=>b.onclick=()=>saveAdminReview(b.dataset.review));
+
  renderAdminQuizForm();
  el("admin-quiz-form").onsubmit=submitAdminQuiz;
  el("quiz-add-question").onclick=()=>{if(el("quiz-question-editor").children.length<50)addAdminQuizQuestion();};
