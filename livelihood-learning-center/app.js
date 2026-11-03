@@ -89,7 +89,7 @@ el("auth-form").addEventListener("submit",async (event)=>{
 });
 
 el("signout-btn").addEventListener("click",async()=>{await supabase.auth.signOut();});
-let trainerWorkspace={assignments:[],courses:[],modules:[],lessons:[]};
+let trainerWorkspace={assignments:[],courses:[],modules:[],lessons:[],assessments:[],learners:[]};
 async function loadTrainerWorkspace(){
  const {data:assignments,error}=await supabase.from("course_trainers").select("id,course_id,courses(id,title_my,title_en,level)").eq("trainer_id",currentUser.id);
  if(error)throw error;trainerWorkspace.assignments=assignments||[];
@@ -101,11 +101,44 @@ async function loadTrainerWorkspace(){
  ]);
  if(m.error||l.error)throw m.error||l.error;
  trainerWorkspace.courses=assignments.map(x=>x.courses).filter(Boolean);trainerWorkspace.modules=m.data||[];
+ const courseSelect=el("assessment-course"),keepCourse=courseSelect.value;
+ courseSelect.innerHTML=trainerWorkspace.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
+ if(trainerWorkspace.courses.some(c=>c.id===keepCourse))courseSelect.value=keepCourse;
+ await loadTrainerAssessmentLearners();
+ const {data:myAssessments,error:assessmentError}=await supabase.from("learner_evaluations").select("id,course_id,learner_id,assessment_type,overall_score,status,assessed_at,learner:profiles!learner_evaluations_learner_id_fkey(full_name),courses(title_my,title_en)").eq("trainer_id",currentUser.id).order("assessed_at",{ascending:false}).limit(50);
+ if(assessmentError)throw assessmentError;
+ trainerWorkspace.assessments=myAssessments||[];
+ renderTrainerAssessments();
+ el("assessment-course").onchange=loadTrainerAssessmentLearners;
+ el("trainer-assessment-form").onsubmit=saveTrainerAssessment;
+
  const moduleIds=trainerWorkspace.modules.map(x=>x.id);
  trainerWorkspace.lessons=(l.data||[]).filter(x=>moduleIds.includes(x.module_id));
  el("trainer-course-list").innerHTML=trainerWorkspace.courses.map(c=>'<article class="panel"><h3>'+adminEsc(language==="my"?c.title_my:c.title_en)+'</h3><p>'+adminEsc(c.level)+'</p>'+trainerWorkspace.modules.filter(m=>m.course_id===c.id).map(m=>'<h4>'+adminEsc(language==="my"?m.title_my:m.title_en)+'</h4>'+trainerWorkspace.lessons.filter(l=>l.module_id===m.id).map(l=>'<p>'+adminEsc(language==="my"?l.title_my:l.title_en)+' · '+adminEsc(l.content_status||"draft")+' '+((l.is_published||l.content_status==="published")?'<small class="muted">Published — Admin managed</small>':'<button class="small-btn" data-trainer-edit="'+l.id+'">Edit</button>')+'</p>').join("")).join("")+'</article>').join("");
  el("trainer-module").innerHTML=trainerWorkspace.modules.map(m=>'<option value="'+m.id+'">'+adminEsc(language==="my"?m.title_my:m.title_en)+'</option>').join("");
  document.querySelectorAll("[data-trainer-edit]").forEach(b=>b.onclick=()=>{const l=trainerWorkspace.lessons.find(x=>x.id===b.dataset.trainerEdit);if(!l)return;el("trainer-lesson-id").value=l.id;el("trainer-module").value=l.module_id;el("trainer-title-my").value=l.title_my;el("trainer-title-en").value=l.title_en;el("trainer-content-my").value=l.content_my||"";el("trainer-content-en").value=l.content_en||"";el("trainer-video-url").value=l.video_url||"";el("trainer-change-note").value="";});
+}
+async function loadTrainerAssessmentLearners(){
+ const courseId=el("assessment-course").value;if(!courseId)return;
+ const {data,error}=await supabase.rpc("get_assigned_course_learners",{p_course_id:courseId});
+ if(error)throw error;
+ trainerWorkspace.learners=data||[];
+ el("assessment-learner").innerHTML=trainerWorkspace.learners.map(x=>'<option value="'+x.learner_id+'">'+adminEsc(x.full_name||"Learner")+'</option>').join("");
+ if(!trainerWorkspace.learners.length)el("assessment-learner").innerHTML='<option value="">No approved learners enrolled</option>';
+}
+function renderTrainerAssessments(){
+ el("trainer-assessment-list").innerHTML=adminTable(["Learner","Course","Type","Score","Status","Date"],trainerWorkspace.assessments.map(a=>'<tr><td>'+adminEsc(a.learner?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?a.courses?.title_my:a.courses?.title_en)+'</td><td>'+adminEsc(a.assessment_type)+'</td><td>'+Number(a.overall_score).toFixed(1)+'%</td><td>'+adminEsc(a.status)+'</td><td>'+new Date(a.assessed_at).toLocaleDateString()+'</td></tr>'));
+}
+async function saveTrainerAssessment(event){
+ event.preventDefault();const msg=el("assessment-message");msg.textContent="";msg.classList.remove("error");
+ const fields=[["practical_skills_score","assessment-practical"],["task_completion_score","assessment-task"],["problem_solving_score","assessment-problem"],["communication_score","assessment-communication"],["participation_score","assessment-participation"]];
+ const payload={course_id:el("assessment-course").value,learner_id:el("assessment-learner").value,trainer_id:currentUser.id,assessment_type:el("assessment-type").value,strengths:el("assessment-strengths").value.trim()||null,improvement_areas:el("assessment-improve").value.trim()||null,evidence_notes:el("assessment-evidence").value.trim()||null,recommendation:el("assessment-recommendation").value||null,status:"submitted"};
+ for(const [key,id] of fields){const value=Number(el(id).value);if(el(id).value===""||!Number.isFinite(value)||value<0||value>100){msg.textContent="All five scores must be between 0 and 100.";msg.classList.add("error");return;}payload[key]=value;}
+ if(!payload.learner_id){msg.textContent="Select an enrolled learner.";msg.classList.add("error");return;}
+ const {error}=await supabase.from("learner_evaluations").insert(payload);
+ if(error){msg.textContent=error.message;msg.classList.add("error");return;}
+ msg.textContent="Assessment saved. The learner and Admin can view it.";
+ event.currentTarget.reset();await loadTrainerWorkspace();
 }
 async function saveTrainerLesson(event){
  event.preventDefault();const msg=el("trainer-lesson-message");msg.textContent="";msg.classList.remove("error");
@@ -213,6 +246,7 @@ async function loadLearning(){
   root.querySelectorAll("[data-open-lesson]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.openLesson)));
   root.querySelectorAll("[data-start-quiz]").forEach(button=>button.addEventListener("click",()=>openQuiz(button.dataset.startQuiz)));
   await renderLearnerAssignments(courseRows);
+  await renderLearnerEvaluations();
   await loadLearnerCertificates();
   await loadLearnerSupport();
 
@@ -220,6 +254,12 @@ async function loadLearning(){
   el("quiz-runner").classList.add("hidden");
 }
 
+async function renderLearnerEvaluations(){
+ const root=el("learner-evaluations");if(!root)return;
+ const {data,error}=await supabase.from("learner_evaluations").select("id,course_id,assessment_type,overall_score,strengths,improvement_areas,evidence_notes,recommendation,trainer_feedback,status,assessed_at,trainer:profiles!learner_evaluations_trainer_id_fkey(full_name),courses(title_my,title_en)").eq("learner_id",currentUser.id).order("assessed_at",{ascending:false});
+ if(error)throw error;
+ root.innerHTML=(data||[]).map(a=>'<article class="panel"><h4>'+adminEsc(language==="my"?a.courses?.title_my:a.courses?.title_en)+' · '+adminEsc(a.assessment_type)+'</h4><p><strong>Overall competency: '+Number(a.overall_score).toFixed(1)+'%</strong> · '+adminEsc(a.status)+'</p><p><b>Strengths:</b> '+adminEsc(a.strengths||"—")+'</p><p><b>Improvement:</b> '+adminEsc(a.improvement_areas||"—")+'</p><p><b>Evidence:</b> '+adminEsc(a.evidence_notes||"—")+'</p><p><b>Recommendation:</b> '+adminEsc(a.recommendation||"—")+'</p><p><b>Trainer feedback:</b> '+adminEsc(a.trainer_feedback||"Pending Admin review")+'</p><small class="muted">'+adminEsc(a.trainer?.full_name||"Trainer")+' · '+new Date(a.assessed_at).toLocaleDateString()+'</small></article>').join("")||'<p class="muted">No trainer assessments yet.</p>';
+}
 async function renderLearnerAssignments(courseRows){
  const root=el("learner-assignments");if(!root)return;
  const courseIds=courseRows.map(x=>x.course_id);
@@ -339,7 +379,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -363,11 +403,12 @@ async function loadAdmin(){
   supabase.from("announcements").select("id,title_my,title_en,body_my,body_en,is_published,published_at").order("created_at",{ascending:false}),
   supabase.from("support_requests").select("id,learner_id,subject,category,status,created_at,updated_at,profiles(full_name)").order("updated_at",{ascending:false}),
   supabase.from("support_messages").select("id,request_id,sender_id,body,created_at").order("created_at"),
-  supabase.from("course_trainers").select("id,course_id,trainer_id,assigned_at,trainer:profiles!course_trainers_trainer_id_fkey(full_name,phone),courses(title_my,title_en,level)").order("assigned_at",{ascending:false})
+  supabase.from("course_trainers").select("id,course_id,trainer_id,assigned_at,trainer:profiles!course_trainers_trainer_id_fkey(full_name,phone),courses(title_my,title_en,level)").order("assigned_at",{ascending:false}),
+  supabase.from("learner_evaluations").select("id,course_id,learner_id,trainer_id,assessment_type,practical_skills_score,task_completion_score,problem_solving_score,communication_score,participation_score,overall_score,strengths,improvement_areas,evidence_notes,recommendation,trainer_feedback,status,assessed_at,reviewed_at,learner:profiles!learner_evaluations_learner_id_fkey(full_name),trainer:profiles!learner_evaluations_trainer_id_fkey(full_name),courses(title_my,title_en,level)").order("assessed_at",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -603,6 +644,10 @@ async function assignTrainer(event){
  msg.textContent=error?error.message:"Trainer assigned to course.";
  if(error)msg.classList.add("error");else{msg.classList.remove("error");await loadAdmin();}
 }
+function renderAdminEvaluations(){
+ el("admin-evaluations").innerHTML=adminTable(["Learner","Course","Trainer","Type","Score","Recommendation","Status","Review"],adminCache.evaluations.map(a=>'<tr><td>'+adminEsc(a.learner?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?a.courses?.title_my:a.courses?.title_en)+'</td><td>'+adminEsc(a.trainer?.full_name||"Trainer")+'</td><td>'+adminEsc(a.assessment_type)+'</td><td>'+Number(a.overall_score).toFixed(1)+'%</td><td>'+adminEsc(a.recommendation||"—")+'</td><td>'+adminEsc(a.status)+'</td><td>'+(a.status==="submitted"?'<textarea data-evaluation-feedback="'+a.id+'" rows="2" placeholder="Admin review feedback"></textarea><button class="small-btn approve" data-evaluation-review="'+a.id+'">Mark reviewed</button>':'<small>'+adminEsc(a.trainer_feedback||"Reviewed")+'</small>')+'</td></tr>'));
+ document.querySelectorAll("[data-evaluation-review]").forEach(b=>b.onclick=async()=>{const id=b.dataset.evaluationReview,feedback=document.querySelector('[data-evaluation-feedback="'+id+'"]').value;const {error}=await supabase.rpc("admin_review_learner_evaluation",{p_evaluation_id:id,p_feedback:feedback});if(error){el("admin-alert").textContent=error.message;el("admin-alert").classList.add("error");return;}await loadAdmin();});
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -627,6 +672,7 @@ function bindAdminActions(){
  renderAdminTrainers();
  el("trainer-assignment-form").onsubmit=assignTrainer;
  renderAdminSupport();
+ renderAdminEvaluations();
  el("admin-announcement-form").onsubmit=async e=>{e.preventDefault();const {error}=await supabase.from("announcements").insert({title_my:el("announce-title-my").value.trim(),title_en:el("announce-title-en").value.trim(),body_my:el("announce-body-my").value.trim(),body_en:el("announce-body-en").value.trim(),is_published:true,published_at:new Date().toISOString(),created_by:currentUser.id});el("announce-form-message").textContent=error?error.message:"Announcement published.";if(!error){e.target.reset();await loadAdmin();}};
  renderMEL();
  el("attendance-course").onchange=renderMEL;el("attendance-date").onchange=renderMEL;el("mel-export").onclick=exportMELCSV;
