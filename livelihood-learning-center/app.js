@@ -26,7 +26,7 @@ const translations = {
     authError:"လုပ်ဆောင်မှု မအောင်မြင်ပါ။", appliedMsg:"သင်တန်းလျှောက်ထားမှုကို လက်ခံရရှိပါပြီ။",
     signUpSuccess:"အီးမေးလ်ကို အတည်ပြုပြီးမှ အကောင့်ဝင်ပါ။", courseBasic:"အခြေခံအဆင့်", courseAdvanced:"အဆင့်မြင့်",
     basicDesc:"အသက်မွေးဝမ်းကျောင်းအတွက် အခြေခံကျွမ်းကျင်မှု၊ ဘဝကျွမ်းကျင်မှုနှင့် ငွေကြေးစီမံမှု။",
-    learningTitle:"ကျွန်ုပ်၏ သင်ယူမှု", learningIntro:"အတည်ပြုပြီးသော သင်တန်းများ၏ သင်ခန်းစာများကို လေ့လာပါ။", noLessons:"ဤသင်တန်းတွင် သင်ခန်းစာ မတင်ရသေးပါ။", openLesson:"သင်ခန်းစာ ဖတ်ရန်", markComplete:"သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်သားရန်", completedLabel:"ပြီးဆုံးပြီး", inProgressLabel:"လေ့လာနေဆဲ", progressLabel:"တိုးတက်မှု", lessonBack:"သင်ခန်းစာစာရင်းသို့ ပြန်ရန်",
+    learningTitle:"ကျွန်ုပ်၏ သင်ယူမှု", learningIntro:"အတည်ပြုပြီးသော သင်တန်းများ၏ သင်ခန်းစာများကို လေ့လာပါ။", noLessons:"ဤသင်တန်းတွင် သင်ခန်းစာ မတင်ရသေးပါ။", openLesson:"သင်ခန်းစာ ဖတ်ရန်", markComplete:"သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်သားရန်", completedLabel:"ပြီးဆုံးပြီး", inProgressLabel:"လေ့လာနေဆဲ", progressLabel:"တိုးတက်မှု", lessonBack:"သင်ခန်းစာစာရင်းသို့ ပြန်ရန်", quizTitle:"အသိပညာ စစ်ဆေးမှု", startQuiz:"Quiz စတင်ရန်", submitQuiz:"အဖြေတင်သွင်းရန်", quizPass:"အောင်မြင်ပါပြီ", quizFail:"ထပ်မံလေ့လာရန် လိုအပ်ပါသည်", quizScore:"ရမှတ်", quizLoading:"Quiz ဖွင့်နေပါသည်...", quizEmpty:"မေးခွန်းများ မရှိသေးပါ။", quizSubmitted:"Quiz တင်သွင်းပြီးပါပြီ။", quizError:"Quiz တင်သွင်းမှု မအောင်မြင်ပါ။",
     advancedDesc:"အသက်မွေးဝမ်းကျောင်း တိုးချဲ့ခြင်း၊ စီးပွားရေးစီမံမှုနှင့် ဈေးကွက်ချိတ်ဆက်မှု။"
   },
   en: {
@@ -46,7 +46,7 @@ const translations = {
     authError:"The action could not be completed.", appliedMsg:"Your course application has been received.",
     signUpSuccess:"Please verify your email before signing in.", courseBasic:"Basic Level", courseAdvanced:"Advanced Level",
     basicDesc:"Foundational vocational skills, life skills and basic financial literacy for livelihoods.",
-    learningTitle:"My Learning", learningIntro:"Open lessons in the courses approved for you.", noLessons:"No lessons have been published for this course yet.", openLesson:"Open lesson", markComplete:"Mark lesson as complete", completedLabel:"Completed", inProgressLabel:"In progress", progressLabel:"Progress", lessonBack:"Back to lesson list",
+    learningTitle:"My Learning", learningIntro:"Open lessons in the courses approved for you.", noLessons:"No lessons have been published for this course yet.", openLesson:"Open lesson", markComplete:"Mark lesson as complete", completedLabel:"Completed", inProgressLabel:"In progress", progressLabel:"Progress", lessonBack:"Back to lesson list", quizTitle:"Knowledge Check", startQuiz:"Start quiz", submitQuiz:"Submit answers", quizPass:"Passed", quizFail:"Keep learning and try again", quizScore:"Score", quizLoading:"Loading quiz...", quizEmpty:"No questions are available yet.", quizSubmitted:"Your quiz has been submitted.", quizError:"Quiz submission failed.",
     advancedDesc:"Livelihood growth, business management, financial planning and market linkages."
   }
 };
@@ -163,12 +163,20 @@ async function loadLearning(){
       }).join("");
       return '<div class="module-block"><h4>'+escapeHtml(language==="my"?module.title_my:module.title_en)+'</h4>'+(lessonHtml||'<p class="muted">'+t("noLessons")+'</p>')+'</div>';
     }).join("");
+    const {data:quizzes,error:quizError}=await supabase.from("quizzes")
+      .select("id,title_my,title_en,pass_mark").eq("course_id",course.id).eq("is_published",true);
+    if(quizError)throw quizError;
+    const quizCards=(quizzes||[]).map(quiz=>
+      '<div class="quiz-card"><div><b>'+escapeHtml(language==="my"?quiz.title_my:quiz.title_en)+'</b><small>'+t("quizTitle")+' · '+t("quizScore")+' '+Number(quiz.pass_mark)+'%</small></div><button class="small-btn" data-start-quiz="'+quiz.id+'">'+t("startQuiz")+'</button></div>'
+    ).join("");
     const percent=total?Math.round(done/total*100):0;
-    courseBlocks.push('<article class="learning-course"><div class="learning-course-head"><div><span class="level">'+escapeHtml(course.level)+'</span><h3>'+escapeHtml(language==="my"?course.title_my:course.title_en)+'</h3></div><div class="progress-wrap"><strong>'+percent+'%</strong><small>'+t("progressLabel")+'</small><div class="progress-track"><span style="width:'+percent+'%"></span></div></div></div>'+moduleHtml+'</article>');
+    courseBlocks.push('<article class="learning-course"><div class="learning-course-head"><div><span class="level">'+escapeHtml(course.level)+'</span><h3>'+escapeHtml(language==="my"?course.title_my:course.title_en)+'</h3></div><div class="progress-wrap"><strong>'+percent+'%</strong><small>'+t("progressLabel")+'</small><div class="progress-track"><span style="width:'+percent+'%"></span></div></div></div>'+moduleHtml+(quizCards?'<div class="quiz-list"><h4>'+t("quizTitle")+'</h4>'+quizCards+'</div>':'')+'</article>');
   }
   root.innerHTML=courseBlocks.join("");
   root.querySelectorAll("[data-open-lesson]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.openLesson)));
+  root.querySelectorAll("[data-start-quiz]").forEach(button=>button.addEventListener("click",()=>openQuiz(button.dataset.startQuiz)));
   pane.classList.add("hidden");
+  el("quiz-runner").classList.add("hidden");
 }
 async function openLesson(id){
   const lesson=learningLessons.get(id);if(!lesson)return;
@@ -197,6 +205,59 @@ async function completeLesson(id){
   if(error){alert(error.message);return;}
   await loadLearning();
   alert(language==="my"?"သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်တမ်းတင်ပြီးပါပြီ။":"Lesson marked as completed.");
+}
+
+let activeQuiz = null;
+async function openQuiz(quizId){
+  const runner=el("quiz-runner");
+  runner.classList.remove("hidden");
+  runner.innerHTML='<p class="muted">'+t("quizLoading")+'</p>';
+  runner.scrollIntoView({behavior:"smooth",block:"start"});
+  const [{data:quiz,error:quizError},{data:questions,error:questionError}]=await Promise.all([
+    supabase.from("quizzes").select("id,title_my,title_en,pass_mark").eq("id",quizId).single(),
+    supabase.from("quiz_questions").select("id,question_my,question_en,options,sort_order").eq("quiz_id",quizId).order("sort_order")
+  ]);
+  if(quizError||questionError){runner.innerHTML='<p class="error">'+escapeHtml((quizError||questionError).message)+'</p>';return;}
+  if(!questions?.length){runner.innerHTML='<p class="muted">'+t("quizEmpty")+'</p>';return;}
+  activeQuiz={quiz,questions};
+  const questionHtml=questions.map((q,index)=>{
+    const prompt=language==="my"?q.question_my:q.question_en;
+    const options=Array.isArray(q.options)?q.options:[];
+    const choices=options.map((option,optionIndex)=>{
+      let label=option;
+      if(option&&typeof option==="object")label=language==="my"?(option.my||option.label_my||option.en||option.label_en||""):(option.en||option.label_en||option.my||option.label_my||"");
+      return '<label class="quiz-option"><input type="radio" name="question-'+q.id+'" value="'+optionIndex+'" required><span>'+escapeHtml(label)+'</span></label>';
+    }).join("");
+    return '<fieldset class="quiz-question"><legend>'+(index+1)+'. '+escapeHtml(prompt||"")+'</legend>'+choices+'</fieldset>';
+  }).join("");
+  runner.innerHTML='<div class="quiz-runner-head"><div><p class="eyebrow">'+t("quizTitle")+'</p><h3>'+escapeHtml(language==="my"?quiz.title_my:quiz.title_en)+'</h3></div><button type="button" class="ghost" id="close-quiz">×</button></div><form id="quiz-form">'+questionHtml+'<button class="primary-btn" type="submit">'+t("submitQuiz")+'</button><p id="quiz-result" class="message" role="status"></p></form>';
+  el("close-quiz").addEventListener("click",()=>runner.classList.add("hidden"));
+  el("quiz-form").addEventListener("submit",submitQuiz);
+}
+async function submitQuiz(event){
+  event.preventDefault();
+  if(!activeQuiz)return;
+  const form=event.currentTarget;
+  const submitButton=form.querySelector('button[type="submit"]');
+  submitButton.disabled=true;
+  const answers={};
+  for(const question of activeQuiz.questions){
+    const selected=form.querySelector('input[name="question-'+question.id+'"]:checked');
+    if(!selected){submitButton.disabled=false;return;}
+    answers[question.id]=Number(selected.value);
+  }
+  const {data,error}=await supabase.rpc("submit_quiz_attempt",{p_quiz_id:activeQuiz.quiz.id,p_answers:answers});
+  const result=el("quiz-result");
+  if(error){
+    result.textContent=error.message||t("quizError");result.classList.add("error");submitButton.disabled=false;return;
+  }
+  const attempt=Array.isArray(data)?data[0]:data;
+  if(!attempt){result.textContent=t("quizError");result.classList.add("error");submitButton.disabled=false;return;}
+  const score=Number(attempt.score);
+  result.classList.remove("error");
+  result.textContent=(attempt.passed?t("quizPass"):t("quizFail"))+' — '+t("quizScore")+': '+score+'%';
+  submitButton.textContent=t("quizSubmitted");
+  submitButton.disabled=true;
 }
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
