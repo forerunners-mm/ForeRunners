@@ -484,7 +484,7 @@ const verifyForm=el("certificate-verify-form");if(verifyForm){verifyForm.onsubmi
 async function loadAdmin(){
  const rs=await Promise.all([
   supabase.from("profiles").select("id,full_name,phone,role,account_status,created_at").order("created_at",{ascending:false}),
-  supabase.from("enrollments").select("id,learner_id,course_id,status,applied_at,profiles(full_name,phone),courses(title_my,title_en,level)").order("applied_at",{ascending:false}),
+  supabase.from("enrollments").select("id,learner_id,course_id,status,applied_at,completed_at,profiles(full_name,phone),courses(title_my,title_en,level)").order("applied_at",{ascending:false}),
   supabase.from("courses").select("id,title_my,title_en,level,is_published,sort_order").order("sort_order"),
   supabase.from("modules").select("id,course_id,title_my,title_en,sort_order").order("sort_order"),
   supabase.from("lessons").select("id,module_id,title_my,title_en,content_my,content_en,video_url,resource_path,is_published,content_status,version_no,updated_at,sort_order").order("sort_order"),
@@ -613,7 +613,40 @@ async function verifyCertificate(code){
  const cert=Array.isArray(data)?data[0]:null;
  result.innerHTML=cert?'<h3>Valid certificate / မှန်ကန်သောလက်မှတ်</h3><p><b>'+escapeHtml(cert.learner_name)+'</b></p><p>'+escapeHtml(language==="my"?cert.course_title_my:cert.course_title_en)+'</p><p>'+new Date(cert.issued_at).toLocaleDateString()+'</p><p>'+escapeHtml(cert.certificate_code)+'</p>':'<h3>Certificate not found / လက်မှတ်မတွေ့ပါ</h3>';
 }
-function renderMEL(){
+
+function getDonorOutcomeMetrics(courseId){
+ const today=new Date();today.setHours(23,59,59,999);
+ const enrollments=adminCache.enrollments.filter(e=>e.status==="completed"&&e.completed_at&& (courseId==="all"||e.course_id===courseId));
+ const rows=adminCache.graduateFollowups.filter(r=>courseId==="all"||enrollments.some(e=>e.id===r.enrollment_id));
+ const periods=["30_day","90_day","180_day"].map(period=>{
+  const days=Number(period.split("_")[0]),eligible=enrollments.filter(e=>new Date(new Date(e.completed_at).getTime()+days*86400000)<=today);
+  const responses=rows.filter(r=>r.followup_period===period&&eligible.some(e=>e.id===r.enrollment_id));
+  const n=responses.length,work=responses.filter(r=>["employed","self_employed"].includes(r.employment_status)).length,self=responses.filter(r=>r.employment_status==="self_employed").length,apprentices=responses.filter(r=>r.employment_status==="apprenticeship").length;
+  const paired=responses.filter(r=>r.monthly_income!==null&&r.monthly_income!==undefined&&r.previous_monthly_income!==null&&r.previous_monthly_income!==undefined&&Number(r.previous_monthly_income)>0&&r.income_currency==="MMK");
+  const increases=paired.filter(r=>Number(r.monthly_income)>Number(r.previous_monthly_income)).length;
+  const skillUsers=responses.filter(r=>Array.isArray(r.skills_used)&&r.skills_used.length>0).length;
+  const relevance=responses.filter(r=>r.training_relevance!==null&&r.training_relevance!==undefined);
+  const safe=n>=5;
+  return {period,eligible:eligible.length,responses:n,responseRate:eligible.length?Math.round(n/eligible.length*100):null,work,self,apprentices,workRate:safe?Math.round(work/n*100):null,selfRate:safe?Math.round(self/n*100):null,skillUsers,skillRate:safe?Math.round(skillUsers/n*100):null,paired:paired.length,increases,increaseRate:paired.length>=5?Math.round(increases/paired.length*100):null,avgRelevance:relevance.length>=5?(relevance.reduce((s,r)=>s+Number(r.training_relevance),0)/relevance.length).toFixed(1):null};
+ });
+ return {enrollments:enrollments.length,rows,periods};
+}
+function renderDonorOutcomeDashboard(){
+ const filter=el("donor-course-filter"),keep=filter.value;
+ filter.innerHTML='<option value="all">All courses / သင်တန်းအားလုံး</option>'+adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
+ if(keep==="all"||adminCache.courses.some(c=>c.id===keep))filter.value=keep;else filter.value="all";
+ const metrics=getDonorOutcomeMetrics(filter.value),latest=metrics.periods.find(p=>p.period==="180_day")||metrics.periods[0];
+ const stat=(label,value)=>'<article class="admin-stat"><span>'+label+'</span><strong>'+value+'</strong></article>';
+ el("donor-outcome-stats").innerHTML=[stat("Completed enrollments",metrics.enrollments),stat("180-day work outcome",latest?.workRate===null?"Withheld (n<5)":latest?.workRate+"%"),stat("180-day self-employment",latest?.selfRate===null?"Withheld (n<5)":latest?.selfRate+"%"),stat("180-day skill use",latest?.skillRate===null?"Withheld (n<5)":latest?.skillRate+"%")].join("");
+ el("donor-outcome-periods").innerHTML=adminTable(["Follow-up","Due graduates","Responses","Response rate","Employed / self-employed","Self-employed","Apprenticeship","Skills used","Income increased*","Training relevance"],metrics.periods.map(p=>'<tr><td>'+p.period.replace("_"," ")+'</td><td>'+p.eligible+'</td><td>'+p.responses+'</td><td>'+(p.responseRate===null?"—":p.responseRate+"%")+'</td><td>'+(p.workRate===null?"Withheld (n<5)":p.workRate+"%")+'</td><td>'+(p.selfRate===null?"Withheld (n<5)":p.selfRate+"%")+'</td><td>'+p.apprentices+'</td><td>'+(p.skillRate===null?"Withheld (n<5)":p.skillRate+"%")+'</td><td>'+(p.increaseRate===null?"Withheld / insufficient paired data":p.increaseRate+"%")+'</td><td>'+(p.avgRelevance===null?"Withheld (n<5)":p.avgRelevance+"/5")+'</td></tr>'));
+ el("donor-outcome-notes").textContent="* Income increase is calculated only for paired MMK income records with a previous income greater than zero. Response rate = submitted follow-ups / graduates due for that period. Employment outcome excludes apprenticeship. Rates are withheld where the response sample is below 5. All outcomes are self-reported.";
+}
+function exportDonorOutcomeCSV(){
+ const m=getDonorOutcomeMetrics(el("donor-course-filter").value),headers=["followup_period","eligible_graduates_due","responses","response_rate_percent","employed_or_self_employed_count","work_outcome_rate_percent","self_employed_count","self_employment_rate_percent","apprenticeship_count","skills_used_count","skills_used_rate_percent","paired_MMK_income_records","income_increased_count","income_increase_rate_percent","average_training_relevance_1_to_5"];
+ const rows=[headers,...m.periods.map(p=>[p.period,p.eligible,p.responses,p.responseRate,p.work,p.workRate,p.self,p.selfRate,p.apprentices,p.skillUsers,p.skillRate,p.paired,p.increases,p.increaseRate,p.avgRelevance])];
+ const csv=rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n"),blob=new Blob(["\\uFEFF",csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="forerunners-donor-outcomes-aggregated.csv";a.click();URL.revokeObjectURL(url);
+}
+\nfunction renderMEL(){
  const courseSel=el("attendance-course"),keep=courseSel.value;
  courseSel.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
  if(adminCache.courses.some(c=>c.id===keep))courseSel.value=keep;
@@ -799,7 +832,7 @@ function bindAdminActions(){
  el("career-opportunity-form").onsubmit=saveCareerOpportunity;
  el("admin-announcement-form").onsubmit=async e=>{e.preventDefault();const {error}=await supabase.from("announcements").insert({title_my:el("announce-title-my").value.trim(),title_en:el("announce-title-en").value.trim(),body_my:el("announce-body-my").value.trim(),body_en:el("announce-body-en").value.trim(),is_published:true,published_at:new Date().toISOString(),created_by:currentUser.id});el("announce-form-message").textContent=error?error.message:"Announcement published.";if(!error){e.target.reset();await loadAdmin();}};
  renderMEL();
- el("attendance-course").onchange=renderMEL;el("attendance-date").onchange=renderMEL;el("mel-export").onclick=exportMELCSV;
+ el("attendance-course").onchange=renderMEL;el("attendance-date").onchange=renderMEL;el("mel-export").onclick=exportMELCSV;el("donor-course-filter").onchange=renderDonorOutcomeDashboard;el("donor-outcome-export").onclick=exportDonorOutcomeCSV;
  renderAdminCertificates();
  document.querySelectorAll("[data-cert-issue]").forEach(b=>b.onclick=()=>issueAdminCertificate(b.dataset.certIssue,b.dataset.course,b));
  document.querySelectorAll("[data-cert-print]").forEach(b=>b.onclick=()=>openCertificatePrint(b.dataset.certPrint,b.dataset.certName,b.dataset.certCourse));
