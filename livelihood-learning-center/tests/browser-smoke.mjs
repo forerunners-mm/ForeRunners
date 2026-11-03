@@ -5,13 +5,27 @@ const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
   page.on("pageerror", error => errors.push(error.message));
+  await page.route("https://esm.sh/@supabase/supabase-js@2.57.4", route => route.fulfill({
+    status: 200,
+    contentType: "application/javascript",
+    body: `export function createClient() {
+      return { auth: {
+        getSession: async () => ({ data: { session: null } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } })
+      }};
+    }`
+  }));
 
   await page.goto("http://127.0.0.1:4173/livelihood-learning-center/", {
     waitUntil: "domcontentloaded",
     timeout: 30000
   });
   await page.waitForSelector("#auth-section:not(.hidden)", { timeout: 30000 });
-  await page.waitForFunction(() => document.documentElement.dataset.lvcReady === "true", { timeout: 30000 });
+  try {
+    await page.waitForFunction(() => document.documentElement.dataset.lvcReady === "true", { timeout: 10000 });
+  } catch (error) {
+    throw new Error("LMS JavaScript did not initialize. Browser errors: " + errors.join(" | "));
+  }
 
   if (!(await page.title()).includes("Livelihood Learning Center")) {
     throw new Error("Unexpected page title.");
