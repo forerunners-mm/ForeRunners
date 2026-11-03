@@ -502,7 +502,8 @@ async function loadLearnerCertificates(){
  const root=el("learner-certificates");if(!root)return;
  const {data,error}=await supabase.from("certificates").select("certificate_code,issued_at,courses(title_my,title_en)").eq("learner_id",currentUser.id).order("issued_at",{ascending:false});
  if(error)throw error;
- root.innerHTML='<div class="panel"><h3>My certificates / ကျွန်ုပ်၏ သင်တန်းဆင်းလက်မှတ်များ</h3>'+(data||[]).map(c=>'<article class="assignment-card"><b>'+escapeHtml(language==="my"?c.courses?.title_my:c.courses?.title_en)+'</b><p>'+escapeHtml(c.certificate_code)+'</p><button class="small-btn" data-learner-cert="'+escapeHtml(c.certificate_code)+'" data-course="'+escapeHtml(language==="my"?c.courses?.title_my:c.courses?.title_en)+'">Print certificate</button></article>').join("")||'<p class="muted">No certificates issued yet / လက်မှတ်မရှိသေးပါ။</p>')+'</div>';
+ const certificateCards=(data||[]).map(c=>'<article class="assignment-card"><b>'+escapeHtml(language==="my"?c.courses?.title_my:c.courses?.title_en)+'</b><p>'+escapeHtml(c.certificate_code)+'</p><button class="small-btn" data-learner-cert="'+escapeHtml(c.certificate_code)+'" data-course="'+escapeHtml(language==="my"?c.courses?.title_my:c.courses?.title_en)+'">Print certificate</button></article>').join("");
+ root.innerHTML='<div class="panel"><h3>My certificates / ကျွန်ုပ်၏ သင်တန်းဆင်းလက်မှတ်များ</h3>'+(certificateCards||'<p class="muted">No certificates issued yet / လက်မှတ်မရှိသေးပါ။</p>')+'</div>';
  root.querySelectorAll("[data-learner-cert]").forEach(b=>b.onclick=()=>openCertificatePrint(b.dataset.learnerCert,currentUser.user_metadata?.full_name||"Learner",b.dataset.course));
 }
 async function verifyCertificate(code){
