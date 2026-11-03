@@ -176,6 +176,7 @@ async function loadLearning(){
   root.querySelectorAll("[data-open-lesson]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.openLesson)));
   root.querySelectorAll("[data-start-quiz]").forEach(button=>button.addEventListener("click",()=>openQuiz(button.dataset.startQuiz)));
   await renderLearnerAssignments(courseRows);
+  await loadLearnerCertificates();
 
   pane.classList.add("hidden");
   el("quiz-runner").classList.add("hidden");
@@ -300,10 +301,12 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
-function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
+function setAdminTab(tab){const verifyForm=el("certificate-verify-form");
+if(verifyForm){verifyForm.onsubmit=e=>{e.preventDefault();verifyCertificate(el("certificate-verify-code").value.trim());};const code=new URLSearchParams(window.location.search).get("verify");if(code){el("certificate-verification").classList.remove("hidden");el("certificate-verify-code").value=code;verifyCertificate(code);}}
+document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
 document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>setAdminTab(b.dataset.adminTab)));
 async function loadAdmin(){
  const rs=await Promise.all([
@@ -317,11 +320,12 @@ async function loadAdmin(){
   supabase.from("lesson_progress").select("id,learner_id,lesson_id,status"),
   supabase.from("quiz_attempts").select("*"),
   supabase.from("assignments").select("id,course_id,title_my,title_en,due_at,is_published,created_at").order("created_at",{ascending:false}),
-  supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,file_path,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false})
+  supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,file_path,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false}),
+  supabase.from("certificates").select("id,learner_id,course_id,certificate_code,issued_at,file_path,profiles(full_name),courses(title_my,title_en,level)").order("issued_at",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -387,6 +391,44 @@ async function saveAdminReview(id){
  el("admin-alert").textContent=language==="my"?"အမှတ်နှင့် Feedback သိမ်းဆည်းပြီးပါပြီ။":"Review saved.";
  await loadAdmin();
 }
+function renderAdminCertificates(){
+ const issued=new Map(adminCache.certificates.map(c=>[c.learner_id+"|"+c.course_id,c]));
+ const rows=adminCache.enrollments.filter(e=>["approved","completed"].includes(e.status)).map(e=>{
+  const cert=issued.get(e.learner_id+"|"+e.course_id),name=e.profiles?.full_name||"Learner",course=e.courses?.[language==="my"?"title_my":"title_en"]||"Course";
+  return '<tr><td>'+adminEsc(name)+'</td><td>'+adminEsc(course)+'</td><td>'+(cert?adminEsc(cert.certificate_code):"Not issued")+'</td><td>'+(cert?new Date(cert.issued_at).toLocaleDateString():"—")+'</td><td>'+(cert?'<button class="small-btn" data-cert-print="'+adminEsc(cert.certificate_code)+'" data-cert-name="'+adminEsc(name)+'" data-cert-course="'+adminEsc(course)+'">Print</button>':'<button class="small-btn approve" data-cert-issue="'+e.learner_id+'" data-course="'+e.course_id+'">Check & issue</button>')+'</td></tr>';
+ });
+ el("admin-certificates").innerHTML=adminTable(["Learner","Course","Certificate code","Issued","Action"],rows);
+}
+async function issueAdminCertificate(learnerId,courseId,button){
+ button.disabled=true;
+ try{
+  const {data,error}=await supabase.rpc("issue_course_certificate",{p_learner_id:learnerId,p_course_id:courseId});
+  if(error)throw error;
+  el("admin-alert").textContent="Certificate issued: "+(Array.isArray(data)?data[0]?.certificate_code:"");
+  await loadAdmin();
+ }catch(error){alert(error.message||String(error));button.disabled=false;}
+}
+function openCertificatePrint(code,name,course){
+ const verifyUrl=window.location.origin+window.location.pathname+"?verify="+encodeURIComponent(code);
+ const qr="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(verifyUrl);
+ const w=window.open("","_blank");if(!w){alert("Please allow pop-ups to print the certificate.");return;}
+ w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>ForeRunners Certificate</title><style>body{font-family:Georgia,serif;margin:0;padding:36px;color:#24332c}.cert{border:8px double #496c59;min-height:650px;padding:48px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}h1{font-size:38px;margin:10px}h2{font-size:28px}p{font-size:18px}.code{font:14px monospace;margin-top:18px}img{width:125px;height:125px;margin-top:10px}@media print{button{display:none}}</style></head><body><main class="cert"><p>FORERUNNERS ORGANIZATION</p><h1>CERTIFICATE OF COMPLETION</h1><h2>သင်တန်းပြီးမြောက်ကြောင်း အသိအမှတ်ပြုလွှာ</h2><p>This certificate is proudly presented to</p><h2>'+escapeHtml(name)+'</h2><p>for successfully completing</p><h2>'+escapeHtml(course)+'</h2><p>ForeRunners Livelihood & Vocational Learning Center</p><p class="code">'+escapeHtml(code)+'</p><img src="'+qr+'" alt="Certificate verification QR code"><p>Scan to verify this certificate</p><button onclick="window.print()">Print / Save as PDF</button></main></body></html>');
+ w.document.close();
+}
+async function loadLearnerCertificates(){
+ const root=el("learner-certificates");if(!root)return;
+ const {data,error}=await supabase.from("certificates").select("certificate_code,issued_at,courses(title_my,title_en)").eq("learner_id",currentUser.id).order("issued_at",{ascending:false});
+ if(error)throw error;
+ root.innerHTML='<div class="panel"><h3>My certificates / ကျွန်ုပ်၏ သင်တန်းဆင်းလက်မှတ်များ</h3>'+(data||[]).map(c=>'<article class="assignment-card"><b>'+escapeHtml(language==="my"?c.courses?.title_my:c.courses?.title_en)+'</b><p>'+escapeHtml(c.certificate_code)+'</p><button class="small-btn" data-learner-cert="'+escapeHtml(c.certificate_code)+'" data-course="'+escapeHtml(language==="my"?c.courses?.title_my:c.courses?.title_en)+'">Print certificate</button></article>').join("")||'<p class="muted">No certificates issued yet / လက်မှတ်မရှိသေးပါ။</p>')+'</div>';
+ root.querySelectorAll("[data-learner-cert]").forEach(b=>b.onclick=()=>openCertificatePrint(b.dataset.learnerCert,currentUser.user_metadata?.full_name||"Learner",b.dataset.course));
+}
+async function verifyCertificate(code){
+ const result=el("certificate-verify-result");result.textContent="Checking…";
+ const {data,error}=await supabase.rpc("verify_course_certificate",{p_certificate_code:code});
+ if(error){result.textContent=error.message;return;}
+ const cert=Array.isArray(data)?data[0]:null;
+ result.innerHTML=cert?'<h3>Valid certificate / မှန်ကန်သောလက်မှတ်</h3><p><b>'+escapeHtml(cert.learner_name)+'</b></p><p>'+escapeHtml(language==="my"?cert.course_title_my:cert.course_title_en)+'</p><p>'+new Date(cert.issued_at).toLocaleDateString()+'</p><p>'+escapeHtml(cert.certificate_code)+'</p>':'<h3>Certificate not found / လက်မှတ်မတွေ့ပါ</h3>';
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -407,6 +449,9 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminCertificates();
+ document.querySelectorAll("[data-cert-issue]").forEach(b=>b.onclick=()=>issueAdminCertificate(b.dataset.certIssue,b.dataset.course,b));
+ document.querySelectorAll("[data-cert-print]").forEach(b=>b.onclick=()=>openCertificatePrint(b.dataset.certPrint,b.dataset.certName,b.dataset.certCourse));
  renderAdminAssignments();
  el("admin-assignment-form").onsubmit=createAdminAssignment;
  document.querySelectorAll("[data-assignment-publish]").forEach(b=>b.onclick=()=>adminSave(supabase.from("assignments").update({is_published:b.dataset.next==="true"}).eq("id",b.dataset.assignmentPublish)));
