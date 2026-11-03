@@ -89,17 +89,53 @@ el("auth-form").addEventListener("submit",async (event)=>{
 });
 
 el("signout-btn").addEventListener("click",async()=>{await supabase.auth.signOut();});
+let trainerWorkspace={assignments:[],courses:[],modules:[],lessons:[]};
+async function loadTrainerWorkspace(){
+ const {data:assignments,error}=await supabase.from("course_trainers").select("id,course_id,courses(id,title_my,title_en,level)").eq("trainer_id",currentUser.id);
+ if(error)throw error;trainerWorkspace.assignments=assignments||[];
+ const ids=trainerWorkspace.assignments.map(x=>x.course_id);
+ if(!ids.length){el("trainer-course-list").innerHTML='<p class="muted">No courses assigned yet. Please contact the administrator.</p>';el("trainer-module").innerHTML="";return;}
+ const [m,l]=await Promise.all([
+  supabase.from("modules").select("id,course_id,title_my,title_en,sort_order").in("course_id",ids).order("sort_order"),
+  supabase.from("lessons").select("id,module_id,title_my,title_en,content_my,content_en,video_url,content_status,version_no,is_published,sort_order").order("sort_order")
+ ]);
+ if(m.error||l.error)throw m.error||l.error;
+ trainerWorkspace.courses=assignments.map(x=>x.courses).filter(Boolean);trainerWorkspace.modules=m.data||[];
+ const moduleIds=trainerWorkspace.modules.map(x=>x.id);
+ trainerWorkspace.lessons=(l.data||[]).filter(x=>moduleIds.includes(x.module_id));
+ el("trainer-course-list").innerHTML=trainerWorkspace.courses.map(c=>'<article class="panel"><h3>'+adminEsc(language==="my"?c.title_my:c.title_en)+'</h3><p>'+adminEsc(c.level)+'</p>'+trainerWorkspace.modules.filter(m=>m.course_id===c.id).map(m=>'<h4>'+adminEsc(language==="my"?m.title_my:m.title_en)+'</h4>'+trainerWorkspace.lessons.filter(l=>l.module_id===m.id).map(l=>'<p>'+adminEsc(language==="my"?l.title_my:l.title_en)+' · '+adminEsc(l.content_status||"draft")+' <button class="small-btn" data-trainer-edit="'+l.id+'">Edit</button></p>').join("")).join("")+'</article>').join("");
+ el("trainer-module").innerHTML=trainerWorkspace.modules.map(m=>'<option value="'+m.id+'">'+adminEsc(language==="my"?m.title_my:m.title_en)+'</option>').join("");
+ document.querySelectorAll("[data-trainer-edit]").forEach(b=>b.onclick=()=>{const l=trainerWorkspace.lessons.find(x=>x.id===b.dataset.trainerEdit);if(!l)return;el("trainer-lesson-id").value=l.id;el("trainer-module").value=l.module_id;el("trainer-title-my").value=l.title_my;el("trainer-title-en").value=l.title_en;el("trainer-content-my").value=l.content_my||"";el("trainer-content-en").value=l.content_en||"";el("trainer-video-url").value=l.video_url||"";el("trainer-change-note").value="";});
+}
+async function saveTrainerLesson(event){
+ event.preventDefault();const msg=el("trainer-lesson-message");msg.textContent="";msg.classList.remove("error");
+ const id=el("trainer-lesson-id").value;
+ const payload={module_id:el("trainer-module").value,title_my:el("trainer-title-my").value.trim(),title_en:el("trainer-title-en").value.trim(),content_my:el("trainer-content-my").value.trim(),content_en:el("trainer-content-en").value.trim(),video_url:el("trainer-video-url").value.trim()||null,content_status:"in_review",is_published:false,updated_at:new Date().toISOString()};
+ if(!payload.title_my||!payload.title_en){msg.textContent="Both language titles are required.";msg.classList.add("error");return;}
+ try{
+  if(id){
+   const old=trainerWorkspace.lessons.find(x=>x.id===id);
+   if(old){const {error:re}=await supabase.from("lesson_revisions").insert({lesson_id:id,version_no:old.version_no||1,title_my:old.title_my,title_en:old.title_en,content_my:old.content_my,content_en:old.content_en,video_url:old.video_url,changed_by:currentUser.id,change_note:el("trainer-change-note").value.trim()||"Trainer update"});if(re)throw re;}
+   const {error}=await supabase.from("lessons").update({...payload,version_no:(old?.version_no||1)+1}).eq("id",id);if(error)throw error;
+  }else{
+   const {error}=await supabase.from("lessons").insert({...payload,created_by:currentUser.id,sort_order:trainerWorkspace.lessons.filter(l=>l.module_id===payload.module_id).length+1});if(error)throw error;
+  }
+  msg.textContent="Submitted for admin review. Learners cannot see it until an admin publishes it.";
+  el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";await loadTrainerWorkspace();
+ }catch(error){msg.textContent=error.message||"Unable to save lesson.";msg.classList.add("error");}
+}
 async function loadProfile(){
   const {data,error}=await supabase.from("profiles").select("*").eq("id",currentUser.id).single();
   if(error) throw error;currentProfile=data;
   show("auth-section",false);show("signout-btn",true);
   if(data.account_status!=="approved"){
-    show("pending-section",true);show("learner-section",false);show("admin-section",false);return;
+    show("pending-section",true);show("learner-section",false);show("trainer-section",false);show("admin-section",false);return;
   }
   show("pending-section",false);el("learner-name").textContent=data.full_name||currentUser.email;
-  show("learner-section",true);
-  if(data.role==="admin"){show("admin-section",true);await loadAdmin();}
-  await loadCourses();await loadEnrollments();await loadLearning();
+  show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
+  if(data.role==="admin"){await loadAdmin();}
+  else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
+  else{await loadCourses();await loadEnrollments();await loadLearning();}
 }
 async function loadCourses(){
   const {data,error}=await supabase.from("courses").select("id,title_my,title_en,description_my,description_en,level").eq("is_published",true).order("sort_order");
