@@ -59,7 +59,7 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - GitHub Actions CI checks JavaScript syntax, required LMS files, duplicate HTML IDs and key interface elements.
 - Database schema and reminder function were checked against the connected Supabase project.
 - The scheduled reminder job is active. A manual function invocation completed and created zero rows because the project currently has no completed enrollments due for follow-up.
-- Supabase lists 22 applied migration versions. The original first 19 migration SQL files remain unavailable; a live schema recovery snapshot and programme seed-data script have now been added. Fresh-project replay and validation are still outstanding.
+- Supabase lists 23 applied migration versions. The original first 19 migration SQL files remain unavailable; a live schema recovery snapshot and programme seed-data script have now been added. Fresh-project replay and validation are still outstanding. The 16 missing foreign-key indexes were added in migration `202611030004_add_missing_foreign_key_indexes.sql` and applied to the connected project.
 - At the last data check: 0 enrollments, 0 completed enrollments, 0 graduate follow-up responses and 0 career opportunities/applications. No outcome rate should be interpreted as 0% success.
 - Real browser end-to-end testing with separate Admin, Trainer and approved Learner accounts has not yet been completed.
 - The lesson PDF/resource upload and video-hosting workflow is not implemented.
