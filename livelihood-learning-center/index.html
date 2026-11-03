@@ -214,7 +214,7 @@
 <section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Career Opportunities Management / အလုပ်အကိုင်အခွင့်အလမ်း စီမံခန့်ခွဲမှု</h3>
 <form id="career-opportunity-form">
  <div class="admin-grid">
-  <div class="field"><label>Opportunity title</label><input id="op-title" required maxlength="180"></div>
+  <div class="field"><label>Opportunity title (Myanmar)</label><input id="op-title-my" maxlength="180"></div><div class="field"><label>Opportunity title (English)</label><input id="op-title-en" required maxlength="180"></div>
   <div class="field"><label>Organization</label><input id="op-org" maxlength="180"></div>
   <div class="field"><label>Type</label><select id="op-type"><option value="job">Job</option><option value="internship">Internship</option><option value="apprenticeship">Apprenticeship</option><option value="self_employment">Self-employment</option><option value="grant">Grant</option><option value="training">Training</option></select></div>
   <div class="field"><label>Pathway</label><select id="op-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option></select></div>
@@ -226,7 +226,7 @@
   <div class="field"><label>Required skills (comma separated)</label><input id="op-required-skills" maxlength="1500"></div>
   <div class="field"><label>Preferred skills (comma separated)</label><input id="op-preferred-skills" maxlength="1500"></div>
  </div>
- <div class="field"><label>Description</label><textarea id="op-description" rows="4" required maxlength="10000"></textarea></div>
+ <div class="field"><label>Description (Myanmar)</label><textarea id="op-description-my" rows="3" maxlength="10000"></textarea></div><div class="field"><label>Description (English)</label><textarea id="op-description-en" rows="4" required maxlength="10000"></textarea></div>
  <div class="field"><label>Status</label><select id="op-status"><option value="draft">Draft</option><option value="published">Published</option><option value="closed">Closed</option><option value="archived">Archived</option></select></div>
  <button class="primary-btn" type="submit">Save opportunity</button><p id="op-message" class="message" role="status"></p>
 </form><h4>Manage existing opportunities</h4><div id="admin-career-opportunities" class="admin-table-wrap"></div>
