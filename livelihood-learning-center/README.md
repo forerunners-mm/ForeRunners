@@ -55,5 +55,12 @@ The repository's existing GitHub Pages workflow deploys the repository root. Aft
 
 Confirm the repository's Pages custom domain/base URL if it is configured differently.
 
-## Scope note
-This is the initial connected portal foundation. Lesson authoring, quiz scoring, practical assignment review workflow, learner progress UI, certificates, M&E exports and batch capacity controls are the next implementation stages. Do not announce these as operational until they are built and tested.
+## Quiz implementation status
+- Learners can open published quizzes attached to courses for which they have approved or completed enrollment.
+- Questions and options are loaded from the public quiz question table; answer keys remain in the non-exposed `private.quiz_answer_keys` schema.
+- The browser submits question IDs and selected option indexes to `public.submit_quiz_attempt`. The database calculates the score and pass/fail result.
+- Learners cannot directly insert, update or delete quiz-attempt rows or submit their own score.
+- A unique index on `lesson_progress(learner_id, lesson_id)` supports reliable lesson-progress upserts.
+
+## Scope and test status
+The learner quiz interface and secure scoring RPC are implemented, but full browser testing with a real approved learner and a populated quiz has not yet been completed. The quiz tables currently have no quiz/question/answer-key records. Admin quiz authoring, practical assignment review, certificates, M&E exports and batch capacity controls remain future work. Do not announce untested features as operational.
