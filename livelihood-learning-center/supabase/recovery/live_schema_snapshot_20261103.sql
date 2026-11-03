@@ -3,10 +3,14 @@
 -- Generated: 2026-11-03.
 -- IMPORTANT: Review/recovery snapshot only, NOT a verified fresh-project migration.
 -- Test on a disposable Supabase project before use. Auth/storage schemas and Supabase-managed
--- roles/extensions are platform-provided. No user/learner data or secrets are included.
+-- roles are platform-provided. Course content seed data is in live_seed_data_20261103.sql.
+-- No learner PII, auth users, credentials, or secrets are included.
 
 begin;
 create schema if not exists private;
+
+-- Platform extension prerequisite
+create extension if not exists pg_cron with schema pg_catalog;
 
 -- 1. Tables (columns and defaults)
 create table if not exists private.quiz_answer_keys (
@@ -1467,5 +1471,140 @@ insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types) 
 CREATE TRIGGER on_auth_user_created_lvc AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_learner();
 CREATE TRIGGER trg_set_enrollment_completed_at BEFORE INSERT OR UPDATE OF status ON enrollments FOR EACH ROW EXECUTE FUNCTION set_enrollment_completed_at();
 CREATE TRIGGER guard_profile_privileges BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION private.guard_profile_privileges();
+
+
+-- 9. Schema privileges
+grant USAGE on schema private to anon;
+grant USAGE on schema private to authenticated;
+grant USAGE on schema public to PUBLIC;
+grant USAGE on schema public to anon;
+grant USAGE on schema public to authenticated;
+grant USAGE on schema public to service_role;
+
+-- 10. Table privileges
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.announcements to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.announcements to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.announcements to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.assignment_submissions to anon;
+grant DELETE, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.assignment_submissions to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.assignment_submissions to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.assignments to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.assignments to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.assignments to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.attendance_records to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.attendance_records to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.attendance_records to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.batches to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.batches to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.batches to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_opportunities to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_opportunities to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_opportunities to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_opportunity_applications to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_opportunity_applications to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_opportunity_applications to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_readiness_assessments to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_readiness_assessments to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.career_readiness_assessments to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.certificates to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.certificates to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.certificates to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.course_trainers to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.course_trainers to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.course_trainers to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.courses to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.courses to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.courses to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.enrollments to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.enrollments to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.enrollments to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.graduate_followups to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.graduate_followups to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_evaluations to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_evaluations to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_evaluations to service_role;
+grant SELECT, UPDATE on table public.learner_notifications to anon;
+grant SELECT, UPDATE on table public.learner_notifications to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_notifications to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_portfolio_items to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_portfolio_items to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_portfolio_items to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_skill_profiles to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_skill_profiles to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.learner_skill_profiles to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lesson_progress to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lesson_progress to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lesson_progress to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lesson_revisions to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lesson_revisions to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lesson_revisions to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lessons to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lessons to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.lessons to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.modules to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.modules to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.modules to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE on table public.profiles to anon;
+grant REFERENCES, SELECT, TRIGGER, TRUNCATE on table public.profiles to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.profiles to service_role;
+grant REFERENCES, SELECT, TRIGGER, TRUNCATE on table public.quiz_attempts to anon;
+grant REFERENCES, SELECT, TRIGGER, TRUNCATE on table public.quiz_attempts to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quiz_attempts to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quiz_questions to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quiz_questions to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quiz_questions to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quizzes to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quizzes to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.quizzes to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.support_messages to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.support_messages to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.support_messages to service_role;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.support_requests to anon;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.support_requests to authenticated;
+grant DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE on table public.support_requests to service_role;
+
+-- 11. Function privileges
+grant EXECUTE on function admin_review_learner_evaluation(uuid,text) to authenticated;
+grant EXECUTE on function admin_review_learner_evaluation(uuid,text) to service_role;
+grant EXECUTE on function admin_set_profile_role(uuid,text) to authenticated;
+grant EXECUTE on function admin_set_profile_role(uuid,text) to service_role;
+grant EXECUTE on function admin_set_profile_status(uuid,text) to authenticated;
+grant EXECUTE on function admin_set_profile_status(uuid,text) to service_role;
+grant EXECUTE on function admin_update_profile(uuid,text,text) to authenticated;
+grant EXECUTE on function admin_update_profile(uuid,text,text) to service_role;
+grant EXECUTE on function create_admin_quiz(uuid,text,text,numeric,jsonb) to authenticated;
+grant EXECUTE on function create_admin_quiz(uuid,text,text,numeric,jsonb) to service_role;
+grant EXECUTE on function get_assigned_course_learners(uuid) to authenticated;
+grant EXECUTE on function get_assigned_course_learners(uuid) to service_role;
+grant EXECUTE on function handle_new_learner() to service_role;
+grant EXECUTE on function issue_course_certificate(uuid,uuid) to authenticated;
+grant EXECUTE on function issue_course_certificate(uuid,uuid) to service_role;
+grant EXECUTE on function private.admin_review_learner_evaluation(uuid,text) to authenticated;
+grant EXECUTE on function private.admin_set_profile_role(uuid,text) to authenticated;
+grant EXECUTE on function private.admin_set_profile_status(uuid,text) to authenticated;
+grant EXECUTE on function private.admin_update_profile(uuid,text,text) to authenticated;
+grant EXECUTE on function private.create_admin_quiz(uuid,text,text,numeric,jsonb) to authenticated;
+grant EXECUTE on function private.get_assigned_course_learners(uuid) to authenticated;
+grant EXECUTE on function private.is_admin() to authenticated;
+grant EXECUTE on function private.is_assigned_trainer(uuid) to authenticated;
+grant EXECUTE on function private.is_trainer_for_course(uuid) to authenticated;
+grant EXECUTE on function private.issue_course_certificate(uuid,uuid) to authenticated;
+grant EXECUTE on function private.submit_quiz_attempt_core(uuid,jsonb) to authenticated;
+grant EXECUTE on function private.submit_quiz_attempt_internal(uuid,jsonb) to authenticated;
+grant EXECUTE on function private.verify_course_certificate(text) to anon;
+grant EXECUTE on function private.verify_course_certificate(text) to authenticated;
+grant EXECUTE on function set_enrollment_completed_at() to PUBLIC;
+grant EXECUTE on function set_enrollment_completed_at() to anon;
+grant EXECUTE on function set_enrollment_completed_at() to authenticated;
+grant EXECUTE on function set_enrollment_completed_at() to service_role;
+grant EXECUTE on function submit_quiz_attempt(uuid,jsonb) to authenticated;
+grant EXECUTE on function submit_quiz_attempt(uuid,jsonb) to service_role;
+grant EXECUTE on function verify_course_certificate(text) to anon;
+grant EXECUTE on function verify_course_certificate(text) to authenticated;
+grant EXECUTE on function verify_course_certificate(text) to service_role;
+
+-- 12. Scheduled jobs
+select cron.schedule('lvc-graduate-followup-reminders','15 0 * * *',
+ 'select private.create_due_graduate_followup_notifications();');
 
 commit;
