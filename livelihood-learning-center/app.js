@@ -174,7 +174,7 @@ async function loadProfile(){
 
 async function loadGraduateFollowups(){
  const [{data:enrollments,error:enError},{data:rows,error:rowError}]=await Promise.all([
-  supabase.from("enrollments").select("id,course_id,status,courses(title_my,title_en,level)").eq("learner_id",currentUser.id).eq("status","completed"),
+  supabase.from("enrollments").select("id,course_id,status,completed_at,courses(title_my,title_en,level)").eq("learner_id",currentUser.id).eq("status","completed"),
   supabase.from("graduate_followups").select("id,enrollment_id,followup_period,employment_status,pathway,status,submitted_at,key_outcome").eq("learner_id",currentUser.id).order("submitted_at",{ascending:false})
  ]);
  if(enError)throw enError;if(rowError)throw rowError;
@@ -183,7 +183,7 @@ async function loadGraduateFollowups(){
  const form=el("graduate-followup-form");
  if(!(enrollments||[]).length){form.classList.add("hidden");el("graduate-message").textContent="Follow-up forms appear after an Admin marks your course enrollment completed. / သင်တန်းပြီးဆုံးကြောင်း Admin မှ သတ်မှတ်ပြီးနောက် စစ်တမ်းဖြည့်နိုင်ပါမည်။";}
  else form.classList.remove("hidden");
- function refreshPeriod(){const enrollment=el("graduate-enrollment").value;Array.from(el("graduate-period").options).forEach(o=>{o.disabled=existing.has(enrollment+"|"+o.value);});if(el("graduate-period").selectedOptions[0]?.disabled){const next=Array.from(el("graduate-period").options).find(o=>!o.disabled);if(next)el("graduate-period").value=next.value;}}
+ function refreshPeriod(){const enrollment=el("graduate-enrollment").value,record=(enrollments||[]).find(x=>x.id===enrollment),completed=record?.completed_at?new Date(record.completed_at):new Date();Array.from(el("graduate-period").options).forEach(o=>{const days=Number(o.value.split("_")[0]),due=new Date(completed);due.setDate(due.getDate()+days);o.disabled=existing.has(enrollment+"|"+o.value)||new Date()<due;o.textContent=days+" days"+(new Date()<due?" (due "+due.toLocaleDateString()+")":"");});if(el("graduate-period").selectedOptions[0]?.disabled){const next=Array.from(el("graduate-period").options).find(o=>!o.disabled);if(next)el("graduate-period").value=next.value;}}
  el("graduate-enrollment").onchange=refreshPeriod;refreshPeriod();
  el("graduate-history").innerHTML=(rows||[]).map(x=>'<article class="assignment-card"><b>'+escapeHtml(x.followup_period.replace("_"," "))+'</b><p>'+escapeHtml(x.employment_status)+' · '+escapeHtml(x.pathway)+' · '+escapeHtml(x.status)+'</p><p>'+escapeHtml(x.key_outcome||"")+'</p><small>'+new Date(x.submitted_at).toLocaleDateString()+'</small></article>').join("")||'<p class="muted">No follow-ups submitted yet.</p>';
 }
