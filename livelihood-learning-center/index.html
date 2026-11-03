@@ -69,6 +69,39 @@
         <div id="learner-certificates" class="assignment-list"></div>
         <div class="panel"><h3>Trainer competency feedback / သင်တန်းဆရာ၏ အကဲဖြတ်ချက်</h3><div id="learner-evaluations"></div></div>
       </div>
+      <section class="panel" id="learner-career-portfolio">
+        <h2>My Skills Portfolio & Career Readiness / ကျွမ်းကျင်မှုမှတ်တမ်းနှင့် အလုပ်အကိုင်အဆင်သင့်ဖြစ်မှု</h2>
+        <p class="muted">Create your learner profile, showcase practical work, assess your career readiness and prepare a printable CV. Your portfolio is private and visible only to you and authorized Admins.</p>
+        <form id="skill-profile-form">
+          <div class="field"><label>Career pathway / လမ်းကြောင်း</label><select id="career-pathway"><option value="employment">Employment / အလုပ်အကိုင်</option><option value="self_employment">Self-employment / ကိုယ်ပိုင်လုပ်ငန်း</option><option value="apprenticeship">Apprenticeship / အလုပ်သင်</option><option value="further_training">Further training / ဆက်လက်သင်ယူရေး</option><option value="undecided">Undecided / မဆုံးဖြတ်ရသေး</option></select></div>
+          <div class="field"><label>Career goal / ရည်မှန်းချက်</label><input id="career-goal" maxlength="300"></div>
+          <div class="field"><label>Professional summary / ကိုယ်ရေးအကျဉ်း</label><textarea id="career-summary" rows="3" maxlength="3000"></textarea></div>
+          <div class="field"><label>Education / ပညာရေး</label><textarea id="career-education" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Work experience / လုပ်ငန်းအတွေ့အကြုံ</label><textarea id="career-experience" rows="3" maxlength="5000"></textarea></div>
+          <div class="field"><label>Skills (comma separated) / ကျွမ်းကျင်မှုများ</label><input id="career-skills" maxlength="1500" placeholder="e.g. communication, bookkeeping, tailoring"></div>
+          <div class="field"><label>Languages (comma separated) / ဘာသာစကားများ</label><input id="career-languages" maxlength="500"></div>
+          <div class="field"><label>Location / နေထိုင်ရာ</label><input id="career-location" maxlength="180"></div>
+          <button class="primary-btn" type="submit">Save Skills Profile / သိမ်းဆည်းရန်</button><button class="small-btn" id="career-print-cv" type="button">Print CV / CV ထုတ်ရန်</button><p id="career-profile-message" class="message" role="status"></p>
+        </form>
+        <hr><h3>Practical Work Portfolio / လက်တွေ့လုပ်ဆောင်မှုမှတ်တမ်း</h3>
+        <form id="portfolio-item-form">
+          <div class="field"><label>Project / Work title</label><input id="portfolio-title" required maxlength="180"></div>
+          <div class="field"><label>Description / ဖော်ပြချက်</label><textarea id="portfolio-description" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Type</label><select id="portfolio-type"><option value="project">Project</option><option value="practical_work">Practical work</option><option value="work_sample">Work sample</option><option value="volunteer_experience">Volunteer experience</option><option value="certificate">Certificate</option><option value="other">Other</option></select></div>
+          <div class="field"><label>Skills demonstrated (comma separated)</label><input id="portfolio-skills" maxlength="1000"></div>
+          <div class="field"><label>Evidence URL (optional)</label><input id="portfolio-url" type="url" maxlength="1000" placeholder="https://..."></div>
+          <button class="primary-btn" type="submit">Add portfolio item</button><p id="portfolio-message" class="message" role="status"></p>
+        </form><div id="portfolio-items"></div>
+        <hr><h3>Career Readiness Self-Assessment / အလုပ်အကိုင်အဆင်သင့်ဖြစ်မှု ကိုယ်တိုင်အကဲဖြတ်ခြင်း</h3>
+        <form id="career-readiness-form">
+          <div class="field"><label>Pathway</label><select id="readiness-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option></select></div>
+          <div class="field"><label>Career interest / စိတ်ဝင်စားသည့်လုပ်ငန်း</label><input id="readiness-interest" maxlength="300"></div>
+          <p class="muted">Rate your current confidence from 0 to 100. This is a self-assessment, not a formal certification.</p>
+          <div class="admin-grid"><div class="field"><label>Skills confidence</label><input id="readiness-skills" type="number" min="0" max="100" required></div><div class="field"><label>Communication</label><input id="readiness-communication" type="number" min="0" max="100" required></div><div class="field"><label>Digital readiness</label><input id="readiness-digital" type="number" min="0" max="100" required></div><div class="field"><label>Problem solving</label><input id="readiness-problem" type="number" min="0" max="100" required></div><div class="field"><label>Job search / Business planning</label><input id="readiness-planning" type="number" min="0" max="100" required></div></div>
+          <div class="field"><label>Support needs / လိုအပ်သောအကူအညီ</label><textarea id="readiness-support" rows="2" maxlength="2000"></textarea></div><div class="field"><label>Next steps / နောက်တစ်ဆင့်</label><textarea id="readiness-next" rows="2" maxlength="2000"></textarea></div>
+          <button class="primary-btn" type="submit">Submit Self-Assessment</button><p id="readiness-message" class="message" role="status"></p>
+        </form><div id="readiness-history"></div>
+      </section>
       <section class="panel" id="learner-support">
         <h3>Announcements / ကြေညာချက်များ</h3><div id="learner-announcements"></div>
         <h3>Learning Support / သင်တန်းအကူအညီ</h3>
