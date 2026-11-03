@@ -175,8 +175,33 @@ async function loadLearning(){
   root.innerHTML=courseBlocks.join("");
   root.querySelectorAll("[data-open-lesson]").forEach(button=>button.addEventListener("click",()=>openLesson(button.dataset.openLesson)));
   root.querySelectorAll("[data-start-quiz]").forEach(button=>button.addEventListener("click",()=>openQuiz(button.dataset.startQuiz)));
+  await renderLearnerAssignments(courseRows);
+
   pane.classList.add("hidden");
   el("quiz-runner").classList.add("hidden");
+}
+
+async function renderLearnerAssignments(courseRows){
+ const root=el("learner-assignments");if(!root)return;
+ const courseIds=courseRows.map(x=>x.course_id);
+ const {data:assignments,error}=await supabase.from("assignments").select("id,course_id,title_my,title_en,instructions_my,instructions_en,due_at").in("course_id",courseIds).eq("is_published",true).order("created_at");
+ if(error)throw error;
+ const {data:submissions,error:subError}=await supabase.from("assignment_submissions").select("assignment_id,status,score,feedback").eq("learner_id",currentUser.id);
+ if(subError)throw subError;
+ const submitted=new Map((submissions||[]).map(x=>[x.assignment_id,x]));
+ root.innerHTML=(assignments||[]).map(a=>{
+  const s=submitted.get(a.id),title=language==="my"?a.title_my:a.title_en,inst=language==="my"?a.instructions_my:a.instructions_en;
+  const state=s?(s.status==="approved"?"Approved":s.status==="needs_revision"?"Needs revision":"Submitted"):"Not submitted";
+  return '<article class="assignment-card"><h4>'+escapeHtml(title)+'</h4><p>'+escapeHtml(inst||"")+'</p><small class="muted">'+(a.due_at?new Date(a.due_at).toLocaleString():"No due date")+' · '+state+'</small>'+(s?'<p>'+((s.score===null||s.score===undefined)?"":"Score: "+Number(s.score)+"/100")+'</p><p>'+escapeHtml(s.feedback||"")+'</p>':'<form class="assignment-submit-form" data-assignment-submit="'+a.id+'"><textarea name="response" rows="3" required placeholder="Write your response / လုပ်ဆောင်ချက်ရေးပါ"></textarea><button class="small-btn" type="submit">Submit / တင်သွင်းရန်</button></form>')+'</article>';
+ }).join("")||'<p class="muted">No assignments available / လက်တွေ့လုပ်ငန်း မရှိသေးပါ။</p>';
+ root.querySelectorAll("[data-assignment-submit]").forEach(form=>form.addEventListener("submit",submitLearnerAssignment));
+}
+async function submitLearnerAssignment(event){
+ event.preventDefault();const form=event.currentTarget,button=form.querySelector("button");
+ button.disabled=true;
+ const {error}=await supabase.from("assignment_submissions").insert({assignment_id:form.dataset.assignmentSubmit,learner_id:currentUser.id,text_response:form.elements.response.value.trim()});
+ if(error){alert(error.message);button.disabled=false;return;}
+ alert(language==="my"?"လုပ်ငန်းတင်သွင်းပြီးပါပြီ။":"Assignment submitted.");await loadLearning();
 }
 async function openLesson(id){
   const lesson=learningLessons.get(id);if(!lesson)return;
