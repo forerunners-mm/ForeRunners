@@ -69,6 +69,12 @@
         <div id="learner-certificates" class="assignment-list"></div>
         <div class="panel"><h3>Trainer competency feedback / သင်တန်းဆရာ၏ အကဲဖြတ်ချက်</h3><div id="learner-evaluations"></div></div>
       </div>
+      <section class="panel" id="learner-opportunities">
+        <h2>Employment & Self-employment Opportunities / အလုပ်အကိုင်နှင့် ကိုယ်ပိုင်လုပ်ငန်းအခွင့်အလမ်းများ</h2>
+        <p class="muted">Explore published opportunities and submit or track your applications.</p>
+        <div id="career-opportunity-list"></div>
+        <h3>My Applications / လျှောက်ထားမှုမှတ်တမ်း</h3><div id="my-career-applications"></div>
+      </section>
       <section class="panel" id="learner-career-portfolio">
         <h2>My Skills Portfolio & Career Readiness / ကျွမ်းကျင်မှုမှတ်တမ်းနှင့် အလုပ်အကိုင်အဆင်သင့်ဖြစ်မှု</h2>
         <p class="muted">Create your learner profile, showcase practical work, assess your career readiness and prepare a printable CV. Your portfolio is private and visible only to you and authorized Admins.</p>
@@ -205,7 +211,26 @@
  <div id="admin-announcements"></div></div>
  <div class="panel"><h3>Learner support requests / အကူအညီတောင်းခံမှုများ</h3><div id="admin-support-requests"></div><div id="admin-support-thread"></div></div>
 </section>
-<section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner competency assessments / ကျွမ်းကျင်မှု အကဲဖြတ်ချက်များ</h3><div id="admin-evaluations" class="admin-table-wrap"></div><div class="panel"><h3>Career readiness self-assessments</h3><div id="admin-career-readiness" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner skills profiles</h3><div id="admin-skill-profiles" class="admin-table-wrap"></div></div></div></section>
+<section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Career Opportunities Management / အလုပ်အကိုင်အခွင့်အလမ်း စီမံခန့်ခွဲမှု</h3>
+<form id="career-opportunity-form">
+ <div class="admin-grid">
+  <div class="field"><label>Opportunity title</label><input id="op-title" required maxlength="180"></div>
+  <div class="field"><label>Organization</label><input id="op-org" maxlength="180"></div>
+  <div class="field"><label>Type</label><select id="op-type"><option value="job">Job</option><option value="internship">Internship</option><option value="apprenticeship">Apprenticeship</option><option value="self_employment">Self-employment</option><option value="grant">Grant</option><option value="training">Training</option></select></div>
+  <div class="field"><label>Pathway</label><select id="op-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option></select></div>
+  <div class="field"><label>Location</label><input id="op-location" maxlength="180"></div>
+  <div class="field"><label>Work mode</label><select id="op-mode"><option value="onsite">On-site</option><option value="remote">Remote</option><option value="hybrid">Hybrid</option><option value="flexible">Flexible</option></select></div>
+  <div class="field"><label>Compensation / support</label><input id="op-compensation" maxlength="180"></div>
+  <div class="field"><label>Application deadline</label><input id="op-deadline" type="date"></div>
+  <div class="field"><label>Application URL</label><input id="op-url" type="url" maxlength="1000"></div>
+  <div class="field"><label>Required skills (comma separated)</label><input id="op-required-skills" maxlength="1500"></div>
+  <div class="field"><label>Preferred skills (comma separated)</label><input id="op-preferred-skills" maxlength="1500"></div>
+ </div>
+ <div class="field"><label>Description</label><textarea id="op-description" rows="4" required maxlength="10000"></textarea></div>
+ <div class="field"><label>Status</label><select id="op-status"><option value="draft">Draft</option><option value="published">Published</option><option value="closed">Closed</option><option value="archived">Archived</option></select></div>
+ <button class="primary-btn" type="submit">Save opportunity</button><p id="op-message" class="message" role="status"></p>
+</form><h4>Manage existing opportunities</h4><div id="admin-career-opportunities" class="admin-table-wrap"></div>
+<h4>Applications</h4><div id="admin-career-applications" class="admin-table-wrap"></div></div><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner competency assessments / ကျွမ်းကျင်မှု အကဲဖြတ်ချက်များ</h3><div id="admin-evaluations" class="admin-table-wrap"></div><div class="panel"><h3>Career readiness self-assessments</h3><div id="admin-career-readiness" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner skills profiles</h3><div id="admin-skill-profiles" class="admin-table-wrap"></div></div></div></section>
     </section>
 
     <section id="certificate-verification" class="panel hidden"><p class="eyebrow">FORERUNNERS · VERIFICATION</p><h2>Certificate Verification / လက်မှတ်စစ်ဆေးခြင်း</h2><form id="certificate-verify-form" class="row-actions"><input id="certificate-verify-code" placeholder="Enter certificate code" required><button class="primary-btn" type="submit">Verify / စစ်ဆေးရန်</button></form><div id="certificate-verify-result" role="status"></div></section>
