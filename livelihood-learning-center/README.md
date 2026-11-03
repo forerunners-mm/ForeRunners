@@ -56,12 +56,12 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - Assignment files remain in private Storage and are accessed through short-lived signed links.
 
 ## Validation status
-- GitHub Actions CI checks JavaScript syntax, required LMS files, duplicate HTML IDs and key interface elements, and runs Playwright browser smoke tests for unauthenticated access, hidden role workspaces, bilingual language toggle and login/sign-up view switching.
+- GitHub Actions CI checks JavaScript syntax as an ES module, required LMS files, duplicate HTML IDs and key interface elements, and runs Playwright browser smoke tests for unauthenticated access, hidden role workspaces, bilingual language toggle and login/sign-up view switching. Latest run #120 passed.
 - Database schema and reminder function were checked against the connected Supabase project.
 - The scheduled reminder job is active. A manual function invocation completed and created zero rows because the project currently has no completed enrollments due for follow-up.
 - Supabase lists 23 applied migration versions. The original first 19 migration SQL files remain unavailable; a live schema recovery snapshot and programme seed-data script have now been added. Fresh-project replay and validation are still outstanding. The 16 missing foreign-key indexes were added in migration `202611030004_add_missing_foreign_key_indexes.sql` and applied to the connected project.
 - At the last data check: 0 enrollments, 0 completed enrollments, 0 graduate follow-up responses and 0 career opportunities/applications. No outcome rate should be interpreted as 0% success.
-- Role-based end-to-end testing with separate Admin, Trainer and approved Learner accounts remains outstanding; the new automated browser smoke test covers only the unauthenticated entry screen and public UI behavior.
+- Role-based end-to-end testing with separate Admin, Trainer and approved Learner accounts remains outstanding; the automated browser smoke test uses a mocked signed-out Supabase session and covers only the unauthenticated entry screen and public UI behavior.
 - The lesson PDF/resource upload and video-hosting workflow is not implemented.
 - External email/SMS/push delivery is not configured.
 - Production merge, GitHub Pages deployment and domain verification have not been performed.
