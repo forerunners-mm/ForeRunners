@@ -12,7 +12,7 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 ## Local / deployment configuration
 1. Keep `config.js` limited to the Supabase project URL and browser-safe publishable key.
 2. Never put a Supabase `service_role` key, secret key, database password, or private provider token in this folder or any browser JavaScript.
-3. **Important migration limitation:** the connected Supabase project reports 22 applied migrations, but this repository currently contains only the three graduate follow-up / notification SQL files. The original SQL for the earlier 19 migrations is not present in this repository. Do not use these three files alone to provision a fresh Supabase project. A complete schema-and-policy baseline export is still required before fresh-environment reproducibility can be claimed.
+3. The original SQL for the first 19 applied migrations is not available in this repository. To recover the current live state, use the reviewed recovery artifacts under `supabase/recovery/`: `live_schema_snapshot_20261103.sql` (tables, constraints, indexes, functions, RLS, policies, grants, triggers, private Storage bucket and scheduled reminder job) and then `live_seed_data_20261103.sql` (the bilingual course catalogue, lessons and unpublished BASIC quiz). These are recovery snapshots, not a substitute for the historical migration files. Test the scripts in order on a disposable Supabase project before production use.
 4. Enable GitHub Pages for the repository after the pull request is reviewed and merged. The intended subpath is `/ForeRunners/livelihood-learning-center/`.
 5. Confirm the published URL and Supabase Auth redirect/site URL settings before inviting learners.
 
@@ -59,13 +59,18 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - GitHub Actions CI checks JavaScript syntax, required LMS files, duplicate HTML IDs and key interface elements.
 - Database schema and reminder function were checked against the connected Supabase project.
 - The scheduled reminder job is active. A manual function invocation completed and created zero rows because the project currently has no completed enrollments due for follow-up.
-- **Migration reproducibility is not complete:** Supabase lists 22 applied migration versions, while the repository contains only 3 migration files. The connected project is operational, but a fresh Supabase project cannot yet be rebuilt from this repository alone.
+- Supabase lists 22 applied migration versions. The original first 19 migration SQL files remain unavailable; a live schema recovery snapshot and programme seed-data script have now been added. Fresh-project replay and validation are still outstanding.
 - At the last data check: 0 enrollments, 0 completed enrollments, 0 graduate follow-up responses and 0 career opportunities/applications. No outcome rate should be interpreted as 0% success.
 - Real browser end-to-end testing with separate Admin, Trainer and approved Learner accounts has not yet been completed.
 - The lesson PDF/resource upload and video-hosting workflow is not implemented.
 - External email/SMS/push delivery is not configured.
 - Production merge, GitHub Pages deployment and domain verification have not been performed.
-- A complete export of the 19 earlier database migrations (or an equivalent reviewed schema baseline) is still required before calling the repository fully reproducible.
+- The recovery snapshot is a current-state export, not a tested migration chain. It must be replayed and checked on a disposable new Supabase project before claiming fresh-environment reproducibility.
+
+## Supabase recovery files
+- `supabase/recovery/live_schema_snapshot_20261103.sql` — current-state DDL, constraints, indexes, functions, RLS, policies, grants, triggers, private bucket metadata and Cron schedule. No learner PII or credentials.
+- `supabase/recovery/live_seed_data_20261103.sql` — 2 courses, 12 modules, 12 bilingual introductory lessons, 1 unpublished BASIC quiz, 10 questions and private answer keys. Does not contain learner records.
+- Replay on a disposable Supabase project first; ensure platform roles, Auth and Storage are provisioned, and check the pg_cron extension and scheduler. Do not run these recovery scripts over an existing production database.
 
 ## Release gate
 PR #9 remains a draft and must be reviewed before merge. Do not merge or announce the platform as live until the release owner approves the PR, completes role-based browser tests, confirms GitHub Pages and Supabase Auth settings, and verifies the published URL.
