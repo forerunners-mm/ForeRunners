@@ -1,7 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./config.js";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+// Prevent a stalled Auth/Data API request from leaving the learner login button disabled forever.
+const SUPABASE_REQUEST_TIMEOUT_MS = 20000;
+const fetchWithTimeout = (input, init = {}) => fetch(input, {
+  ...init,
+  signal: init.signal || AbortSignal.timeout(SUPABASE_REQUEST_TIMEOUT_MS)
+});
+const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: { fetch: fetchWithTimeout },
+  db: { timeout: SUPABASE_REQUEST_TIMEOUT_MS }
+});
 let language = localStorage.getItem("lvc-language") || "my";
 let authMode = "login";
 let currentUser = null;
@@ -23,7 +32,7 @@ const translations = {
     basicInfo:"BASIC — အခြေခံကျွမ်းကျင်မှု", advancedInfo:"ADVANCED — တိုးတက်ဖွံ့ဖြိုးမှု", capacityInfo:"စီစဉ်ထားသော သင်တန်းသားဦးရေ",
     apply:"လျှောက်ထားရန်", applied:"လျှောက်ထားပြီး", approved:"အတည်ပြုပြီး", pending:"စောင့်ဆိုင်းဆဲ", rejected:"ပယ်ချထားသည်",
     approve:"အတည်ပြု", reject:"ပယ်ချ", noPending:"စောင့်ဆိုင်းနေသော အရာမရှိပါ။", accountApproved:"အကောင့်အတည်ပြုပြီးပါပြီ။",
-    authError:"လုပ်ဆောင်မှု မအောင်မြင်ပါ။", appliedMsg:"သင်တန်းလျှောက်ထားမှုကို လက်ခံရရှိပါပြီ။",
+    authError:"လုပ်ဆောင်မှု မအောင်မြင်ပါ။", authTimeout:"ချိတ်ဆက်မှု ကြာမြင့်နေပါသည်။ အင်တာနက်နှင့် Supabase ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။", authNetwork:"ဆာဗာသို့ ချိတ်ဆက်မရပါ။ အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ထပ်မံကြိုးစားပါ။", authWorking:"အကောင့်ကို စစ်ဆေးနေပါသည်။ ခဏစောင့်ပါ...", appliedMsg:"သင်တန်းလျှောက်ထားမှုကို လက်ခံရရှိပါပြီ။",
     signUpSuccess:"အီးမေးလ်ကို အတည်ပြုပြီးမှ အကောင့်ဝင်ပါ။", courseBasic:"အခြေခံအဆင့်", courseAdvanced:"အဆင့်မြင့်",
     basicDesc:"အသက်မွေးဝမ်းကျောင်းအတွက် အခြေခံကျွမ်းကျင်မှု၊ ဘဝကျွမ်းကျင်မှုနှင့် ငွေကြေးစီမံမှု။",
     learningTitle:"ကျွန်ုပ်၏ သင်ယူမှု", learningIntro:"အတည်ပြုပြီးသော သင်တန်းများ၏ သင်ခန်းစာများကို လေ့လာပါ။", noLessons:"ဤသင်တန်းတွင် သင်ခန်းစာ မတင်ရသေးပါ။", openLesson:"သင်ခန်းစာ ဖတ်ရန်", markComplete:"သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်သားရန်", completedLabel:"ပြီးဆုံးပြီး", inProgressLabel:"လေ့လာနေဆဲ", progressLabel:"တိုးတက်မှု", lessonBack:"သင်ခန်းစာစာရင်းသို့ ပြန်ရန်", quizTitle:"အသိပညာ စစ်ဆေးမှု", startQuiz:"Quiz စတင်ရန်", submitQuiz:"အဖြေတင်သွင်းရန်", quizPass:"အောင်မြင်ပါပြီ", quizFail:"ထပ်မံလေ့လာရန် လိုအပ်ပါသည်", quizScore:"ရမှတ်", quizLoading:"Quiz ဖွင့်နေပါသည်...", quizEmpty:"မေးခွန်းများ မရှိသေးပါ။", quizSubmitted:"Quiz တင်သွင်းပြီးပါပြီ။", quizError:"Quiz တင်သွင်းမှု မအောင်မြင်ပါ။",
@@ -43,7 +52,7 @@ const translations = {
     basicInfo:"BASIC — Foundation Skills", advancedInfo:"ADVANCED — Growth Stage", capacityInfo:"Planned learner capacity",
     apply:"Apply", applied:"Applied", approved:"Approved", pending:"Pending", rejected:"Rejected",
     approve:"Approve", reject:"Reject", noPending:"Nothing is waiting for review.", accountApproved:"Account approved.",
-    authError:"The action could not be completed.", appliedMsg:"Your course application has been received.",
+    authError:"The action could not be completed.", authTimeout:"The server took too long to respond. Check your connection and try again.", authNetwork:"Could not connect to the server. Check your internet connection and try again.", authWorking:"Checking your account. Please wait...", appliedMsg:"Your course application has been received.",
     signUpSuccess:"Please verify your email before signing in.", courseBasic:"Basic Level", courseAdvanced:"Advanced Level",
     basicDesc:"Foundational vocational skills, life skills and basic financial literacy for livelihoods.",
     learningTitle:"My Learning", learningIntro:"Open lessons in the courses approved for you.", noLessons:"No lessons have been published for this course yet.", openLesson:"Open lesson", markComplete:"Mark lesson as complete", completedLabel:"Completed", inProgressLabel:"In progress", progressLabel:"Progress", lessonBack:"Back to lesson list", quizTitle:"Knowledge Check", startQuiz:"Start quiz", submitQuiz:"Submit answers", quizPass:"Passed", quizFail:"Keep learning and try again", quizScore:"Score", quizLoading:"Loading quiz...", quizEmpty:"No questions are available yet.", quizSubmitted:"Your quiz has been submitted.", quizError:"Quiz submission failed.",
@@ -73,19 +82,32 @@ el("login-tab").addEventListener("click",()=>setAuthMode("login"));
 el("signup-tab").addEventListener("click",()=>setAuthMode("signup"));
 
 el("auth-form").addEventListener("submit",async (event)=>{
-  event.preventDefault(); const email=el("email").value.trim(); const password=el("password").value;
-  const button=el("auth-submit");button.disabled=true;setMessage("auth-message","");
+  event.preventDefault();
+  if(el("auth-submit").disabled)return;
+  const email=el("email").value.trim();
+  const password=el("password").value;
+  const button=el("auth-submit");
+  button.disabled=true;
+  setMessage("auth-message",t("authWorking"));
   try{
     if(authMode==="signup"){
       const fullName=el("full-name").value.trim();
       if(!fullName) throw new Error(language==="my"?"အမည်ဖြည့်ပါ။":"Please enter your name.");
       const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName}}});
-      if(error) throw error;setMessage("auth-message",t("signUpSuccess"));
+      if(error) throw error;
+      setMessage("auth-message",t("signUpSuccess"));
     }else{
-      const {error}=await supabase.auth.signInWithPassword({email,password});if(error)throw error;
+      const {error}=await supabase.auth.signInWithPassword({email,password});
+      if(error)throw error;
     }
-  }catch(error){setMessage("auth-message",error.message||t("authError"),true);}
-  finally{button.disabled=false;}
+  }catch(error){
+    const detail=String(error?.message||"");
+    const timedOut=error?.name==="TimeoutError"||error?.name==="AbortError"||/timed out|timeout|aborted/i.test(detail);
+    const networkFailure=/failed to fetch|networkerror|network request failed/i.test(detail);
+    setMessage("auth-message",timedOut?t("authTimeout"):networkFailure?t("authNetwork"):(detail||t("authError")),true);
+  }finally{
+    button.disabled=false;
+  }
 });
 
 el("signout-btn").addEventListener("click",async()=>{await supabase.auth.signOut();});
