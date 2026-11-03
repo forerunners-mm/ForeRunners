@@ -11,6 +11,7 @@ try {
     timeout: 30000
   });
   await page.waitForSelector("#auth-section:not(.hidden)", { timeout: 30000 });
+  await page.waitForFunction(() => document.documentElement.dataset.lvcReady === "true", { timeout: 30000 });
 
   if (!(await page.title()).includes("Livelihood Learning Center")) {
     throw new Error("Unexpected page title.");
