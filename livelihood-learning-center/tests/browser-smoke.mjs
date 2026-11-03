@@ -21,11 +21,15 @@ try {
     }
   }
 
-  const initialHeading = await page.locator("#auth-section h2").innerText();
+  const initialLanguageLabel = await page.locator("#lang-toggle").innerText();
   await page.locator("#lang-toggle").click();
-  const translatedHeading = await page.locator("#auth-section h2").innerText();
-  if (initialHeading === translatedHeading) {
-    throw new Error("Language toggle did not change the authentication heading.");
+  const switchedLanguageLabel = await page.locator("#lang-toggle").innerText();
+  if (initialLanguageLabel === switchedLanguageLabel) {
+    throw new Error("Language toggle did not switch its language label.");
+  }
+  await page.locator("#lang-toggle").click();
+  if ((await page.locator("#lang-toggle").innerText()) !== initialLanguageLabel) {
+    throw new Error("Language toggle did not switch back to its original language.");
   }
 
   await page.locator("#signup-tab").click();
