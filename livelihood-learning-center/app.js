@@ -169,7 +169,44 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();}
+  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;}
+}
+function csvText(value){return (value||"").split(",").map(x=>x.trim()).filter(Boolean);}
+async function loadCareerPortfolio(){
+ const {data:profile,error}=await supabase.from("learner_skill_profiles").select("*").eq("learner_id",currentUser.id).maybeSingle();if(error)throw error;
+ if(profile){el("career-pathway").value=profile.career_pathway||"employment";el("career-goal").value=profile.career_goal||"";el("career-summary").value=profile.professional_summary||"";el("career-education").value=profile.education_history||"";el("career-experience").value=profile.work_experience||"";el("career-skills").value=(profile.skills||[]).join(", ");el("career-languages").value=(profile.languages||[]).join(", ");el("career-location").value=profile.location_text||"";}
+ const [{data:items,error:itemError},{data:assessments,error:assessmentError}]=await Promise.all([
+  supabase.from("learner_portfolio_items").select("*").eq("learner_id",currentUser.id).order("created_at",{ascending:false}),
+  supabase.from("career_readiness_assessments").select("*").eq("learner_id",currentUser.id).order("created_at",{ascending:false})
+ ]);
+ if(itemError)throw itemError;if(assessmentError)throw assessmentError;
+ el("portfolio-items").innerHTML=(items||[]).map(x=>'<article class="assignment-card"><b>'+escapeHtml(x.title)+'</b><p>'+escapeHtml(x.description||"")+'</p><small>'+escapeHtml(x.item_type)+' · '+escapeHtml((x.skills||[]).join(", "))+'</small>'+(x.evidence_url?'<p><a href="'+escapeHtml(x.evidence_url)+'" target="_blank" rel="noopener">View evidence</a></p>':'')+'<button class="small-btn reject" data-portfolio-delete="'+x.id+'">Delete</button></article>').join("")||'<p class="muted">No portfolio items added yet.</p>';
+ el("portfolio-items").querySelectorAll("[data-portfolio-delete]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this portfolio item?"))return;const {error}=await supabase.from("learner_portfolio_items").delete().eq("id",b.dataset.portfolioDelete).eq("learner_id",currentUser.id);if(error){alert(error.message);return;}await loadCareerPortfolio();});
+ el("readiness-history").innerHTML=(assessments||[]).map(a=>'<article class="assignment-card"><b>'+escapeHtml(a.pathway)+'</b><p>Readiness score: '+Number(a.overall_score).toFixed(1)+'% · '+escapeHtml(a.status)+'</p><p>'+escapeHtml(a.career_interest||"")+'</p><small>'+new Date(a.created_at).toLocaleDateString()+'</small></article>').join("")||'<p class="muted">No self-assessment submitted yet.</p>';
+}
+async function saveSkillProfile(event){
+ event.preventDefault();const message=el("career-profile-message");message.textContent="";
+ const payload={learner_id:currentUser.id,career_pathway:el("career-pathway").value,career_goal:el("career-goal").value.trim()||null,professional_summary:el("career-summary").value.trim()||null,education_history:el("career-education").value.trim()||null,work_experience:el("career-experience").value.trim()||null,skills:csvText(el("career-skills").value),languages:csvText(el("career-languages").value),location_text:el("career-location").value.trim()||null,updated_at:new Date().toISOString()};
+ const {error}=await supabase.from("learner_skill_profiles").upsert(payload,{onConflict:"learner_id"});message.textContent=error?error.message:"Skills profile saved.";if(error)message.classList.add("error");else message.classList.remove("error");
+}
+async function addPortfolioItem(event){
+ event.preventDefault();const message=el("portfolio-message");message.textContent="";
+ const url=el("portfolio-url").value.trim();if(url&&!/^https?:\/\//i.test(url)){message.textContent="Evidence URL must begin with https:// or http://";message.classList.add("error");return;}
+ const payload={learner_id:currentUser.id,title:el("portfolio-title").value.trim(),description:el("portfolio-description").value.trim()||null,item_type:el("portfolio-type").value,skills:csvText(el("portfolio-skills").value),evidence_url:url||null};
+ const {error}=await supabase.from("learner_portfolio_items").insert(payload);message.textContent=error?error.message:"Portfolio item added.";if(error){message.classList.add("error");return;}message.classList.remove("error");event.currentTarget.reset();await loadCareerPortfolio();
+}
+async function submitCareerReadiness(event){
+ event.preventDefault();const message=el("readiness-message");message.textContent="";
+ const fields=[["skill_confidence","readiness-skills"],["communication_confidence","readiness-communication"],["digital_readiness","readiness-digital"],["problem_solving","readiness-problem"],["job_search_or_business_planning","readiness-planning"]];
+ const payload={learner_id:currentUser.id,pathway:el("readiness-pathway").value,career_interest:el("readiness-interest").value.trim()||null,support_needs:el("readiness-support").value.trim()||null,next_steps:el("readiness-next").value.trim()||null};
+ for(const [key,id] of fields){const raw=el(id).value,n=Number(raw);if(raw===""||!Number.isFinite(n)||n<0||n>100){message.textContent="Enter all five scores between 0 and 100.";message.classList.add("error");return;}payload[key]=n;}
+ const {error}=await supabase.from("career_readiness_assessments").insert(payload);message.textContent=error?error.message:"Self-assessment submitted.";if(error){message.classList.add("error");return;}message.classList.remove("error");event.currentTarget.reset();await loadCareerPortfolio();
+}
+function printLearnerCV(){
+ const v=id=>el(id).value.trim();const esc=s=>escapeHtml(s);
+ const skills=csvText(v("career-skills")),langs=csvText(v("career-languages"));
+ const html='<!doctype html><html><head><meta charset="utf-8"><title>CV</title><style>body{font:14px Arial,sans-serif;max-width:800px;margin:40px auto;color:#222;line-height:1.5}h1{margin-bottom:4px}h2{border-bottom:1px solid #aaa;padding-bottom:4px;margin-top:24px}p{white-space:pre-wrap}@media print{button{display:none}}</style></head><body><h1>'+esc(currentProfile?.full_name||"Learner")+'</h1><p>'+esc(v("career-location"))+'</p><h2>Professional Summary</h2><p>'+esc(v("career-summary"))+'</p><h2>Career Objective</h2><p>'+esc(v("career-goal"))+'</p><h2>Skills</h2><p>'+esc(skills.join(" · "))+'</p><h2>Education</h2><p>'+esc(v("career-education"))+'</p><h2>Experience</h2><p>'+esc(v("career-experience"))+'</p><h2>Languages</h2><p>'+esc(langs.join(" · "))+'</p><script>window.onload=()=>window.print()<\/script></body></html>';
+ const w=window.open("","_blank");if(!w){alert("Allow pop-ups to print your CV.");return;}w.document.write(html);w.document.close();
 }
 async function loadCourses(){
   const {data,error}=await supabase.from("courses").select("id,title_my,title_en,description_my,description_en,level").eq("is_published",true).order("sort_order");
