@@ -169,9 +169,47 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);}
+  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);await loadGraduateFollowups();el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
 }
-async function loadCareerOpportunities(){
+
+async function loadGraduateFollowups(){
+ const [{data:enrollments,error:enError},{data:rows,error:rowError}]=await Promise.all([
+  supabase.from("enrollments").select("id,course_id,status,courses(title_my,title_en,level)").eq("learner_id",currentUser.id).eq("status","completed"),
+  supabase.from("graduate_followups").select("id,enrollment_id,followup_period,employment_status,pathway,status,submitted_at,key_outcome").eq("learner_id",currentUser.id).order("submitted_at",{ascending:false})
+ ]);
+ if(enError)throw enError;if(rowError)throw rowError;
+ const existing=new Set((rows||[]).map(x=>x.enrollment_id+"|"+x.followup_period));
+ el("graduate-enrollment").innerHTML=(enrollments||[]).map(e=>'<option value="'+e.id+'">'+escapeHtml(language==="my"?(e.courses?.title_my||e.courses?.title_en):(e.courses?.title_en||e.courses?.title_my))+'</option>').join("");
+ const form=el("graduate-followup-form");
+ if(!(enrollments||[]).length){form.classList.add("hidden");el("graduate-message").textContent="Follow-up forms appear after an Admin marks your course enrollment completed. / သင်တန်းပြီးဆုံးကြောင်း Admin မှ သတ်မှတ်ပြီးနောက် စစ်တမ်းဖြည့်နိုင်ပါမည်။";}
+ else form.classList.remove("hidden");
+ function refreshPeriod(){const enrollment=el("graduate-enrollment").value;Array.from(el("graduate-period").options).forEach(o=>{o.disabled=existing.has(enrollment+"|"+o.value);});if(el("graduate-period").selectedOptions[0]?.disabled){const next=Array.from(el("graduate-period").options).find(o=>!o.disabled);if(next)el("graduate-period").value=next.value;}}
+ el("graduate-enrollment").onchange=refreshPeriod;refreshPeriod();
+ el("graduate-history").innerHTML=(rows||[]).map(x=>'<article class="assignment-card"><b>'+escapeHtml(x.followup_period.replace("_"," "))+'</b><p>'+escapeHtml(x.employment_status)+' · '+escapeHtml(x.pathway)+' · '+escapeHtml(x.status)+'</p><p>'+escapeHtml(x.key_outcome||"")+'</p><small>'+new Date(x.submitted_at).toLocaleDateString()+'</small></article>').join("")||'<p class="muted">No follow-ups submitted yet.</p>';
+}
+async function submitGraduateFollowup(event){
+ event.preventDefault();const msg=el("graduate-message");msg.textContent="";
+ const consent=el("graduate-story-consent").checked,story=el("graduate-story").value.trim();
+ if(story&&!consent){msg.textContent="Please provide separate consent before submitting a story.";msg.classList.add("error");return;}
+ const number=(id)=>el(id).value===""?null:Number(el(id).value);
+ const payload={enrollment_id:el("graduate-enrollment").value,learner_id:currentUser.id,followup_period:el("graduate-period").value,employment_status:el("graduate-employment").value,pathway:el("graduate-pathway").value,job_or_business_title:el("graduate-title").value.trim()||null,sector:el("graduate-sector").value.trim()||null,monthly_income:number("graduate-income"),previous_monthly_income:number("graduate-previous-income"),income_currency:el("graduate-currency").value,skills_used:csvText(el("graduate-skills").value),training_relevance:number("graduate-relevance"),key_outcome:el("graduate-outcome").value.trim()||null,challenges:el("graduate-challenges").value.trim()||null,support_needed:el("graduate-support").value.trim()||null,consent_to_contact:el("graduate-contact-consent").checked,consent_to_story:consent,story_text:consent?(story||null):null};
+ const {error}=await supabase.from("graduate_followups").insert(payload);
+ if(error){msg.textContent=error.message;msg.classList.add("error");return;}
+ msg.textContent="Thank you. Your follow-up has been submitted.";msg.classList.remove("error");event.currentTarget.reset();await loadGraduateFollowups();
+}
+function renderAdminGraduateFollowups(){
+ const rows=adminCache.graduateFollowups||[],n=rows.length,employed=rows.filter(x=>["employed","self_employed","apprenticeship"].includes(x.employment_status)).length,stories=rows.filter(x=>x.consent_to_story&&x.story_text).length;
+ el("admin-graduate-summary").innerHTML=[["Responses",n],["Working / self-employed / apprentice",employed],["Consent-based story drafts",stories],["30-day",rows.filter(x=>x.followup_period==="30_day").length],["90-day",rows.filter(x=>x.followup_period==="90_day").length],["180-day",rows.filter(x=>x.followup_period==="180_day").length]].map(([k,v])=>'<article class="admin-stat"><span>'+k+'</span><strong>'+v+'</strong></article>').join("");
+ el("admin-graduate-table").innerHTML=adminTable(["Learner","Course","Period","Status","Pathway","Income (private)","Outcome","Story consent","Review"],rows.map(x=>'<tr><td>'+adminEsc(x.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(x.enrollments?.courses?.title_en||x.enrollments?.courses?.title_my||"—")+'</td><td>'+adminEsc(x.followup_period)+'</td><td>'+adminEsc(x.employment_status)+'</td><td>'+adminEsc(x.pathway)+'</td><td>'+((x.monthly_income===null||x.monthly_income===undefined)?"—":adminEsc(x.monthly_income+" "+x.income_currency))+'</td><td>'+adminEsc(x.key_outcome||"—")+'</td><td>'+(x.consent_to_story&&x.story_text?"Yes":"No")+'</td><td><select data-grad-status="'+x.id+'"><option value="submitted" '+(x.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewed" '+(x.status==="reviewed"?"selected":"")+'>Reviewed</option><option value="follow_up_needed" '+(x.status==="follow_up_needed"?"selected":"")+'>Follow-up needed</option></select><textarea data-grad-notes="'+x.id+'" rows="2" placeholder="Internal notes">'+adminEsc(x.admin_notes||"")+'</textarea><button class="small-btn" data-grad-save="'+x.id+'">Save</button></td></tr>')));
+ document.querySelectorAll("[data-grad-save]").forEach(b=>b.onclick=async()=>{const id=b.dataset.gradSave,status=document.querySelector('[data-grad-status="'+id+'"]').value,admin_notes=document.querySelector('[data-grad-notes="'+id+'"]').value.trim()||null;const {error}=await supabase.from("graduate_followups").update({status,admin_notes,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id,updated_at:new Date().toISOString()}).eq("id",id);if(error){alert(error.message);return;}await loadAdmin();});
+}
+function exportGraduateFollowupsCSV(){
+ const rows=adminCache.graduateFollowups||[];const headers=["learner","course","period","employment_status","pathway","monthly_income","income_currency","training_relevance","key_outcome","challenges","support_needed","story_consent","submitted_at"];
+ const quote=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+ const data=[headers,...rows.map(x=>[x.profiles?.full_name,x.enrollments?.courses?.title_en||x.enrollments?.courses?.title_my,x.followup_period,x.employment_status,x.pathway,x.monthly_income,x.income_currency,x.training_relevance,x.key_outcome,x.challenges,x.support_needed,x.consent_to_story,x.submitted_at])].map(r=>r.map(quote).join(",")).join("\r\n");
+ const url=URL.createObjectURL(new Blob(["\ufeff"+data],{type:"text/csv;charset=utf-8;"})),a=document.createElement("a");a.href=url;a.download="graduate-followups.csv";a.click();URL.revokeObjectURL(url);
+}
+\nasync function loadCareerOpportunities(){
  const [{data:opportunities,error:opError},{data:applications,error:appError}]=await Promise.all([
   supabase.from("career_opportunities").select("*").eq("status","published").order("application_deadline",{ascending:true}),
   supabase.from("career_opportunity_applications").select("id,opportunity_id,status,cover_note,applied_at,reviewed_at,career_opportunities(title,title_my,title_en,organization_name,opportunity_type,application_deadline)").eq("learner_id",currentUser.id).order("applied_at",{ascending:false})
@@ -437,7 +475,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -466,11 +504,11 @@ async function loadAdmin(){
   supabase.from("career_readiness_assessments").select("id,learner_id,pathway,career_interest,overall_score,support_needs,next_steps,status,created_at,learner:profiles!career_readiness_assessments_learner_id_fkey(full_name)").order("created_at",{ascending:false}),
   supabase.from("learner_skill_profiles").select("learner_id,career_pathway,career_goal,skills,languages,location_text,learner:profiles!learner_skill_profiles_learner_id_fkey(full_name)").order("updated_at",{ascending:false}),
   supabase.from("career_opportunities").select("*").order("created_at",{ascending:false}),
-  supabase.from("career_opportunity_applications").select("id,opportunity_id,learner_id,cover_note,status,applied_at,admin_notes,career_opportunities(title,organization_name),profiles!career_opportunity_applications_learner_id_fkey(full_name)").order("applied_at",{ascending:false})
+  supabase.from("career_opportunity_applications").select("id,opportunity_id,learner_id,cover_note,status,applied_at,admin_notes,career_opportunities(title,organization_name),profiles!career_opportunity_applications_learner_id_fkey(full_name)").order("applied_at",{ascending:false}),\n  supabase.from("graduate_followups").select("id,enrollment_id,learner_id,followup_period,employment_status,pathway,job_or_business_title,sector,monthly_income,previous_monthly_income,income_currency,skills_used,training_relevance,key_outcome,challenges,support_needed,consent_to_contact,consent_to_story,story_text,status,admin_notes,submitted_at,profiles!graduate_followups_learner_id_fkey(full_name),enrollments(courses(title_my,title_en,level))").order("submitted_at",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications","graduate follow-ups"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
