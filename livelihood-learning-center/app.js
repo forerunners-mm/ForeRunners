@@ -433,7 +433,7 @@ function renderMEL(){
  const courseSel=el("attendance-course"),keep=courseSel.value;
  courseSel.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
  if(adminCache.courses.some(c=>c.id===keep))courseSel.value=keep;
- if(!el("attendance-date").value)el("attendance-date").value=new Date().toISOString().slice(0,10);
+ if(!el("attendance-date").value){const now=new Date();el("attendance-date").value=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");}
  const courseId=courseSel.value,date=el("attendance-date").value;
  const enroll=adminCache.enrollments.filter(e=>e.course_id===courseId&&["approved","completed"].includes(e.status));
  const existing=new Map(adminCache.attendance.filter(a=>a.course_id===courseId&&a.session_date===date).map(a=>[a.learner_id,a]));
