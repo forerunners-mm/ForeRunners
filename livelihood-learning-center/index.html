@@ -102,6 +102,28 @@
           <p id="trainer-lesson-message" class="message" role="status"></p>
         </form>
       </div>
+      <div class="panel">
+        <h3>Competency Assessment / ကျွမ်းကျင်မှု အကဲဖြတ်ခြင်း</h3>
+        <p class="muted">Evaluate learners enrolled in your assigned courses. Scores are 0–100 and are visible to the learner and Admin.</p>
+        <form id="trainer-assessment-form">
+          <div class="field"><label>Course / သင်တန်း</label><select id="assessment-course" required></select></div>
+          <div class="field"><label>Learner / သင်တန်းသား</label><select id="assessment-learner" required></select></div>
+          <div class="field"><label>Assessment type</label><select id="assessment-type"><option value="baseline">Baseline</option><option value="midterm">Midterm</option><option value="final">Final</option><option value="practical">Practical skills</option></select></div>
+          <div class="admin-grid">
+            <div class="field"><label>Practical skills (0–100)</label><input id="assessment-practical" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Task completion (0–100)</label><input id="assessment-task" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Problem solving (0–100)</label><input id="assessment-problem" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Communication (0–100)</label><input id="assessment-communication" type="number" min="0" max="100" step="0.5" required></div>
+            <div class="field"><label>Participation (0–100)</label><input id="assessment-participation" type="number" min="0" max="100" step="0.5" required></div>
+          </div>
+          <div class="field"><label>Strengths</label><textarea id="assessment-strengths" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Areas to improve</label><textarea id="assessment-improve" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Evidence / Practical observations</label><textarea id="assessment-evidence" rows="3" maxlength="5000"></textarea></div>
+          <div class="field"><label>Recommendation</label><select id="assessment-recommendation"><option value="">Select recommendation</option><option value="continue_learning">Continue learning</option><option value="ready_for_next_level">Ready for next level</option><option value="course_completion_recommended">Course completion recommended</option><option value="needs_support">Needs additional support</option></select></div>
+          <button class="primary-btn" type="submit">Save assessment</button><p id="assessment-message" class="message" role="status"></p>
+        </form>
+        <h4>My recent assessments</h4><div id="trainer-assessment-list" class="admin-table-wrap"></div>
+      </div>
     </section>
 
     <section id="admin-section" class="hidden">
@@ -149,7 +171,7 @@
  <div id="admin-announcements"></div></div>
  <div class="panel"><h3>Learner support requests / အကူအညီတောင်းခံမှုများ</h3><div id="admin-support-requests"></div><div id="admin-support-thread"></div></div>
 </section>
-<section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div></section>
+<section class="admin-view hidden" data-admin-view="reports"><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner competency assessments / ကျွမ်းကျင်မှု အကဲဖြတ်ချက်များ</h3><div id="admin-evaluations" class="admin-table-wrap"></div></div></section>
     </section>
 
     <section id="certificate-verification" class="panel hidden"><p class="eyebrow">FORERUNNERS · VERIFICATION</p><h2>Certificate Verification / လက်မှတ်စစ်ဆေးခြင်း</h2><form id="certificate-verify-form" class="row-actions"><input id="certificate-verify-code" placeholder="Enter certificate code" required><button class="primary-btn" type="submit">Verify / စစ်ဆေးရန်</button></form><div id="certificate-verify-result" role="status"></div></section>
