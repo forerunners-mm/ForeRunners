@@ -235,7 +235,7 @@ function exportGraduateFollowupsCSV(){
  const data=[headers,...rows.map(x=>[x.profiles?.full_name,x.enrollments?.courses?.title_en||x.enrollments?.courses?.title_my,x.followup_period,x.employment_status,x.pathway,x.monthly_income,x.income_currency,x.training_relevance,x.key_outcome,x.challenges,x.support_needed,x.consent_to_story,x.submitted_at])].map(r=>r.map(quote).join(",")).join("\r\n");
  const url=URL.createObjectURL(new Blob(["\ufeff"+data],{type:"text/csv;charset=utf-8;"})),a=document.createElement("a");a.href=url;a.download="graduate-followups.csv";a.click();URL.revokeObjectURL(url);
 }
-\nasync function loadCareerOpportunities(){
+async function loadCareerOpportunities(){
  const [{data:opportunities,error:opError},{data:applications,error:appError}]=await Promise.all([
   supabase.from("career_opportunities").select("*").eq("status","published").order("application_deadline",{ascending:true}),
   supabase.from("career_opportunity_applications").select("id,opportunity_id,status,cover_note,applied_at,reviewed_at,career_opportunities(title,title_my,title_en,organization_name,opportunity_type,application_deadline)").eq("learner_id",currentUser.id).order("applied_at",{ascending:false})
@@ -672,7 +672,7 @@ function exportDonorOutcomeCSV(){
  const rows=[headers,...m.periods.map(p=>[p.period,p.eligible>=5?p.eligible:"Withheld (n<5)",p.responses>=5?p.responses:"Withheld (n<5)",p.responseRate,p.workRate===null?"Withheld (n<5)":p.workRate,p.workRate===null?"Withheld (n<5)":p.work,p.selfRate===null?"Withheld (n<5)":p.self,p.selfRate,p.apprentices>=5?p.apprentices:"Withheld (n<5)",p.skillRate===null?"Withheld (n<5)":p.skillUsers,p.skillRate,p.paired>=5?p.paired:"Withheld (n<5)",p.increaseRate===null?"Withheld (n<5)":p.increases,p.increaseRate,p.avgRelevance])];
  const csv=rows.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n"),blob=new Blob(["\\uFEFF",csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="forerunners-donor-outcomes-aggregated.csv";a.click();URL.revokeObjectURL(url);
 }
-\nfunction renderMEL(){
+function renderMEL(){
  renderDonorOutcomeDashboard();
  const courseSel=el("attendance-course"),keep=courseSel.value;
  courseSel.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
