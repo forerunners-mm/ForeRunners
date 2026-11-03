@@ -169,9 +169,35 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);await loadGraduateFollowups();el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
+  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
 }
 
+async function loadLearnerNotifications(){
+ const {data:rows,error}=await supabase.from("learner_notifications")
+  .select("id,title_my,title_en,body_my,body_en,metadata,read_at,created_at")
+  .eq("learner_id",currentUser.id).order("created_at",{ascending:false}).limit(20);
+ if(error)throw error;
+ const notifications=rows||[];
+ const unread=notifications.filter(x=>!x.read_at).length;
+ el("notification-count").textContent=String(unread);
+ el("notification-count").classList.toggle("hidden",unread===0);
+ el("learner-notification-list").innerHTML=notifications.map(n=>
+  '<article class="notification-card '+(n.read_at?'is-read':'is-unread')+'"><div><b>'+escapeHtml(language==="my"?n.title_my:n.title_en)+'</b><p>'+escapeHtml(language==="my"?n.body_my:n.body_en)+'</p><small>'+new Date(n.created_at).toLocaleString()+'</small></div><button type="button" class="small-btn" data-open-followup="'+n.id+'" data-enrollment="'+escapeHtml(n.metadata?.enrollment_id||'')+'" data-period="'+escapeHtml(n.metadata?.followup_period||'')+'">'+(language==="my"?"စစ်တမ်းဖြည့်ရန်":"Open follow-up")+'</button></article>'
+ ).join("")||'<p class="muted">No notifications yet. / သတိပေးချက် မရှိသေးပါ။</p>';
+ el("learner-notification-list").onclick=async event=>{
+  const button=event.target.closest("[data-open-followup]");if(!button)return;
+  button.disabled=true;
+  const {error:updateError}=await supabase.from("learner_notifications").update({read_at:new Date().toISOString()}).eq("id",button.dataset.openFollowup).eq("learner_id",currentUser.id);
+  if(updateError){button.disabled=false;alert(updateError.message);return;}
+  const enrollment=button.dataset.enrollment,period=button.dataset.period;
+  await loadLearnerNotifications();
+  const courseSelect=el("graduate-enrollment");
+  if(enrollment&&[...courseSelect.options].some(o=>o.value===enrollment)){courseSelect.value=enrollment;courseSelect.dispatchEvent(new Event("change"));}
+  const periodSelect=el("graduate-period");
+  if(period&&[...periodSelect.options].some(o=>o.value===period&&!o.disabled))periodSelect.value=period;
+  el("graduate-followup").scrollIntoView({behavior:"smooth",block:"start"});
+ };
+}
 async function loadGraduateFollowups(){
  const [{data:enrollments,error:enError},{data:rows,error:rowError}]=await Promise.all([
   supabase.from("enrollments").select("id,course_id,status,completed_at,courses(title_my,title_en,level)").eq("learner_id",currentUser.id).eq("status","completed"),
