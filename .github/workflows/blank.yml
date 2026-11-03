@@ -21,12 +21,24 @@ jobs:
         run: |
           node --check livelihood-learning-center/app.js
           node --check livelihood-learning-center/config.js
+      - name: Install Chromium browser test dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run browser smoke tests
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 >/tmp/lvc-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID 2>/dev/null || true' EXIT
+          for i in {1..30}; do curl -fsS http://127.0.0.1:4173/livelihood-learning-center/ >/dev/null && break || sleep 1; done
+          node livelihood-learning-center/tests/browser-smoke.mjs
       - name: Check required LMS files and key interface elements
         run: |
           test -s livelihood-learning-center/index.html
           test -s livelihood-learning-center/styles.css
           test -s livelihood-learning-center/app.js
           test -s livelihood-learning-center/config.js
+          test -s livelihood-learning-center/tests/browser-smoke.mjs
           test -s livelihood-learning-center/supabase/recovery/live_schema_snapshot_20261103.sql
           test -s livelihood-learning-center/supabase/recovery/live_seed_data_20261103.sql
           node --input-type=module <<'NODE'
