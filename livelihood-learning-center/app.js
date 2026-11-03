@@ -301,13 +301,12 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
-function setAdminTab(tab){const verifyForm=el("certificate-verify-form");
-if(verifyForm){verifyForm.onsubmit=e=>{e.preventDefault();verifyCertificate(el("certificate-verify-code").value.trim());};const code=new URLSearchParams(window.location.search).get("verify");if(code){el("certificate-verification").classList.remove("hidden");el("certificate-verify-code").value=code;verifyCertificate(code);}}
-document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
+function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
 document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("click",()=>setAdminTab(b.dataset.adminTab)));
+const verifyForm=el("certificate-verify-form");if(verifyForm){verifyForm.onsubmit=e=>{e.preventDefault();verifyCertificate(el("certificate-verify-code").value.trim());};const code=new URLSearchParams(window.location.search).get("verify");if(code){el("certificate-verification").classList.remove("hidden");el("certificate-verify-code").value=code;verifyCertificate(code);}}
 async function loadAdmin(){
  const rs=await Promise.all([
   supabase.from("profiles").select("id,full_name,phone,role,account_status,created_at").order("created_at",{ascending:false}),
@@ -321,11 +320,12 @@ async function loadAdmin(){
   supabase.from("quiz_attempts").select("*"),
   supabase.from("assignments").select("id,course_id,title_my,title_en,due_at,is_published,created_at").order("created_at",{ascending:false}),
   supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,file_path,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false}),
-  supabase.from("certificates").select("id,learner_id,course_id,certificate_code,issued_at,file_path,profiles(full_name),courses(title_my,title_en,level)").order("issued_at",{ascending:false})
+  supabase.from("certificates").select("id,learner_id,course_id,certificate_code,issued_at,file_path,profiles(full_name),courses(title_my,title_en,level)").order("issued_at",{ascending:false}),
+  supabase.from("attendance_records").select("id,learner_id,course_id,batch_id,session_date,status,notes,profiles(full_name),courses(title_my,title_en)").order("session_date",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -429,6 +429,51 @@ async function verifyCertificate(code){
  const cert=Array.isArray(data)?data[0]:null;
  result.innerHTML=cert?'<h3>Valid certificate / မှန်ကန်သောလက်မှတ်</h3><p><b>'+escapeHtml(cert.learner_name)+'</b></p><p>'+escapeHtml(language==="my"?cert.course_title_my:cert.course_title_en)+'</p><p>'+new Date(cert.issued_at).toLocaleDateString()+'</p><p>'+escapeHtml(cert.certificate_code)+'</p>':'<h3>Certificate not found / လက်မှတ်မတွေ့ပါ</h3>';
 }
+function renderMEL(){
+ const courseSel=el("attendance-course"),keep=courseSel.value;
+ courseSel.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
+ if(adminCache.courses.some(c=>c.id===keep))courseSel.value=keep;
+ if(!el("attendance-date").value)el("attendance-date").value=new Date().toISOString().slice(0,10);
+ const courseId=courseSel.value,date=el("attendance-date").value;
+ const enroll=adminCache.enrollments.filter(e=>e.course_id===courseId&&["approved","completed"].includes(e.status));
+ const existing=new Map(adminCache.attendance.filter(a=>a.course_id===courseId&&a.session_date===date).map(a=>[a.learner_id,a]));
+ el("attendance-register").innerHTML=adminTable(["Learner","Attendance","Notes","Save"],enroll.map(e=>{
+  const old=existing.get(e.learner_id),status=old?.status||"present";
+  return '<tr><td>'+adminEsc(e.profiles?.full_name||"Learner")+'</td><td><select data-att-status="'+e.learner_id+'"><option value="present" '+(status==="present"?"selected":"")+'>Present</option><option value="late" '+(status==="late"?"selected":"")+'>Late</option><option value="absent" '+(status==="absent"?"selected":"")+'>Absent</option><option value="excused" '+(status==="excused"?"selected":"")+'>Excused</option></select></td><td><input data-att-notes="'+e.learner_id+'" value="'+adminEsc(old?.notes||"")+'" placeholder="Optional"></td><td><button class="small-btn approve" data-att-save="'+e.learner_id+'">Save</button></td></tr>';
+ }));
+ document.querySelectorAll("[data-att-save]").forEach(b=>b.onclick=()=>saveAttendance(b.dataset.attSave,b));
+ const learners=adminCache.users.filter(u=>u.role!=="admin").length;
+ const approved=adminCache.enrollments.filter(e=>["approved","completed"].includes(e.status)).length;
+ const completed=adminCache.progress.filter(p=>p.status==="completed").length;
+ const totalSub=adminCache.submissions.length,reviewed=adminCache.submissions.filter(s=>["approved","needs_revision"].includes(s.status)).length;
+ const present=adminCache.attendance.filter(a=>a.status==="present"||a.status==="late").length;
+ const attCount=adminCache.attendance.length;
+ const stats=[["Learner accounts",learners],["Approved enrollments",approved],["Completed lesson records",completed],["Assignments submitted",totalSub],["Reviewed submissions",reviewed],["Attendance rate",attCount?Math.round(present/attCount*100)+"%":"—"]];
+ el("mel-summary").innerHTML=stats.map(([k,v])=>'<article class="admin-stat"><span>'+k+'</span><strong>'+v+'</strong></article>').join("");
+ el("mel-course-report").innerHTML=adminTable(["Course","Enrolled","Lesson completion","Quiz pass rate","Assignments"],adminCache.courses.map(c=>{
+  const mids=adminCache.modules.filter(m=>m.course_id===c.id).map(m=>m.id),lids=adminCache.lessons.filter(l=>mids.includes(l.module_id)&&l.is_published).map(l=>l.id);
+  const enrolled=adminCache.enrollments.filter(e=>e.course_id===c.id&&["approved","completed"].includes(e.status)).length;
+  const possible=enrolled*lids.length,done=adminCache.progress.filter(p=>lids.includes(p.lesson_id)&&p.status==="completed").length;
+  const qids=adminCache.quizzes.filter(q=>q.course_id===c.id&&q.is_published).map(q=>q.id),attempts=adminCache.attempts.filter(a=>qids.includes(a.quiz_id)),passes=attempts.filter(a=>a.passed).length;
+  const submissions=adminCache.submissions.filter(s=>s.assignments?.course_id===c.id).length;
+  return '<tr><td>'+adminEsc(language==="my"?c.title_my:c.title_en)+'</td><td>'+enrolled+'</td><td>'+(possible?Math.min(100,Math.round(done/possible*100))+"%":"—")+'</td><td>'+(attempts.length?Math.round(passes/attempts.length*100)+"%":"—")+'</td><td>'+submissions+'</td></tr>';
+ }));
+}
+async function saveAttendance(learnerId,button){
+ const courseId=el("attendance-course").value,date=el("attendance-date").value;
+ const status=document.querySelector('[data-att-status="'+learnerId+'"]').value;
+ const notes=document.querySelector('[data-att-notes="'+learnerId+'"]').value.trim();
+ button.disabled=true;
+ const {error}=await supabase.from("attendance_records").upsert({learner_id:learnerId,course_id:courseId,session_date:date,status,notes:notes||null,recorded_by:currentUser.id},{onConflict:"learner_id,course_id,session_date"});
+ if(error){alert(error.message);button.disabled=false;return;}
+ await loadAdmin();
+}
+function exportMELCSV(){
+ const rows=[["Course","Learner","Session date","Attendance status","Notes"],...adminCache.attendance.map(a=>[a.courses?.title_en||"",a.profiles?.full_name||"",a.session_date,a.status,a.notes||""])];
+ const csv=rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+ const blob=new Blob(["\\uFEFF",csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="forerunners-mel-attendance.csv";a.click();URL.revokeObjectURL(url);
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -449,6 +494,8 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderMEL();
+ el("attendance-course").onchange=renderMEL;el("attendance-date").onchange=renderMEL;el("mel-export").onclick=exportMELCSV;
  renderAdminCertificates();
  document.querySelectorAll("[data-cert-issue]").forEach(b=>b.onclick=()=>issueAdminCertificate(b.dataset.certIssue,b.dataset.course,b));
  document.querySelectorAll("[data-cert-print]").forEach(b=>b.onclick=()=>openCertificatePrint(b.dataset.certPrint,b.dataset.certName,b.dataset.certCourse));
