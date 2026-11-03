@@ -85,14 +85,37 @@
         <button id="lesson-complete-btn" class="primary-btn" type="button">သင်ခန်းစာ ပြီးဆုံးကြောင်း မှတ်သားရန်</button>
       </div>
     </section>
+    <section id="trainer-section" class="hidden">
+      <div class="section-heading"><div><p class="eyebrow">TRAINER WORKSPACE / သင်တန်းဆရာ Workspace</p><h2>My Assigned Courses / တာဝန်ပေးထားသော သင်တန်းများ</h2></div><span class="chip">TRAINER</span></div>
+      <div id="trainer-course-list" class="admin-grid"></div>
+      <div class="panel"><h3>Lesson Editor / သင်ခန်းစာ မူကြမ်း</h3>
+        <form id="trainer-lesson-form">
+          <input type="hidden" id="trainer-lesson-id">
+          <div class="field"><label>Module</label><select id="trainer-module" required></select></div>
+          <div class="field"><label>Title (Myanmar)</label><input id="trainer-title-my" maxlength="250" required></div>
+          <div class="field"><label>Title (English)</label><input id="trainer-title-en" maxlength="250" required></div>
+          <div class="field"><label>Content (Myanmar)</label><textarea id="trainer-content-my" rows="6"></textarea></div>
+          <div class="field"><label>Content (English)</label><textarea id="trainer-content-en" rows="6"></textarea></div>
+          <div class="field"><label>Video URL (optional)</label><input id="trainer-video-url" type="url" placeholder="https://"></div>
+          <div class="field"><label>Change note</label><input id="trainer-change-note" maxlength="500"></div>
+          <button class="primary-btn" type="submit">Save and submit for review</button><button class="small-btn" id="trainer-lesson-reset" type="button">New draft</button>
+          <p id="trainer-lesson-message" class="message" role="status"></p>
+        </form>
+      </div>
+    </section>
 
     <section id="admin-section" class="hidden">
       <div class="section-heading"><div><p class="eyebrow">ADMINISTRATION / စီမံခန့်ခွဲမှု</p><h2 data-i18n="adminTitle">Learning Center Dashboard</h2></div><span class="chip admin-chip">ADMIN</span></div>
-      <nav class="admin-nav"><button class="admin-tab active" data-admin-tab="overview">Overview</button><button class="admin-tab" data-admin-tab="learners">Learners</button><button class="admin-tab" data-admin-tab="enrollments">Enrollments</button><button class="admin-tab" data-admin-tab="courses">Courses & Lessons</button><button class="admin-tab" data-admin-tab="quizzes">Quizzes</button><button class="admin-tab" data-admin-tab="assignments">Assignments</button><button class="admin-tab" data-admin-tab="certificates">Certificates</button><button class="admin-tab" data-admin-tab="mel">MEL & Attendance</button><button class="admin-tab" data-admin-tab="support">Support & News</button><button class="admin-tab" data-admin-tab="reports">Reports</button></nav>
+      <nav class="admin-nav"><button class="admin-tab active" data-admin-tab="overview">Overview</button><button class="admin-tab" data-admin-tab="learners">Learners</button><button class="admin-tab" data-admin-tab="trainers">Trainers</button><button class="admin-tab" data-admin-tab="enrollments">Enrollments</button><button class="admin-tab" data-admin-tab="courses">Courses & Lessons</button><button class="admin-tab" data-admin-tab="quizzes">Quizzes</button><button class="admin-tab" data-admin-tab="assignments">Assignments</button><button class="admin-tab" data-admin-tab="certificates">Certificates</button><button class="admin-tab" data-admin-tab="mel">MEL & Attendance</button><button class="admin-tab" data-admin-tab="support">Support & News</button><button class="admin-tab" data-admin-tab="reports">Reports</button></nav>
       <div id="admin-alert" class="message" role="status"></div>
       <section class="admin-view" data-admin-view="overview"><div id="admin-stats" class="admin-stats"></div><div class="admin-grid"><div class="panel"><h3>Pending learner accounts</h3><div id="pending-users" class="admin-list"></div></div><div class="panel"><h3>Pending course applications</h3><div id="pending-enrollments" class="admin-list"></div></div></div></section>
       <section class="admin-view hidden" data-admin-view="learners"><div class="panel"><h3>Learner accounts / သင်တန်းသားများ</h3><input id="learner-search" class="admin-search" type="search" placeholder="Search name or phone"><div id="admin-learners" class="admin-table-wrap"></div></div></section>
-      <section class="admin-view hidden" data-admin-view="enrollments"><div class="panel"><h3>Course applications / သင်တန်းလျှောက်ထားမှု</h3><div id="admin-enrollments" class="admin-table-wrap"></div></div></section>
+      <section class="admin-view hidden" data-admin-view="trainers">
+ <div class="panel"><h3>Assign trainer to course / သင်တန်းဆရာ တာဝန်ပေးရန်</h3>
+ <form id="trainer-assignment-form"><div class="field"><label>Approved trainer</label><select id="trainer-user-select" required></select></div><div class="field"><label>Course</label><select id="trainer-course-select" required></select></div><button class="primary-btn" type="submit">Assign course</button><p id="trainer-assignment-message" class="message" role="status"></p></form></div>
+ <div class="panel"><h3>Current trainer assignments</h3><div id="admin-trainer-assignments"></div></div>
+</section>
+<section class="admin-view hidden" data-admin-view="enrollments"><div class="panel"><h3>Course applications / သင်တန်းလျှောက်ထားမှု</h3><div id="admin-enrollments" class="admin-table-wrap"></div></div></section>
       <section class="admin-view hidden" data-admin-view="courses">
  <div class="panel"><h3>Course catalogue / သင်တန်းများ</h3><div id="admin-courses" class="admin-table-wrap"></div></div>
  <div class="panel"><h3>Lesson catalogue / သင်ခန်းစာများ</h3><div id="admin-lessons" class="admin-table-wrap"></div></div>
