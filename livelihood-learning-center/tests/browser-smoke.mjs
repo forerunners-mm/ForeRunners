@@ -4,12 +4,17 @@ const errors = [];
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage();
-  page.on("pageerror", error => errors.push(error.stack || error.message));
-  await page.route("**/supabase-js*", route => route.fulfill({
+  page.on("pageerror", error => errors.push("pageerror: " + (error.stack || error.message)));
+  page.on("console", message => { if (message.type() === "error") errors.push("console: " + message.text()); });
+  page.on("requestfailed", request => errors.push("requestfailed: " + request.url() + " " + request.failure()?.errorText));
+  await page.route("**/*", route => {
+    if (!route.request().url().includes("esm.sh")) return route.continue();
+    return route.fulfill({
     status: 200,
     contentType: "application/javascript",
     body: "export const createClient = () => ({ auth: { getSession: async () => ({ data: { session: null } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }) } });"
-  }));
+    });
+  });
 
   await page.goto("http://127.0.0.1:4173/livelihood-learning-center/", {
     waitUntil: "domcontentloaded",
