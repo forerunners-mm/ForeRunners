@@ -794,6 +794,8 @@ function bindAdminActions(){
  renderAdminEvaluations();
  renderAdminCareerReadiness();
  renderAdminCareerOpportunities();
+ renderAdminGraduateFollowups();
+ el("graduate-export").onclick=exportGraduateFollowupsCSV;
  el("career-opportunity-form").onsubmit=saveCareerOpportunity;
  el("admin-announcement-form").onsubmit=async e=>{e.preventDefault();const {error}=await supabase.from("announcements").insert({title_my:el("announce-title-my").value.trim(),title_en:el("announce-title-en").value.trim(),body_my:el("announce-body-my").value.trim(),body_en:el("announce-body-en").value.trim(),is_published:true,published_at:new Date().toISOString(),created_by:currentUser.id});el("announce-form-message").textContent=error?error.message:"Announcement published.";if(!error){e.target.reset();await loadAdmin();}};
  renderMEL();
