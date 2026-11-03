@@ -177,6 +177,7 @@ async function loadLearning(){
   root.querySelectorAll("[data-start-quiz]").forEach(button=>button.addEventListener("click",()=>openQuiz(button.dataset.startQuiz)));
   await renderLearnerAssignments(courseRows);
   await loadLearnerCertificates();
+  await loadLearnerSupport();
 
   pane.classList.add("hidden");
   el("quiz-runner").classList.add("hidden");
@@ -301,7 +302,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -321,11 +322,14 @@ async function loadAdmin(){
   supabase.from("assignments").select("id,course_id,title_my,title_en,due_at,is_published,created_at").order("created_at",{ascending:false}),
   supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,file_path,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false}),
   supabase.from("certificates").select("id,learner_id,course_id,certificate_code,issued_at,file_path,profiles(full_name),courses(title_my,title_en,level)").order("issued_at",{ascending:false}),
-  supabase.from("attendance_records").select("id,learner_id,course_id,batch_id,session_date,status,notes,profiles(full_name),courses(title_my,title_en)").order("session_date",{ascending:false})
+  supabase.from("attendance_records").select("id,learner_id,course_id,batch_id,session_date,status,notes,profiles(full_name),courses(title_my,title_en)").order("session_date",{ascending:false}),
+  supabase.from("announcements").select("id,title_my,title_en,body_my,body_en,is_published,published_at").order("created_at",{ascending:false}),
+  supabase.from("support_requests").select("id,learner_id,subject,category,status,created_at,updated_at,profiles(full_name)").order("updated_at",{ascending:false}),
+  supabase.from("support_messages").select("id,request_id,sender_id,body,created_at").order("created_at")
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -474,6 +478,31 @@ function exportMELCSV(){
  const blob=new Blob(["\\uFEFF",csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
  a.href=url;a.download="forerunners-mel-attendance.csv";a.click();URL.revokeObjectURL(url);
 }
+async function loadLearnerSupport(){
+ const [a,r,m]=await Promise.all([
+  supabase.from("announcements").select("id,title_my,title_en,body_my,body_en,published_at").eq("is_published",true).order("published_at",{ascending:false}),
+  supabase.from("support_requests").select("id,subject,category,status,created_at,updated_at").eq("learner_id",currentUser.id).order("updated_at",{ascending:false}),
+  supabase.from("support_messages").select("id,request_id,sender_id,body,created_at").order("created_at")
+ ]);
+ if(a.error||r.error||m.error)throw a.error||r.error||m.error;
+ el("learner-announcements").innerHTML=(a.data||[]).map(x=>'<article class="assignment-card"><b>'+escapeHtml(language==="my"?x.title_my:x.title_en)+'</b><p>'+escapeHtml(language==="my"?x.body_my:x.body_en)+'</p></article>').join("")||'<p class="muted">No announcements yet.</p>';
+ el("learner-support-requests").innerHTML=(r.data||[]).map(x=>'<article class="assignment-card"><b>'+escapeHtml(x.subject)+'</b><small>'+escapeHtml(x.category)+' · '+escapeHtml(x.status)+'</small><div>'+((m.data||[]).filter(z=>z.request_id===x.id).map(z=>'<p><b>'+(z.sender_id===currentUser.id?'You':'Support team')+':</b> '+escapeHtml(z.body)+'</p>').join(""))+'</div><form data-support-reply="'+x.id+'"><textarea name="body" rows="2" required maxlength="10000" placeholder="Reply / ပြန်လည်ဖြေကြားရန်"></textarea><button class="small-btn" type="submit">Reply</button></form></article>').join("")||'<p class="muted">No support requests yet.</p>';
+ document.querySelectorAll("[data-support-reply]").forEach(form=>form.onsubmit=async e=>{e.preventDefault();const body=new FormData(form).get("body").trim();if(!body)return;const {error}=await supabase.from("support_messages").insert({request_id:form.dataset.supportReply,sender_id:currentUser.id,body});if(error){alert(error.message);return;}await supabase.from("support_requests").update({updated_at:new Date().toISOString()}).eq("id",form.dataset.supportReply);await loadLearnerSupport();});
+ el("support-request-form").onsubmit=async e=>{e.preventDefault();const subject=el("support-subject").value.trim(),category=el("support-category").value,body=el("support-message").value.trim();const {data,error}=await supabase.from("support_requests").insert({learner_id:currentUser.id,subject,category}).select("id").single();if(error){el("support-form-message").textContent=error.message;return;}const msg=await supabase.from("support_messages").insert({request_id:data.id,sender_id:currentUser.id,body});if(msg.error){el("support-form-message").textContent=msg.error.message;return;}el("support-request-form").reset();el("support-form-message").textContent="Request submitted.";await loadLearnerSupport();};
+}
+function renderAdminSupport(){
+ el("admin-announcements").innerHTML=adminTable(["Announcement","Status","Action"],adminCache.announcements.map(a=>'<tr><td>'+adminEsc(a.title_en)+'</td><td>'+(a.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-ann-toggle="'+a.id+'" data-next="'+(!a.is_published)+'">'+(a.is_published?"Unpublish":"Publish")+'</button></td></tr>'));
+ el("admin-support-requests").innerHTML=adminTable(["Learner","Subject","Category","Status","Action"],adminCache.supportRequests.map(r=>'<tr><td>'+adminEsc(r.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(r.subject)+'</td><td>'+adminEsc(r.category)+'</td><td>'+adminEsc(r.status)+'</td><td><button class="small-btn" data-support-open="'+r.id+'">Open thread</button></td></tr>'));
+ document.querySelectorAll("[data-ann-toggle]").forEach(b=>b.onclick=()=>adminSave(supabase.from("announcements").update({is_published:b.dataset.next==="true",published_at:b.dataset.next==="true"?new Date().toISOString():null}).eq("id",b.dataset.annToggle)));
+ document.querySelectorAll("[data-support-open]").forEach(b=>b.onclick=()=>renderAdminSupportThread(b.dataset.supportOpen));
+}
+function renderAdminSupportThread(id){
+ const req=adminCache.supportRequests.find(r=>r.id===id);if(!req)return;
+ const messages=adminCache.supportMessages.filter(m=>m.request_id===id);
+ el("admin-support-thread").innerHTML='<h4>'+adminEsc(req.subject)+' — '+adminEsc(req.profiles?.full_name||"Learner")+'</h4>'+messages.map(m=>'<p><b>'+adminEsc(m.sender_id===currentUser.id?"Admin":"Learner")+'</b>: '+adminEsc(m.body)+'</p>').join("")+'<form id="admin-support-reply"><textarea id="admin-support-body" rows="3" required maxlength="10000"></textarea><button class="primary-btn" type="submit">Reply</button><button class="small-btn" type="button" id="support-resolve">Resolve</button></form>';
+ el("admin-support-reply").onsubmit=async e=>{e.preventDefault();const body=el("admin-support-body").value.trim();const {error}=await supabase.from("support_messages").insert({request_id:id,sender_id:currentUser.id,body});if(error){alert(error.message);return;}await supabase.from("support_requests").update({updated_at:new Date().toISOString(),status:"in_progress"}).eq("id",id);await loadAdmin();renderAdminSupportThread(id);};
+ el("support-resolve").onclick=async()=>{await adminSave(supabase.from("support_requests").update({status:"resolved",updated_at:new Date().toISOString()}).eq("id",id));};
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -494,6 +523,8 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminSupport();
+ el("admin-announcement-form").onsubmit=async e=>{e.preventDefault();const {error}=await supabase.from("announcements").insert({title_my:el("announce-title-my").value.trim(),title_en:el("announce-title-en").value.trim(),body_my:el("announce-body-my").value.trim(),body_en:el("announce-body-en").value.trim(),is_published:true,published_at:new Date().toISOString(),created_by:currentUser.id});el("announce-form-message").textContent=error?error.message:"Announcement published.";if(!error){e.target.reset();await loadAdmin();}};
  renderMEL();
  el("attendance-course").onchange=renderMEL;el("attendance-date").onchange=renderMEL;el("mel-export").onclick=exportMELCSV;
  renderAdminCertificates();
