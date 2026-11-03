@@ -20,6 +20,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check livelihood-learning-center/app.js
+          node --input-type=module --check < livelihood-learning-center/app.js
           node --check livelihood-learning-center/config.js
       - name: Install Chromium browser test dependencies
         run: |
