@@ -317,7 +317,7 @@ async function loadAdmin(){
   supabase.from("lesson_progress").select("id,learner_id,lesson_id,status"),
   supabase.from("quiz_attempts").select("*"),
   supabase.from("assignments").select("id,course_id,title_my,title_en,due_at,is_published,created_at").order("created_at",{ascending:false}),
-  supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false})
+  supabase.from("assignment_submissions").select("id,assignment_id,learner_id,text_response,file_path,status,feedback,score,submitted_at,profiles(full_name),assignments(title_my,title_en,course_id)").order("submitted_at",{ascending:false})
  ]);
  const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
