@@ -534,7 +534,7 @@ async function saveLessonDraft(event){
  try{
   if(id){
    const old=adminCache.lessons.find(x=>x.id===id);const nextVersion=(old.version_no||1)+1;
-   const rev={lesson_id:id,version_no:nextVersion,title_my:old.title_my,title_en:old.title_en,content_my:old.content_my,content_en:old.content_en,resource_path:old.resource_path,video_url:old.video_url,changed_by:currentUser.id,change_note:el("lesson-change-note").value.trim()||"Updated lesson"};
+   const rev={lesson_id:id,version_no:old.version_no||1,title_my:old.title_my,title_en:old.title_en,content_my:old.content_my,content_en:old.content_en,resource_path:old.resource_path,video_url:old.video_url,changed_by:currentUser.id,change_note:el("lesson-change-note").value.trim()||"Updated lesson"};
    const {error:re}=await supabase.from("lesson_revisions").insert(rev);if(re)throw re;
    const {error}=await supabase.from("lessons").update({...payload,version_no:nextVersion}).eq("id",id);if(error)throw error;
   }else{
