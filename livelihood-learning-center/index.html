@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="my">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="ForeRunners Livelihood & Vocational Learning Center — Build Skills. Create Livelihoods.">
+  <title>ForeRunners | Livelihood Learning Center</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./"><span class="brand-mark">F</span><span>ForeRunners<small>Livelihood & Vocational Learning Center</small></span></a>
+    <div class="top-actions">
+      <button id="lang-toggle" class="ghost" type="button">English</button>
+      <button id="signout-btn" class="ghost hidden" type="button" data-i18n="signout">ထွက်ရန်</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="eyebrow">FORE RUNNERS ORGANIZATION</p>
+        <h1 data-i18n="heroTitle">ကျွမ်းကျင်မှု တည်ဆောက်ပါ။ အသက်မွေးဝမ်းကျောင်း ဖန်တီးပါ။</h1>
+        <p data-i18n="heroText">အခြေခံမှ အဆင့်မြင့်အထိ လက်တွေ့အခြေပြု သင်ယူမှုဖြင့် မိမိအသက်မွေးဝမ်းကျောင်းကို တည်ဆောက်ပါ။</p>
+        <div class="hero-pills"><span>BASIC</span><span>ADVANCED</span><span>MYANMAR + ENGLISH</span></div>
+      </div>
+      <div class="hero-art" aria-hidden="true"><div class="art-circle"></div><div class="art-card"><b>Learn</b><span>Practice</span><strong>Grow</strong></div></div>
+    </section>
+
+    <section id="auth-section" class="panel auth-panel">
+      <div class="section-heading">
+        <div><p class="eyebrow" data-i18n="access">LEARNER ACCESS</p><h2 data-i18n="welcome">သင်ယူမှုစတင်ရန် ဝင်ရောက်ပါ</h2></div>
+        <p class="muted" data-i18n="approvalNote">သင်တန်းဝင်ခွင့်ကို ForeRunners အဖွဲ့မှ အတည်ပြုပေးရပါမည်။</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="tab active" id="login-tab" data-i18n="loginTab">အကောင့်ဝင်ရန်</button>
+        <button class="tab" id="signup-tab" data-i18n="signupTab">အကောင့်ဖွင့်ရန်</button>
+      </div>
+      <form id="auth-form">
+        <div id="name-field" class="field hidden"><label for="full-name" data-i18n="fullName">အမည်</label><input id="full-name" autocomplete="name"></div>
+        <div class="field"><label for="email" data-i18n="email">အီးမေးလ်</label><input id="email" type="email" required autocomplete="email"></div>
+        <div class="field"><label for="password" data-i18n="password">စကားဝှက်</label><input id="password" type="password" required minlength="8" autocomplete="current-password"></div>
+        <button id="auth-submit" class="primary-btn" type="submit" data-i18n="login">အကောင့်ဝင်ရန်</button>
+        <p id="auth-message" class="message" role="status"></p>
+      </form>
+    </section>
+
+    <section id="pending-section" class="panel status-panel hidden">
+      <div class="status-icon">⌛</div><div><h2 data-i18n="pendingTitle">အတည်ပြုရန် စောင့်ဆိုင်းနေပါသည်</h2><p data-i18n="pendingText">သင့်အကောင့်ကို အဖွဲ့မှ စစ်ဆေးအတည်ပြုပြီးနောက် သင်တန်းလျှောက်ထားနိုင်ပါမည်။</p></div>
+    </section>
+
+    <section id="learner-section" class="hidden">
+      <div class="section-heading"><div><p class="eyebrow" data-i18n="learnerSpace">LEARNER SPACE</p><h2><span data-i18n="hello">မင်္ဂလာပါ</span> <span id="learner-name"></span></h2></div><span id="account-chip" class="chip">APPROVED</span></div>
+      <div class="panel">
+        <h3 data-i18n="coursesTitle">သင်တန်းများ</h3>
+        <p class="muted" data-i18n="coursesText">သင်ယူလိုသော အဆင့်ကို ရွေးချယ်ပြီး လျှောက်ထားပါ။ အတည်ပြုပြီးမှ သင်ခန်းစာများကို ဝင်ရောက်နိုင်ပါမည်။</p>
+        <div id="course-list" class="course-grid"></div>
+      </div>
+      <div class="panel">
+        <h3 data-i18n="myEnrollments">ကျွန်ုပ်၏ သင်တန်းလျှောက်ထားမှုများ</h3>
+        <div id="enrollment-list" class="list-empty muted" data-i18n="noEnrollments">လျှောက်ထားမှု မရှိသေးပါ။</div>
+      </div>
+    </section>
+
+    <section id="admin-section" class="hidden">
+      <div class="section-heading"><div><p class="eyebrow">ADMIN CONSOLE</p><h2 data-i18n="adminTitle">သင်တန်းစီမံခန့်ခွဲမှု</h2></div><span class="chip admin-chip">ADMIN</span></div>
+      <div class="admin-grid">
+        <div class="panel"><h3 data-i18n="pendingLearners">အတည်ပြုရန် အကောင့်များ</h3><div id="pending-users" class="admin-list"></div></div>
+        <div class="panel"><h3 data-i18n="pendingApps">သင်တန်းလျှောက်ထားမှုများ</h3><div id="pending-enrollments" class="admin-list"></div></div>
+      </div>
+    </section>
+
+    <section class="info-strip">
+      <div><strong>01</strong><span data-i18n="basicInfo">BASIC — အခြေခံကျွမ်းကျင်မှု</span></div>
+      <div><strong>02</strong><span data-i18n="advancedInfo">ADVANCED — တိုးတက်ဖွံ့ဖြိုးမှု</span></div>
+      <div><strong>100</strong><span data-i18n="capacityInfo">စီစဉ်ထားသော သင်တန်းသားဦးရေ</span></div>
+    </section>
+  </main>
+
+  <footer><span>© 2026 ForeRunners Organization</span><span>Build Skills. Create Livelihoods.</span></footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
