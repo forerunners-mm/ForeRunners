@@ -67,7 +67,7 @@ function applyLanguage() {
   el("auth-submit").textContent=t(authMode);
   el("name-field").classList.toggle("hidden",authMode!=="signup");
 }
-el("lang-toggle").addEventListener("click",()=>{language=language==="my"?"en":"my";localStorage.setItem("lvc-language",language);applyLanguage();});
+el("lang-toggle").addEventListener("click",()=>{language=language==="my"?"en":"my";localStorage.setItem("lvc-language",language);applyLanguage();if(currentUser)handleSession({user:currentUser});});
 function setAuthMode(mode){authMode=mode;el("login-tab").classList.toggle("active",mode==="login");el("signup-tab").classList.toggle("active",mode==="signup");applyLanguage();setMessage("auth-message","");}
 el("login-tab").addEventListener("click",()=>setAuthMode("login"));
 el("signup-tab").addEventListener("click",()=>setAuthMode("signup"));
