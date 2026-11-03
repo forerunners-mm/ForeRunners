@@ -108,6 +108,30 @@
           <button class="primary-btn" type="submit">Submit Self-Assessment</button><p id="readiness-message" class="message" role="status"></p>
         </form><div id="readiness-history"></div>
       </section>
+      <section class="panel" id="graduate-followup">
+        <h2>Graduate Follow-up / သင်တန်းဆင်းပြီးနောက် အခြေအနေစစ်တမ်း</h2>
+        <p class="muted">Available after your enrollment is marked completed. Follow-ups are due at 30, 90 and 180 days. Income details are optional and confidential.</p>
+        <form id="graduate-followup-form">
+          <div class="field"><label>Completed course / ပြီးဆုံးခဲ့သောသင်တန်း</label><select id="graduate-enrollment" required></select></div>
+          <div class="field"><label>Follow-up period / စစ်တမ်းကာလ</label><select id="graduate-period" required><option value="30_day">30 days</option><option value="90_day">90 days</option><option value="180_day">180 days</option></select></div>
+          <div class="field"><label>Current status / လက်ရှိအခြေအနေ</label><select id="graduate-employment" required><option value="employed">Employed / အလုပ်ရှိ</option><option value="self_employed">Self-employed / ကိုယ်ပိုင်လုပ်ငန်း</option><option value="unemployed_seeking">Unemployed, seeking work / အလုပ်ရှာနေ</option><option value="unemployed_not_seeking">Not seeking work / အလုပ်မရှာသေး</option><option value="studying">Studying / ပညာဆက်လက်သင်ယူ</option><option value="apprenticeship">Apprenticeship / အလုပ်သင်</option><option value="other">Other / အခြား</option></select></div>
+          <div class="field"><label>Pathway / လမ်းကြောင်း</label><select id="graduate-pathway"><option value="employment">Employment</option><option value="self_employment">Self-employment</option><option value="apprenticeship">Apprenticeship</option><option value="further_training">Further training</option><option value="other">Other</option></select></div>
+          <div class="field"><label>Job or business / အလုပ်အကိုင် သို့မဟုတ် လုပ်ငန်းအမည်</label><input id="graduate-title" maxlength="180"></div>
+          <div class="field"><label>Sector / လုပ်ငန်းကဏ္ဍ</label><input id="graduate-sector" maxlength="180"></div>
+          <div class="field"><label>Current monthly income (optional) / လက်ရှိလစဉ်ဝင်ငွေ</label><input id="graduate-income" type="number" min="0" step="0.01"><select id="graduate-currency"><option value="MMK">MMK</option><option value="USD">USD</option><option value="other">Other</option></select></div>
+          <div class="field"><label>Previous monthly income (optional) / ယခင်လစဉ်ဝင်ငွေ</label><input id="graduate-previous-income" type="number" min="0" step="0.01"></div>
+          <div class="field"><label>Skills used (comma separated) / အသုံးချခဲ့သောကျွမ်းကျင်မှုများ</label><input id="graduate-skills" maxlength="1200"></div>
+          <div class="field"><label>How relevant was the training? (1–5) / သင်တန်းအသုံးဝင်မှု</label><select id="graduate-relevance"><option value="">Prefer not to answer</option><option value="1">1 – Not useful</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 – Very useful</option></select></div>
+          <div class="field"><label>Key outcome / အဓိကရလဒ်</label><textarea id="graduate-outcome" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Challenges / ကြုံတွေ့ရသောအခက်အခဲ</label><textarea id="graduate-challenges" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label>Support needed / လိုအပ်သောအကူအညီ</label><textarea id="graduate-support" rows="2" maxlength="3000"></textarea></div>
+          <div class="field"><label><input id="graduate-contact-consent" type="checkbox"> I agree to be contacted for follow-up / နောက်ဆက်တွဲဆက်သွယ်ရန် သဘောတူပါသည်</label></div>
+          <div class="field"><label><input id="graduate-story-consent" type="checkbox"> I separately consent to a success story being considered for publication / အောင်မြင်မှုအတွေ့အကြုံကို ထုတ်ပြန်ရန် သီးခြားသဘောတူပါသည်</label></div>
+          <div class="field"><label>Story text (only if consent given) / မျှဝေလိုသောအတွေ့အကြုံ</label><textarea id="graduate-story" rows="3" maxlength="4000"></textarea></div>
+          <button class="primary-btn" type="submit">Submit follow-up / တင်သွင်းရန်</button><p id="graduate-message" class="message" role="status"></p>
+        </form>
+        <h3>My follow-up history / ကျွန်ုပ်၏နောက်ဆက်တွဲမှတ်တမ်း</h3><div id="graduate-history"></div>
+      </section>
       <section class="panel" id="learner-support">
         <h3>Announcements / ကြေညာချက်များ</h3><div id="learner-announcements"></div>
         <h3>Learning Support / သင်တန်းအကူအညီ</h3>
@@ -230,7 +254,7 @@
  <div class="field"><label>Status</label><select id="op-status"><option value="draft">Draft</option><option value="published">Published</option><option value="closed">Closed</option><option value="archived">Archived</option></select></div>
  <button class="primary-btn" type="submit">Save opportunity</button><p id="op-message" class="message" role="status"></p>
 </form><h4>Manage existing opportunities</h4><div id="admin-career-opportunities" class="admin-table-wrap"></div>
-<h4>Applications</h4><div id="admin-career-applications" class="admin-table-wrap"></div></div><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner competency assessments / ကျွမ်းကျင်မှု အကဲဖြတ်ချက်များ</h3><div id="admin-evaluations" class="admin-table-wrap"></div><div class="panel"><h3>Career readiness self-assessments</h3><div id="admin-career-readiness" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner skills profiles</h3><div id="admin-skill-profiles" class="admin-table-wrap"></div></div></div></section>
+<h4>Applications</h4><div id="admin-career-applications" class="admin-table-wrap"></div></div><div class="panel"><h3>Graduate outcomes / သင်တန်းဆင်းရလဒ်များ</h3><p class="muted">Confidential learner-reported data. Use aggregated results carefully; do not publish small-group or identifiable records.</p><div id="admin-graduate-summary" class="admin-stats"></div><div id="admin-graduate-table" class="admin-table-wrap"></div><button type="button" id="graduate-export" class="small-btn">Export graduate follow-ups CSV</button></div><div class="panel"><h3>Learning progress report / သင်ယူမှုတိုးတက်မှု</h3><div id="admin-report-progress" class="admin-table-wrap"></div></div><div class="panel"><h3>Quiz performance / Quiz ရလဒ်များ</h3><div id="admin-report-quizzes" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner competency assessments / ကျွမ်းကျင်မှု အကဲဖြတ်ချက်များ</h3><div id="admin-evaluations" class="admin-table-wrap"></div><div class="panel"><h3>Career readiness self-assessments</h3><div id="admin-career-readiness" class="admin-table-wrap"></div></div><div class="panel"><h3>Learner skills profiles</h3><div id="admin-skill-profiles" class="admin-table-wrap"></div></div></div></section>
     </section>
 
     <section id="certificate-verification" class="panel hidden"><p class="eyebrow">FORERUNNERS · VERIFICATION</p><h2>Certificate Verification / လက်မှတ်စစ်ဆေးခြင်း</h2><form id="certificate-verify-form" class="row-actions"><input id="certificate-verify-code" placeholder="Enter certificate code" required><button class="primary-btn" type="submit">Verify / စစ်ဆေးရန်</button></form><div id="certificate-verify-result" role="status"></div></section>
