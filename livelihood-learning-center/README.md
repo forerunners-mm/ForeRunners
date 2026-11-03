@@ -13,8 +13,8 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 1. Keep `config.js` limited to the Supabase project URL and browser-safe publishable key.
 2. Never put a Supabase `service_role` key, secret key, database password, or private provider token in this folder or any browser JavaScript.
 3. The original SQL for the first 19 applied migrations is not available in this repository. To recover the current live state, use the reviewed recovery artifacts under `supabase/recovery/`: `live_schema_snapshot_20261103.sql` (tables, constraints, indexes, functions, RLS, policies, grants, triggers, private Storage bucket and scheduled reminder job) and then `live_seed_data_20261103.sql` (the bilingual course catalogue, lessons and unpublished BASIC quiz). These are recovery snapshots, not a substitute for the historical migration files. Test the scripts in order on a disposable Supabase project before production use.
-4. Enable GitHub Pages for the repository after the pull request is reviewed and merged. The intended subpath is `/ForeRunners/livelihood-learning-center/`.
-5. Confirm the published URL and Supabase Auth redirect/site URL settings before inviting learners.
+4. The LMS changes were merged to `main` in PR #9. The repository GitHub Pages deployment workflow completed successfully for the merge commit. The intended LMS subpath is `/ForeRunners/livelihood-learning-center/`.
+5. Before inviting learners, verify the published URL in a browser and confirm the Supabase Auth Site URL and Redirect URLs match the deployed address. The successful workflow run alone does not verify browser access or Auth redirects.
 
 ## Current learning programme
 - Two course levels: BASIC and ADVANCED
@@ -56,7 +56,7 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - Assignment files remain in private Storage and are accessed through short-lived signed links.
 
 ## Validation status
-- GitHub Actions CI checks JavaScript syntax as an ES module, required LMS files, duplicate HTML IDs and key interface elements, and runs Playwright browser smoke tests for unauthenticated access, hidden role workspaces, bilingual language toggle and login/sign-up view switching. Latest run #120 passed.
+- GitHub Actions CI checks JavaScript syntax as an ES module, required LMS files, duplicate HTML IDs and key interface elements, and runs Playwright browser smoke tests for unauthenticated access, hidden role workspaces, bilingual language toggle and login/sign-up view switching. Main-branch CI run #124 passed after PR #9 was merged. The browser smoke test does not replace live role-based testing.
 - Database schema and reminder function were checked against the connected Supabase project. Anonymous-role SQL probes confirmed that the public course catalogue is readable, while profiles, enrollments, lessons, quiz questions/attempts, assignments, certificates, notifications and career records return zero visible rows; sensitive graduate follow-up and private answer-key tables reject anonymous SELECT at the database privilege layer.
 - Removed one verified redundant standalone `lesson_progress` unique index in migration `202611030005_remove_duplicate_lesson_progress_index.sql`; the equivalent UNIQUE constraint remains. Two equivalent certificate-code UNIQUE constraints are retained pending a careful constraint dependency review.
 - The scheduled reminder job is active. A manual function invocation completed and created zero rows because the project currently has no completed enrollments due for follow-up.
@@ -65,7 +65,7 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - Role-based end-to-end testing with separate Admin, Trainer and approved Learner accounts remains outstanding; the automated browser smoke test uses a mocked signed-out Supabase session and covers only the unauthenticated entry screen and public UI behavior.
 - The lesson PDF/resource upload and video-hosting workflow is not implemented.
 - External email/SMS/push delivery is not configured.
-- Production merge, GitHub Pages deployment and domain verification have not been performed.
+- PR #9 is merged into `main`. The GitHub Pages deployment workflow completed successfully (run #21), but the published URL has not yet been independently confirmed in a browser and Supabase Auth redirect/site URL settings remain to be checked.
 - The recovery snapshot is a current-state export, not a tested migration chain. It must be replayed and checked on a disposable new Supabase project before claiming fresh-environment reproducibility.
 
 ## Supabase recovery files
@@ -74,4 +74,4 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - Replay on a disposable Supabase project first; ensure platform roles, Auth and Storage are provisioned, and check the pg_cron extension and scheduler. Do not run these recovery scripts over an existing production database.
 
 ## Release gate
-PR #9 remains a draft and must be reviewed before merge. Do not merge or announce the platform as live until the release owner approves the PR, completes role-based browser tests, confirms GitHub Pages and Supabase Auth settings, and verifies the published URL.
+PR #9 was merged into `main`. Main-branch CI and the GitHub Pages deployment workflow both completed successfully for the merge commit. This is not yet a full production launch approval: complete real Admin, Trainer and approved Learner end-to-end tests, verify the published URL and Supabase Auth redirects, and validate recovery scripts on a disposable Supabase project before onboarding learners.
