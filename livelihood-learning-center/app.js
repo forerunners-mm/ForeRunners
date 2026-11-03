@@ -284,6 +284,38 @@ async function loadAdmin(){
  [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
+
+let adminQuizQuestionCount = 0;
+function addAdminQuizQuestion(){
+ const n=adminQuizQuestionCount++;
+ const wrap=document.createElement("fieldset");
+ wrap.className="quiz-question admin-question-editor";
+ wrap.innerHTML='<legend>Question '+(n+1)+' / မေးခွန်း '+(n+1)+'</legend><div class="field"><label>Question (မြန်မာ)</label><textarea data-q-my required rows="2"></textarea></div><div class="field"><label>Question (English)</label><textarea data-q-en required rows="2"></textarea></div><div class="admin-option-grid">'+[0,1,2,3].map(i=>'<div class="field"><label>Option '+(i+1)+' (မြန်မာ)</label><input data-opt-my="'+i+'" required></div><div class="field"><label>Option '+(i+1)+' (English)</label><input data-opt-en="'+i+'" required></div>').join("")+'</div><div class="field"><label>Correct answer / အဖြေမှန်</label><select data-q-correct><option value="0">Option 1</option><option value="1">Option 2</option><option value="2">Option 3</option><option value="3">Option 4</option></select></div><button type="button" class="small-btn reject" data-remove-question>Remove / ဖယ်ရှားရန်</button>';
+ el("quiz-question-editor").appendChild(wrap);
+}
+function renderAdminQuizForm(){
+ const select=el("quiz-course"),keep=select.value;
+ select.innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
+ if(adminCache.courses.some(c=>c.id===keep))select.value=keep;
+ if(!el("quiz-question-editor").children.length)addAdminQuizQuestion();
+}
+async function submitAdminQuiz(event){
+ event.preventDefault();
+ const msg=el("quiz-form-message");msg.textContent="";msg.classList.remove("error");
+ const blocks=[...el("quiz-question-editor").querySelectorAll(".admin-question-editor")];
+ if(!blocks.length||blocks.length>50){msg.textContent="Add between 1 and 50 questions.";msg.classList.add("error");return;}
+ const questions=blocks.map(b=>({question_my:b.querySelector("[data-q-my]").value.trim(),question_en:b.querySelector("[data-q-en]").value.trim(),options:[0,1,2,3].map(i=>({my:b.querySelector('[data-opt-my="'+i+'"]').value.trim(),en:b.querySelector('[data-opt-en="'+i+'"]').value.trim()})),correct_option_index:Number(b.querySelector("[data-q-correct]").value)}));
+ if(questions.some(q=>!q.question_my||!q.question_en||q.options.some(o=>!o.my||!o.en))){msg.textContent="Complete all Myanmar and English question and option fields.";msg.classList.add("error");return;}
+ const btn=el("admin-quiz-form").querySelector('button[type="submit"]');btn.disabled=true;
+ try{
+  const {data,error}=await supabase.rpc("create_admin_quiz",{p_course_id:el("quiz-course").value,p_title_my:el("quiz-title-my").value.trim(),p_title_en:el("quiz-title-en").value.trim(),p_pass_mark:Number(el("quiz-pass-mark").value),p_questions:questions});
+  if(error)throw error;
+  msg.textContent=(language==="my"?"Quiz မူကြမ်းကို သိမ်းဆည်းပြီးပါပြီ။ ID: ":"Quiz draft saved. ID: ")+data;
+  el("admin-quiz-form").reset();el("quiz-pass-mark").value="70";el("quiz-question-editor").innerHTML="";adminQuizQuestionCount=0;addAdminQuizQuestion();
+  await loadAdmin();
+ }catch(err){msg.textContent=err.message||"Could not save quiz.";msg.classList.add("error");}
+ finally{btn.disabled=false;}
+}
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -304,6 +336,11 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminQuizForm();
+ el("admin-quiz-form").onsubmit=submitAdminQuiz;
+ el("quiz-add-question").onclick=()=>{if(el("quiz-question-editor").children.length<50)addAdminQuizQuestion();};
+ el("quiz-question-editor").onclick=e=>{const b=e.target.closest("[data-remove-question]");if(b&&el("quiz-question-editor").children.length>1)b.closest(".admin-question-editor").remove();};
+
  document.querySelectorAll("[data-user-approve]").forEach(b=>b.onclick=()=>reviewUser(b.dataset.userApprove,"approved"));
  document.querySelectorAll("[data-user-reject]").forEach(b=>b.onclick=()=>reviewUser(b.dataset.userReject,"rejected"));
  document.querySelectorAll("[data-app-approve]").forEach(b=>b.onclick=()=>reviewEnrollment(b.dataset.appApprove,"approved"));
