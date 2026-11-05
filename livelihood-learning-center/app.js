@@ -191,9 +191,29 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
+  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("learner-initial-assessment-form").onsubmit=submitLearnerInitialAssessment;await loadLearnerInitialAssessments();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
 }
 
+async function loadLearnerInitialAssessments(){
+ const {data,error}=await supabase.from("learner_initial_assessments").select("id,status,submitted_at,reviewer_summary").eq("learner_id",currentUser.id).order("submitted_at",{ascending:false}).limit(5);
+ if(error){const box=el("initial-assessment-history");if(box)box.textContent="Assessment history is not available yet.";return;}
+ el("initial-assessment-history").innerHTML=(data||[]).map(a=>'<article class="assignment-card"><b>'+escapeHtml(a.status.replaceAll("_"," "))+'</b><p>'+new Date(a.submitted_at).toLocaleString()+'</p>'+(a.reviewer_summary?'<p>'+escapeHtml(a.reviewer_summary)+'</p>':'')+'</article>').join("")||'<p class="muted">No initial assessment submitted yet. / ကနဦးအကဲဖြတ်ချက် မပေးပို့ရသေးပါ။</p>';
+}
+async function submitLearnerInitialAssessment(event){
+ event.preventDefault();const message=el("initial-assessment-message");message.textContent="";message.classList.remove("error");
+ const value=id=>el(id).value.trim();
+ const responses={
+  education_status:value("ia-education"),work_status:value("ia-work"),weekly_learning_time:value("ia-time")||null,
+  digital_access:value("ia-digital")||null,experience:value("ia-experience")||null,strengths:value("ia-strengths")||null,
+  interests:value("ia-interests"),three_to_six_month_goal:value("ia-goal"),preferred_pathway:value("ia-pathway"),
+  barriers:value("ia-barriers")||null,support_requested:value("ia-support"),additional_notes:value("ia-notes")||null
+ };
+ if(!el("ia-consent").checked){message.textContent="Please confirm the privacy and use notice before submitting.";message.classList.add("error");return;}
+ const {error}=await supabase.from("learner_initial_assessments").insert({learner_id:currentUser.id,responses,consent_given:true,consent_text_version:"2026-11-05-v1"});
+ if(error){message.textContent=error.message;message.classList.add("error");return;}
+ message.textContent=language==="my"?"ကနဦးအကဲဖြတ်ချက်ကို ပေးပို့ပြီးပါပြီ။":"Initial assessment submitted successfully.";
+ event.currentTarget.reset();await loadLearnerInitialAssessments();
+}
 async function loadLearnerNotifications(){
  const {data:rows,error}=await supabase.from("learner_notifications")
   .select("id,title_my,title_en,body_my,body_en,metadata,read_at,created_at")
