@@ -904,25 +904,45 @@ async function saveAdminReferral(id,button){
  el("admin-alert").classList.remove("error");await loadAdmin();
 }
 
+function guidanceField(summary,label){
+ const match=String(summary||"").match(new RegExp("^"+label+":\\s*(.*)$","mi"));
+ return match?match[1].trim():"";
+}
+function guidanceNotes(summary){
+ return String(summary||"").split("\n").filter(line=>!/^((Recommended pathway|Learning priorities|Support needed|Next action):)/i.test(line)).join("\n").replace(/^Learner-facing summary:\s*/i,"").trim();
+}
 function renderAdminInitialAssessments(){
  const rows=adminCache.initialAssessments.map(a=>{
   const learner=adminCache.users.find(u=>u.id===a.learner_id);
   const fields=Object.entries(a.responses||{}).map(([k,v])=>'<div class="assessment-response"><b>'+adminEsc(k.replaceAll("_"," "))+'</b><p>'+adminEsc(Array.isArray(v)?v.join(", "):v||"—")+'</p></div>').join("");
-  return '<article class="panel initial-assessment-review"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+'</h4><p class="muted">'+new Date(a.submitted_at).toLocaleString()+' · '+adminEsc(learner?.role||"")+'</p></div><span class="chip">'+adminEsc(a.status.replaceAll("_"," "))+'</span></div><div class="assessment-response-grid">'+fields+'</div><div class="field"><label for="ia-review-summary-'+a.id+'">Reviewer summary / အကြံပြုချက်</label><textarea id="ia-review-summary-'+a.id+'" rows="3" maxlength="3000" placeholder="Summarize the learner’s situation, strengths, suggested next step, or referral.">'+adminEsc(a.reviewer_summary||"")+'</textarea></div><div class="row-actions"><select id="ia-review-status-'+a.id+'"><option value="submitted" '+(a.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewing" '+(a.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="reviewed" '+(a.status==="reviewed"?"selected":"")+'>Reviewed</option><option value="needs_follow_up" '+(a.status==="needs_follow_up"?"selected":"")+'>Needs follow-up</option></select><button type="button" class="small-btn approve" data-initial-assessment-save="'+a.id+'">Save review</button></div><p class="muted">'+(a.reviewed_at?'Last reviewed: '+new Date(a.reviewed_at).toLocaleString():'Not yet reviewed')+'</p></article>';
+  const summary=a.reviewer_summary||"";
+  const pathway=guidanceField(summary,"Recommended pathway");
+  return '<article class="panel initial-assessment-review"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+'</h4><p class="muted">'+new Date(a.submitted_at).toLocaleString()+' · '+adminEsc(learner?.role||"")+'</p></div><span class="chip">'+adminEsc(a.status.replaceAll("_"," "))+'</span></div><div class="assessment-response-grid">'+fields+'</div><h4>Guidance outcome / လမ်းညွှန်အကြံပြုချက်</h4><p class="muted">Recommendations are discussion points, not a final decision. Confirm them with the learner.</p><div class="field"><label for="ia-guidance-pathway-'+a.id+'">Recommended pathway / အကြံပြုလမ်းကြောင်း</label><select id="ia-guidance-pathway-'+a.id+'"><option value="">Not decided / မဆုံးဖြတ်ရသေး</option><option value="employment" '+(pathway==="employment"?"selected":"")+'>Employment / အလုပ်အကိုင်</option><option value="self_employment" '+(pathway==="self_employment"?"selected":"")+'>Self-employment / ကိုယ်ပိုင်လုပ်ငန်း</option><option value="apprenticeship" '+(pathway==="apprenticeship"?"selected":"")+'>Apprenticeship / အလုပ်သင်</option><option value="further_training" '+(pathway==="further_training"?"selected":"")+'>Further training / ဆက်လက်သင်ယူရေး</option><option value="exploring" '+(pathway==="exploring"?"selected":"")+'>Exploring / စူးစမ်းလေ့လာရန်</option></select></div><div class="field"><label for="ia-guidance-learning-'+a.id+'">Learning priorities / လိုအပ်သည့် သင်ယူမှုနှင့် ကျွမ်းကျင်မှု</label><textarea id="ia-guidance-learning-'+a.id+'" rows="2" maxlength="1200">'+adminEsc(guidanceField(summary,"Learning priorities"))+'</textarea></div><div class="field"><label for="ia-guidance-support-'+a.id+'">Support needed / လိုအပ်သည့် ပံ့ပိုးမှု</label><textarea id="ia-guidance-support-'+a.id+'" rows="2" maxlength="1000">'+adminEsc(guidanceField(summary,"Support needed"))+'</textarea></div><div class="field"><label for="ia-guidance-next-'+a.id+'">Next action / နောက်တစ်ဆင့် လုပ်ဆောင်ရန်</label><textarea id="ia-guidance-next-'+a.id+'" rows="2" maxlength="1000">'+adminEsc(guidanceField(summary,"Next action"))+'</textarea></div><div class="field"><label for="ia-review-summary-'+a.id+'">Learner-facing summary / သင်ယူသူထံ ပြသမည့် အနှစ်ချုပ်</label><textarea id="ia-review-summary-'+a.id+'" rows="3" maxlength="2000" placeholder="Explain the recommendation in clear, respectful language.">'+adminEsc(guidanceNotes(summary))+'</textarea></div><div class="row-actions"><select id="ia-review-status-'+a.id+'"><option value="submitted" '+(a.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewing" '+(a.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="reviewed" '+(a.status==="reviewed"?"selected":"")+'>Reviewed</option><option value="needs_follow_up" '+(a.status==="needs_follow_up"?"selected":"")+'>Needs follow-up</option></select><button type="button" class="small-btn approve" data-initial-assessment-save="'+a.id+'">Save guidance</button></div><p class="muted">'+(a.reviewed_at?'Last reviewed: '+new Date(a.reviewed_at).toLocaleString():'Not yet reviewed')+'</p></article>';
  });
  el("admin-initial-assessments").innerHTML=rows.join("")||'<p class="muted">No learner initial assessments have been submitted yet.</p>';
  document.querySelectorAll("[data-initial-assessment-save]").forEach(button=>button.onclick=()=>saveInitialAssessmentReview(button.dataset.initialAssessmentSave,button));
 }
 async function saveInitialAssessmentReview(id,button){
  const status=el("ia-review-status-"+id).value;
- const summary=el("ia-review-summary-"+id).value.trim();
- if(status!=="submitted"&&!summary){el("admin-alert").textContent="Please add a reviewer summary before marking this assessment as reviewed or follow-up.";el("admin-alert").classList.add("error");return;}
+ const pathway=el("ia-guidance-pathway-"+id).value;
+ const learning=el("ia-guidance-learning-"+id).value.trim();
+ const support=el("ia-guidance-support-"+id).value.trim();
+ const next=el("ia-guidance-next-"+id).value.trim();
+ const notes=el("ia-review-summary-"+id).value.trim();
+ if(status!=="submitted"&&!notes&&!next&&!learning&&!support){el("admin-alert").textContent="Please add learner-facing guidance before marking this assessment as reviewed or follow-up.";el("admin-alert").classList.add("error");return;}
+ const summary=[
+  pathway?"Recommended pathway: "+pathway:"",
+  learning?"Learning priorities: "+learning:"",
+  support?"Support needed: "+support:"",
+  next?"Next action: "+next:"",
+  notes?"Learner-facing summary: "+notes:""
+ ].filter(Boolean).join("\n");
  button.disabled=true;
  const payload={status,reviewer_summary:summary||null,reviewed_by:status==="submitted"?null:currentUser.id,reviewed_at:status==="submitted"?null:new Date().toISOString(),updated_at:new Date().toISOString()};
  const {error}=await supabase.from("learner_initial_assessments").update(payload).eq("id",id);
  button.disabled=false;
- if(error){el("admin-alert").textContent="Unable to save assessment review: "+error.message;el("admin-alert").classList.add("error");return;}
- el("admin-alert").textContent="Assessment review saved.";
+ if(error){el("admin-alert").textContent="Unable to save assessment guidance: "+error.message;el("admin-alert").classList.add("error");return;}
+ el("admin-alert").textContent="Learner guidance saved. The learner can view it in their assessment history.";
  el("admin-alert").classList.remove("error");
  await loadAdmin();
 }
