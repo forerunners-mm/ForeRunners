@@ -52,3 +52,15 @@
 
 /* Admin learner journey review workspace */
 .stage-review-card{margin:14px 0;padding:16px;border:1px solid var(--line);border-radius:12px}.stage-review-card h4{margin:0 0 5px}.stage-review-card h5{margin:14px 0 6px}.stage-review-evidence{white-space:pre-wrap;overflow-wrap:anywhere;padding:12px;background:#f7f8f7;border-radius:9px;font-size:13px}.stage-review-card textarea,.stage-review-card select{font:inherit;border:1px solid var(--line);border-radius:8px;padding:9px;max-width:100%;width:100%}.stage-review-card .row-actions select{width:auto;min-width:170px}@media(max-width:600px){.stage-review-card .row-actions{align-items:stretch;flex-direction:column}.stage-review-card .row-actions button,.stage-review-card .row-actions select{width:100%}}
+
+/* Practical activity cards and transparent assessment criteria */
+.journey-activities{margin:16px 0}
+.journey-activities>h5{margin:0 0 9px}
+.journey-activity{border:1px solid var(--line);border-radius:10px;padding:13px;margin:9px 0;background:#fbfcfb}
+.journey-activity-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.journey-activity-heading span{white-space:nowrap;font-size:12px;color:var(--muted)}
+.journey-activity>p{font-size:13px;line-height:1.55}
+.journey-evidence-prompt{padding:9px 11px;background:#f0f4f0;border-radius:8px}
+.journey-activity details{font-size:13px;margin-top:8px}
+.journey-activity summary{cursor:pointer;font-weight:650}
+.journey-activity details ul{padding-left:22px}
