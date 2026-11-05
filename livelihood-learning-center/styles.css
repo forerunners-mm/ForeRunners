@@ -23,3 +23,10 @@
 .notification-card.is-unread{border-left:3px solid var(--green);padding-left:12px}
 .notification-card.is-read{opacity:.76}
 @media(max-width:600px){.notification-card{flex-direction:column}.notification-card button{width:100%}}
+
+
+/* Learner-facing guidance outcome */
+.guidance-outcome{margin-top:12px;padding:14px;border-left:3px solid var(--green);border-radius:8px;background:var(--surface-soft,#f5f8f5)}
+.guidance-outcome h4{margin:0 0 10px}
+.guidance-outcome p{margin:8px 0;line-height:1.55;overflow-wrap:anywhere}
+.guidance-outcome .muted{font-size:12px}
