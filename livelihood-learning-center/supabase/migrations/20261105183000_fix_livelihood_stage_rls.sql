@@ -7,7 +7,7 @@ stable
 security definer
 set search_path = ''
 as $$
-  select exists (
+  select p_learner_id = (select auth.uid()) and exists (
     select 1
     from public.learner_stage_progress previous_stage
     where previous_stage.learner_id = p_learner_id
