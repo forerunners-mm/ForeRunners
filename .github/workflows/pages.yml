@@ -23,6 +23,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+      - name: Bundle LMS dependencies locally
+        run: |
+          npm install --prefix /tmp/lvc-build --no-package-lock --no-save esbuild@0.25.0 @supabase/supabase-js@2.57.4
+          /tmp/lvc-build/node_modules/.bin/esbuild livelihood-learning-center/app.js --bundle --format=esm --target=es2022 --node-path=/tmp/lvc-build/node_modules --outfile=livelihood-learning-center/app.bundle.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload website files

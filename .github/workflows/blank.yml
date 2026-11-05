@@ -17,6 +17,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Bundle Supabase client for browser tests
+        run: |
+          npm install --prefix /tmp/lvc-build --no-package-lock --no-save esbuild@0.25.0 @supabase/supabase-js@2.57.4
+          /tmp/lvc-build/node_modules/.bin/esbuild livelihood-learning-center/app.js --bundle --format=esm --target=es2022 --node-path=/tmp/lvc-build/node_modules --outfile=livelihood-learning-center/app.bundle.js
       - name: Check JavaScript syntax
         run: |
           node --check livelihood-learning-center/app.js
@@ -46,7 +50,7 @@ jobs:
           import fs from 'node:fs';
           const html = fs.readFileSync('livelihood-learning-center/index.html', 'utf8');
           const app = fs.readFileSync('livelihood-learning-center/app.js', 'utf8');
-          const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m => m[1]);
+          const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(m => m[1]);
           const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
           if (duplicates.length) throw new Error('Duplicate HTML IDs: ' + [...new Set(duplicates)].join(', '));
           for (const id of ['auth-section','learner-section','trainer-section','admin-section','graduate-followup-form','learner-notification-list','admin-graduate-table']) {
