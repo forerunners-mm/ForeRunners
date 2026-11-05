@@ -54,7 +54,10 @@ create policy career_guidance_referrals_learner_insert_own
     and consent_given = true
     and provider_name is null
     and provider_contact is null
+    and meeting_mode is null
     and meeting_at is null
+    and meeting_location is null
+    and learner_visible_summary is null
     and exists (
       select 1 from public.profiles p
       where p.id = (select auth.uid())
