@@ -543,7 +543,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -573,11 +573,12 @@ async function loadAdmin(){
   supabase.from("learner_skill_profiles").select("learner_id,career_pathway,career_goal,skills,languages,location_text,learner:profiles!learner_skill_profiles_learner_id_fkey(full_name)").order("updated_at",{ascending:false}),
   supabase.from("career_opportunities").select("*").order("created_at",{ascending:false}),
   supabase.from("career_opportunity_applications").select("id,opportunity_id,learner_id,cover_note,status,applied_at,admin_notes,career_opportunities(title,organization_name),profiles!career_opportunity_applications_learner_id_fkey(full_name)").order("applied_at",{ascending:false}),
-  supabase.from("graduate_followups").select("id,enrollment_id,learner_id,followup_period,employment_status,pathway,job_or_business_title,sector,monthly_income,previous_monthly_income,income_currency,skills_used,training_relevance,key_outcome,challenges,support_needed,consent_to_contact,consent_to_story,story_text,status,admin_notes,submitted_at,profiles!graduate_followups_learner_id_fkey(full_name),enrollments(courses(title_my,title_en,level))").order("submitted_at",{ascending:false})
+  supabase.from("graduate_followups").select("id,enrollment_id,learner_id,followup_period,employment_status,pathway,job_or_business_title,sector,monthly_income,previous_monthly_income,income_currency,skills_used,training_relevance,key_outcome,challenges,support_needed,consent_to_contact,consent_to_story,story_text,status,admin_notes,submitted_at,profiles!graduate_followups_learner_id_fkey(full_name),enrollments(courses(title_my,title_en,level))").order("submitted_at",{ascending:false}),
+  supabase.from("learner_initial_assessments").select("id,learner_id,responses,status,reviewer_summary,reviewed_by,reviewed_at,submitted_at,consent_text_version").order("submitted_at",{ascending:false})
  ]);
- const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications","graduate follow-ups"];
+ const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications","graduate follow-ups","initial assessments"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups]=rs.map(r=>r.data||[]);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups,adminCache.initialAssessments]=rs.map(r=>r.data||[]);
  renderAdmin();
 }
 
@@ -861,6 +862,30 @@ async function saveCareerOpportunity(event){
  const payload={title:el("op-title-en").value.trim(),title_my:el("op-title-my").value.trim()||el("op-title-en").value.trim(),title_en:el("op-title-en").value.trim(),description:el("op-description-en").value.trim(),description_my:el("op-description-my").value.trim()||el("op-description-en").value.trim(),description_en:el("op-description-en").value.trim(),organization_name:el("op-org").value.trim()||null,opportunity_type:el("op-type").value,pathway:el("op-pathway").value,description:el("op-description").value.trim(),location_text:el("op-location").value.trim()||null,work_mode:el("op-mode").value,compensation_text:el("op-compensation").value.trim()||null,application_deadline:deadline,application_url:url||null,required_skills:csvText(el("op-required-skills").value),preferred_skills:csvText(el("op-preferred-skills").value),status:el("op-status").value,created_by:currentUser.id};
  const {error}=await supabase.from("career_opportunities").insert(payload);if(error){msg.textContent=error.message;msg.classList.add("error");return;}msg.textContent="Opportunity saved.";msg.classList.remove("error");event.currentTarget.reset();await loadAdmin();
 }
+
+function renderAdminInitialAssessments(){
+ const rows=adminCache.initialAssessments.map(a=>{
+  const learner=adminCache.users.find(u=>u.id===a.learner_id);
+  const fields=Object.entries(a.responses||{}).map(([k,v])=>'<div class="assessment-response"><b>'+adminEsc(k.replaceAll("_"," "))+'</b><p>'+adminEsc(Array.isArray(v)?v.join(", "):v||"—")+'</p></div>').join("");
+  return '<article class="panel initial-assessment-review"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+'</h4><p class="muted">'+new Date(a.submitted_at).toLocaleString()+' · '+adminEsc(learner?.role||"")+'</p></div><span class="chip">'+adminEsc(a.status.replaceAll("_"," "))+'</span></div><div class="assessment-response-grid">'+fields+'</div><div class="field"><label for="ia-review-summary-'+a.id+'">Reviewer summary / အကြံပြုချက်</label><textarea id="ia-review-summary-'+a.id+'" rows="3" maxlength="3000" placeholder="Summarize the learner’s situation, strengths, suggested next step, or referral.">'+adminEsc(a.reviewer_summary||"")+'</textarea></div><div class="row-actions"><select id="ia-review-status-'+a.id+'"><option value="submitted" '+(a.status==="submitted"?"selected":"")+'>Submitted</option><option value="reviewing" '+(a.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="reviewed" '+(a.status==="reviewed"?"selected":"")+'>Reviewed</option><option value="needs_follow_up" '+(a.status==="needs_follow_up"?"selected":"")+'>Needs follow-up</option></select><button type="button" class="small-btn approve" data-initial-assessment-save="'+a.id+'">Save review</button></div><p class="muted">'+(a.reviewed_at?'Last reviewed: '+new Date(a.reviewed_at).toLocaleString():'Not yet reviewed')+'</p></article>';
+ });
+ el("admin-initial-assessments").innerHTML=rows.join("")||'<p class="muted">No learner initial assessments have been submitted yet.</p>';
+ document.querySelectorAll("[data-initial-assessment-save]").forEach(button=>button.onclick=()=>saveInitialAssessmentReview(button.dataset.initialAssessmentSave,button));
+}
+async function saveInitialAssessmentReview(id,button){
+ const status=el("ia-review-status-"+id).value;
+ const summary=el("ia-review-summary-"+id).value.trim();
+ if(status!=="submitted"&&!summary){el("admin-alert").textContent="Please add a reviewer summary before marking this assessment as reviewed or follow-up.";el("admin-alert").classList.add("error");return;}
+ button.disabled=true;
+ const payload={status,reviewer_summary:summary||null,reviewed_by:status==="submitted"?null:currentUser.id,reviewed_at:status==="submitted"?null:new Date().toISOString(),updated_at:new Date().toISOString()};
+ const {error}=await supabase.from("learner_initial_assessments").update(payload).eq("id",id);
+ button.disabled=false;
+ if(error){el("admin-alert").textContent="Unable to save assessment review: "+error.message;el("admin-alert").classList.add("error");return;}
+ el("admin-alert").textContent="Assessment review saved.";
+ el("admin-alert").classList.remove("error");
+ await loadAdmin();
+}
+
 function renderAdminCareerReadiness(){
  const rows=adminCache.careerAssessments.map(a=>'<tr><td>'+adminEsc(a.learner?.full_name||"Learner")+'</td><td>'+adminEsc(a.pathway)+'</td><td>'+adminEsc(a.career_interest||"—")+'</td><td>'+Number(a.overall_score).toFixed(1)+'%</td><td>'+adminEsc(a.support_needs||"—")+'</td><td>'+adminEsc(a.next_steps||"—")+'</td><td>'+adminEsc(a.status)+'</td></tr>');
  el("admin-career-readiness").innerHTML=adminTable(["Learner","Pathway","Interest","Score","Support needs","Next steps","Status"],rows);
@@ -890,6 +915,7 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminInitialAssessments();
  setupLessonEditor();
  renderAdminTrainers();
  el("trainer-assignment-form").onsubmit=assignTrainer;
