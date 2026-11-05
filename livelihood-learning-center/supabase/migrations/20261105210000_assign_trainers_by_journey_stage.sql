@@ -76,7 +76,7 @@ as $$
         and caller.role = 'trainer'
         and caller.account_status = 'approved'
     );
-$;
+$$;
 
 revoke all on function public.get_assigned_stage_learner_names() from public, anon;
 grant execute on function public.get_assigned_stage_learner_names() to authenticated;
