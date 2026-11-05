@@ -194,11 +194,24 @@ async function loadProfile(){
   else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("learner-initial-assessment-form").onsubmit=submitLearnerInitialAssessment;await loadLearnerInitialAssessments();el("career-referral-form").onsubmit=submitCareerReferral;await loadLearnerReferrals();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
 }
 
+function renderLearnerGuidance(summary){
+ const pathwayLabels={employment:"Employment / အလုပ်အကိုင်",self_employment:"Self-employment / ကိုယ်ပိုင်လုပ်ငန်း",apprenticeship:"Apprenticeship / အလုပ်သင်",further_training:"Further training / ဆက်လက်သင်ယူရေး",exploring:"Exploring / စူးစမ်းလေ့လာရန်"};
+ const pathway=guidanceField(summary,"Recommended pathway");
+ const learning=guidanceField(summary,"Learning priorities");
+ const support=guidanceField(summary,"Support needed");
+ const next=guidanceField(summary,"Next action");
+ const notes=guidanceNotes(summary);
+ const hasStructured=pathway||learning||support||next;
+ if(!hasStructured)return summary?'<p>'+escapeHtml(summary)+'</p>':"";
+ return '<div class="guidance-outcome"><h4>Guidance outcome / လမ်းညွှန်အကြံပြုချက်</h4>'+(pathway?'<p><b>Suggested pathway / အကြံပြုလမ်းကြောင်း:</b> '+escapeHtml(pathwayLabels[pathway]||pathway)+'</p>':'')+(learning?'<p><b>Learning priorities / လိုအပ်သည့်သင်ယူမှု:</b> '+escapeHtml(learning).replaceAll("\\n","<br>")+'</p>':'')+(support?'<p><b>Support needed / လိုအပ်သည့်ပံ့ပိုးမှု:</b> '+escapeHtml(support).replaceAll("\\n","<br>")+'</p>':'')+(next?'<p><b>Next action / နောက်တစ်ဆင့်:</b> '+escapeHtml(next).replaceAll("\\n","<br>")+'</p>':'')+(notes?'<p>'+escapeHtml(notes).replaceAll("\\n","<br>")+'</p>':'')+'<p class="muted">These are recommendations for discussion. You can choose or change your pathway. / ဤအချက်များသည် ဆွေးနွေးရန် အကြံပြုချက်များသာဖြစ်ပြီး မိမိလမ်းကြောင်းကို ရွေးချယ်ခြင်း၊ ပြောင်းလဲခြင်း ပြုလုပ်နိုင်ပါသည်။</p></div>';
+}
 async function loadLearnerInitialAssessments(){
  const {data,error}=await supabase.from("learner_initial_assessments").select("id,status,submitted_at,reviewer_summary").eq("learner_id",currentUser.id).order("submitted_at",{ascending:false}).limit(5);
- if(error){const box=el("initial-assessment-history");if(box)box.textContent="Assessment history is not available yet.";return;}
- el("initial-assessment-history").innerHTML=(data||[]).map(a=>'<article class="assignment-card"><b>'+escapeHtml(a.status.replaceAll("_"," "))+'</b><p>'+new Date(a.submitted_at).toLocaleString()+'</p>'+(a.reviewer_summary?'<p>'+escapeHtml(a.reviewer_summary)+'</p>':'')+'</article>').join("")||'<p class="muted">No initial assessment submitted yet. / ကနဦးအကဲဖြတ်ချက် မပေးပို့ရသေးပါ။</p>';
+ const box=el("initial-assessment-history");
+ if(error){if(box)box.textContent="Assessment history is not available yet.";return;}
+ box.innerHTML=(data||[]).map(a=>'<article class="assignment-card"><b>'+escapeHtml(a.status.replaceAll("_"," "))+'</b><p>'+new Date(a.submitted_at).toLocaleString()+'</p>'+renderLearnerGuidance(a.reviewer_summary||"")+'</article>').join("")||'<p class="muted">No initial assessment submitted yet. / ကနဦးအကဲဖြတ်ချက် မပေးပို့ရသေးပါ။</p>';
 }
+
 async function submitLearnerInitialAssessment(event){
  event.preventDefault();const message=el("initial-assessment-message");message.textContent="";message.classList.remove("error");
  const value=id=>el(id).value.trim();
