@@ -365,15 +365,17 @@ const LIVELIHOOD_STAGE_COPY=[
 async function renderLearnerJourney(){
  const root=el("learner-journey");if(!root)return;
  root.innerHTML='<p class="muted">Loading your development journey… / တိုးတက်မှုလမ်းကြောင်းကို ဖွင့်နေပါသည်။</p>';
- const [sr,pr,mr,ar]=await Promise.all([
+ const [sr,pr,mr,ar,subr]=await Promise.all([
   supabase.from("livelihood_stages").select("stage_no,title_my,title_en,outcome_my,outcome_en").eq("is_active",true).order("sort_order"),
   supabase.from("learner_stage_progress").select("id,stage_no,status,evidence_summary,reviewer_feedback").eq("learner_id",currentUser.id).order("stage_no"),
   supabase.from("modules").select("stage_no,title_my,title_en").not("stage_no","is",null).order("sort_order"),
-  supabase.from("livelihood_stage_activities").select("id,stage_no,activity_no,title_my,title_en,instructions_my,instructions_en,evidence_prompt_my,evidence_prompt_en,assessment_criteria,estimated_minutes").eq("is_active",true).order("sort_order")
+  supabase.from("livelihood_stage_activities").select("id,stage_no,activity_no,title_my,title_en,instructions_my,instructions_en,evidence_prompt_my,evidence_prompt_en,assessment_criteria,estimated_minutes").eq("is_active",true).order("sort_order"),
+  supabase.from("livelihood_activity_submissions").select("id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at").eq("learner_id",currentUser.id).order("submitted_at",{ascending:false})
  ]);
- if(sr.error||pr.error||mr.error||ar.error){root.innerHTML='<p class="muted">The development journey is being prepared. Please check again after the platform update. / တိုးတက်မှုလမ်းကြောင်းစနစ်ကို ပြင်ဆင်နေဆဲဖြစ်ပါသည်။';console.warn("Learner journey unavailable",sr.error||pr.error||mr.error||ar.error);return;}
+ if(sr.error||pr.error||mr.error||ar.error||subr.error){root.innerHTML='<p class="muted">The development journey is being prepared. Please check again after the platform update. / တိုးတက်မှုလမ်းကြောင်းစနစ်ကို ပြင်ဆင်နေဆဲဖြစ်ပါသည်။';console.warn("Learner journey unavailable",sr.error||pr.error||mr.error||ar.error);return;}
  const stages=sr.data?.length?sr.data:LIVELIHOOD_STAGE_COPY.map(x=>({stage_no:x.no,title_my:x.my,title_en:x.en,outcome_my:x.outMy,outcome_en:x.outEn}));
- const progress=new Map((pr.data||[]).map(x=>[x.stage_no,x])),modules=new Map(),activities=new Map();
+ const progress=new Map((pr.data||[]).map(x=>[x.stage_no,x])),modules=new Map(),activities=new Map(),activitySubmissions=new Map();
+ (subr.data||[]).forEach(x=>{if(!activitySubmissions.has(x.activity_id))activitySubmissions.set(x.activity_id,[]);activitySubmissions.get(x.activity_id).push(x);});
  (mr.data||[]).forEach(x=>{if(!modules.has(x.stage_no))modules.set(x.stage_no,[]);modules.get(x.stage_no).push(x);});
  (ar.data||[]).forEach(x=>{if(!activities.has(x.stage_no))activities.set(x.stage_no,[]);activities.get(x.stage_no).push(x);});
  const verified=stages.filter(x=>progress.get(x.stage_no)?.status==="verified").length,pct=Math.round(verified/7*100);
