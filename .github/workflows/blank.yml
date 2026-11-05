@@ -51,7 +51,7 @@ jobs:
           import fs from 'node:fs';
           const html = fs.readFileSync('livelihood-learning-center/index.html', 'utf8');
           const app = fs.readFileSync('livelihood-learning-center/app.js', 'utf8');
-          const ids = [...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(m => m[1]);
+          const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m => m[1]);
           const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
           if (duplicates.length) throw new Error('Duplicate HTML IDs: ' + [...new Set(duplicates)].join(', '));
           for (const id of ['auth-section','learner-section','trainer-section','admin-section','graduate-followup-form','learner-notification-list','admin-graduate-table']) {
