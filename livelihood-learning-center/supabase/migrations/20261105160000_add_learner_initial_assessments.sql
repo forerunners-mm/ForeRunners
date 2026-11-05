@@ -25,14 +25,21 @@ create table if not exists public.learner_initial_assessments (
     check (
       (status = 'draft' and submitted_at is null and contact_requested_at is null)
       or
-      (status = 'submitted' and submitted_at is not null)
-    ),
-  constraint learner_initial_assessments_contact_consent_check
-    check (contact_requested_at is null or (status = 'submitted' and contact_consent))
+      (status = 'submitted' and submitted_at is not null
+        and (
+          (contact_consent and contact_requested_at is not null)
+          or (not contact_consent and contact_requested_at is null)
+        )
+      )
+    )
 );
 
 create index if not exists learner_initial_assessments_learner_created_idx
   on public.learner_initial_assessments (learner_id, created_at desc);
+
+create unique index if not exists learner_initial_assessments_one_draft_per_learner_idx
+  on public.learner_initial_assessments (learner_id)
+  where status = 'draft';
 
 create index if not exists learner_initial_assessments_submitted_idx
   on public.learner_initial_assessments (submitted_at desc)
