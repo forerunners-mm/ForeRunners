@@ -23,3 +23,29 @@
 .notification-card.is-unread{border-left:3px solid var(--green);padding-left:12px}
 .notification-card.is-read{opacity:.76}
 @media(max-width:600px){.notification-card{flex-direction:column}.notification-card button{width:100%}}
+
+/* Seven-stage learner development journey */
+.journey-summary{display:grid;grid-template-columns:minmax(130px,1fr) minmax(100px,2fr) auto;align-items:center;gap:14px;padding:16px;border:1px solid var(--line);border-radius:12px;margin:12px 0 18px;background:#f7faf7}
+.journey-summary p{margin:5px 0 0;color:var(--muted);font-size:13px}
+.journey-progress{height:10px;background:#e4eae5;border-radius:99px;overflow:hidden}
+.journey-progress span{display:block;height:100%;background:var(--green);border-radius:99px}
+.journey-stage{border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0;background:#fff}
+.journey-stage.is-verified{border-left:4px solid var(--green)}
+.journey-stage.is-active{border-left:4px solid #d19b36}
+.journey-stage.is-locked{opacity:.78;background:#fafbfa}
+.journey-stage-head{display:flex;align-items:center;gap:12px}
+.journey-stage-number{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#edf2ed;font-weight:800;flex:0 0 auto}
+.journey-stage-title{flex:1;min-width:0}
+.journey-stage-title h4{margin:0 0 4px}
+.journey-stage-title small{color:var(--muted)}
+.journey-check{font-size:20px;font-weight:900;color:var(--green)}
+.journey-stage>p{font-size:13px;color:var(--muted)}
+.journey-modules{font-size:13px;margin:10px 0}
+.journey-modules ul{margin:6px 0;padding-left:22px}
+.journey-evidence-form{display:grid;gap:9px;margin-top:14px}
+.journey-evidence-form label{font-size:13px;font-weight:650}
+.journey-evidence-form textarea{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid var(--line);border-radius:9px;font:inherit;resize:vertical}
+.journey-evidence-form button{justify-self:start}
+.journey-note,.journey-feedback{padding:10px 12px;border-radius:9px;background:#f5f7f5;font-size:13px}
+.journey-feedback{white-space:pre-wrap}
+@media(max-width:650px){.journey-summary{grid-template-columns:1fr auto}.journey-progress{grid-column:1/-1;grid-row:2}.journey-stage{padding:13px}.journey-stage-head{align-items:flex-start}}
