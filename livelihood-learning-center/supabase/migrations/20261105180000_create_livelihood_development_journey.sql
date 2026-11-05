@@ -105,7 +105,8 @@ to authenticated
 with check (
   learner_id = (select auth.uid())
   and status = 'in_progress'
-  and reviewed_by is null and reviewed_at is null
+  and reviewed_by is null and reviewed_at is null and reviewer_feedback is null
+  and exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'learner' and p.account_status = 'approved')
   and (stage_no = 1 or exists (
     select 1 from public.learner_stage_progress previous_stage
     where previous_stage.learner_id = (select auth.uid())
@@ -122,7 +123,14 @@ using (learner_id = (select auth.uid()) and status = 'in_progress')
 with check (
   learner_id = (select auth.uid())
   and status in ('in_progress','submitted')
-  and reviewed_by is null and reviewed_at is null
+  and reviewed_by is null and reviewed_at is null and reviewer_feedback is null
+  and exists (select 1 from public.profiles p where p.id = (select auth.uid()) and p.role = 'learner' and p.account_status = 'approved')
+  and (stage_no = 1 or exists (
+    select 1 from public.learner_stage_progress previous_stage
+    where previous_stage.learner_id = (select auth.uid())
+      and previous_stage.stage_no = learner_stage_progress.stage_no - 1
+      and previous_stage.status = 'verified'
+  ))
   and (status <> 'submitted' or (evidence_summary is not null and length(trim(evidence_summary)) >= 20))
 );
 
