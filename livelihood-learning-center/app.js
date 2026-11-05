@@ -209,7 +209,7 @@ async function submitLearnerInitialAssessment(event){
   barriers:value("ia-barriers")||null,support_requested:value("ia-support"),additional_notes:value("ia-notes")||null
  };
  if(!el("ia-consent").checked){message.textContent="Please confirm the privacy and use notice before submitting.";message.classList.add("error");return;}
- const {error}=await supabase.from("learner_initial_assessments").insert({learner_id:currentUser.id,responses,consent_given:true,consent_text_version:"2026-11-05-v1"});
+ const {error}=await supabase.from("learner_initial_assessments").insert({learner_id:currentUser.id,responses,consent_given:true,consent_text_version:"2026-11-05-v2"});
  if(error){message.textContent=error.message;message.classList.add("error");return;}
  message.textContent=language==="my"?"ကနဦးအကဲဖြတ်ချက်ကို ပေးပို့ပြီးပါပြီ။":"Initial assessment submitted successfully.";
  event.currentTarget.reset();await loadLearnerInitialAssessments();
