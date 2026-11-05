@@ -191,7 +191,7 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("learner-initial-assessment-form").onsubmit=submitLearnerInitialAssessment;await loadLearnerInitialAssessments();el("career-referral-form").onsubmit=submitCareerReferral;await loadLearnerReferrals();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
+  else{await renderLearnerJourney();await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("learner-initial-assessment-form").onsubmit=submitLearnerInitialAssessment;await loadLearnerInitialAssessments();el("career-referral-form").onsubmit=submitCareerReferral;await loadLearnerReferrals();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
 }
 
 async function loadLearnerInitialAssessments(){
@@ -352,6 +352,46 @@ function printLearnerCV(){
  const html='<!doctype html><html><head><meta charset="utf-8"><title>CV</title><style>body{font:14px Arial,sans-serif;max-width:800px;margin:40px auto;color:#222;line-height:1.5}h1{margin-bottom:4px}h2{border-bottom:1px solid #aaa;padding-bottom:4px;margin-top:24px}p{white-space:pre-wrap}@media print{button{display:none}}</style></head><body><h1>'+esc(currentProfile?.full_name||"Learner")+'</h1><p>'+esc(v("career-location"))+'</p><h2>Professional Summary</h2><p>'+esc(v("career-summary"))+'</p><h2>Career Objective</h2><p>'+esc(v("career-goal"))+'</p><h2>Skills</h2><p>'+esc(skills.join(" · "))+'</p><h2>Education</h2><p>'+esc(v("career-education"))+'</p><h2>Experience</h2><p>'+esc(v("career-experience"))+'</p><h2>Languages</h2><p>'+esc(langs.join(" · "))+'</p><script>window.onload=()=>window.print()<\/script></body></html>';
  const w=window.open("","_blank");if(!w){alert("Allow pop-ups to print your CV.");return;}w.document.write(html);w.document.close();
 }
+
+const LIVELIHOOD_STAGE_COPY=[
+{no:1,my:"မိမိကိုယ်ကို သိရှိနားလည်ခြင်း",en:"Self-Discovery & Assessment",outMy:"မိမိ၏ အားသာချက်၊ လိုအပ်ချက်နှင့် ရည်မှန်းချက်ကို ရှင်းလင်းစွာ ဖော်ပြနိုင်ခြင်း။",outEn:"Describe personal strengths, development needs and goals."},
+{no:2,my:"အခြေခံအရည်အချင်း တည်ဆောက်ခြင်း",en:"Foundation & Life Skills",outMy:"နေ့စဉ်ဘဝနှင့် အလုပ်တွင် အသုံးချနိုင်သော အခြေခံကျွမ်းကျင်မှုများ ရရှိခြင်း။",outEn:"Demonstrate foundational skills for daily life and work."},
+{no:3,my:"ကျွမ်းကျင်မှု ဖွံ့ဖြိုးတည်ဆောက်ခြင်း",en:"Skill Development",outMy:"ရွေးချယ်ထားသော လုပ်ငန်းနယ်ပယ်တွင် အခြေခံလုပ်ငန်းတာဝန်များကို လုပ်ဆောင်နိုင်ခြင်း။",outEn:"Perform foundational tasks in a chosen skill area."},
+{no:4,my:"လက်တွေ့အသုံးချခြင်း",en:"Practical Application",outMy:"စစ်ဆေးအကဲဖြတ်နိုင်သော လက်တွေ့လုပ်ဆောင်မှု သို့မဟုတ် Portfolio အထောက်အထား ရှိခြင်း။",outEn:"Provide assessable practical work or portfolio evidence."},
+{no:5,my:"ဝင်ငွေဖန်တီးခြင်း",en:"Income Generation",outMy:"ရွေးချယ်ထားသော ဝင်ငွေလမ်းကြောင်းအတွက် လက်တွေ့စတင်ဆောင်ရွက်ထားခြင်း။",outEn:"Take practical steps into a chosen income pathway."},
+{no:6,my:"တိုးတက်မှုနှင့် တည်ငြိမ်မှု",en:"Growth & Stability",outMy:"ဝင်ငွေနှင့် လုပ်ငန်းတည်ငြိမ်မှုကို ပိုမိုကောင်းမွန်စေရန် အစီအစဉ်နှင့် လုပ်ဆောင်ချက် ရှိခြင်း။",outEn:"Have a plan and actions to strengthen income and livelihood stability."},
+{no:7,my:"ဦးဆောင်မှုနှင့် ရေရှည်တည်တံ့မှု",en:"Leadership & Sustainability",outMy:"ရေရှည်တည်တံ့သော ကိုယ်ပိုင်တိုးတက်မှုနှင့် လူမှုအသိုင်းအဝိုင်းအကျိုးပြုမှုကို ပြသနိုင်ခြင်း။",outEn:"Demonstrate sustainable personal progress and community contribution."}
+];
+async function renderLearnerJourney(){
+ const root=el("learner-journey");if(!root)return;
+ root.innerHTML='<p class="muted">Loading your development journey… / တိုးတက်မှုလမ်းကြောင်းကို ဖွင့်နေပါသည်။</p>';
+ const [sr,pr,mr]=await Promise.all([
+  supabase.from("livelihood_stages").select("stage_no,title_my,title_en,outcome_my,outcome_en").eq("is_active",true).order("sort_order"),
+  supabase.from("learner_stage_progress").select("id,stage_no,status,evidence_summary,reviewer_feedback").eq("learner_id",currentUser.id).order("stage_no"),
+  supabase.from("modules").select("stage_no,title_my,title_en").not("stage_no","is",null).order("sort_order")
+ ]);
+ if(sr.error||pr.error||mr.error){root.innerHTML='<p class="muted">The development journey is being prepared. Please check again after the platform update. / တိုးတက်မှုလမ်းကြောင်းစနစ်ကို ပြင်ဆင်နေဆဲဖြစ်ပါသည်။</p>';console.warn("Learner journey unavailable",sr.error||pr.error||mr.error);return;}
+ const stages=sr.data?.length?sr.data:LIVELIHOOD_STAGE_COPY.map(x=>({stage_no:x.no,title_my:x.my,title_en:x.en,outcome_my:x.outMy,outcome_en:x.outEn}));
+ const progress=new Map((pr.data||[]).map(x=>[x.stage_no,x])),modules=new Map();
+ (mr.data||[]).forEach(x=>{if(!modules.has(x.stage_no))modules.set(x.stage_no,[]);modules.get(x.stage_no).push(x);});
+ const verified=stages.filter(x=>progress.get(x.stage_no)?.status==="verified").length,pct=Math.round(verified/7*100);
+ const label=s=>({in_progress:language==="my"?"လေ့လာနေဆဲ":"In progress",submitted:language==="my"?"စစ်ဆေးရန် ပေးပို့ထားသည်":"Submitted for review",verified:language==="my"?"အတည်ပြုပြီး":"Verified",needs_support:language==="my"?"ထပ်မံပံ့ပိုးမှု လိုအပ်":"Support needed"}[s]||s);
+ root.innerHTML='<div class="journey-summary"><div><strong>'+(language==="my"?"သင်၏ တိုးတက်မှု":"Your progress")+'</strong><p>'+verified+' / 7 '+(language==="my"?"အဆင့် ပြီးမြောက်":"stages verified")+'</p></div><div class="journey-progress"><span style="width:'+pct+'%"></span></div><b>'+pct+'%</b></div>'+
+ stages.map(s=>{
+  const n=s.stage_no,p=progress.get(n),done=p?.status==="verified",ready=!p&&(n===1||progress.get(n-1)?.status==="verified");
+  let action="";
+  if(ready)action='<button class="small-btn primary-btn" type="button" data-stage-start="'+n+'">'+(language==="my"?"ဒီအဆင့်ကို စတင်မယ်":"Start this stage")+'</button>';
+  if(p?.status==="in_progress")action='<form class="journey-evidence-form" data-stage-evidence="'+p.id+'"><label>'+(language==="my"?"လက်တွေ့လုပ်ဆောင်ခဲ့သည့်အရာနှင့် အထောက်အထားကို ဖော်ပြပါ (အနည်းဆုံး စာလုံး ၂၀)":"Describe your practice and evidence (at least 20 characters)")+'<textarea name="evidence" rows="3" minlength="20" maxlength="5000" required>'+escapeHtml(p.evidence_summary||"")+'</textarea></label><button class="small-btn" type="submit">'+(language==="my"?"စစ်ဆေးရန် ပေးပို့မယ်":"Submit evidence for review")+'</button></form>';
+  if(p?.status==="submitted")action='<p class="journey-note">'+(language==="my"?"Admin စစ်ဆေးမှုကို စောင့်ဆိုင်းနေပါသည်။":"Waiting for Admin review.")+'</p>';
+  if(p?.status==="needs_support")action='<p class="journey-note">'+(language==="my"?"ထပ်မံပံ့ပိုးမှု လိုအပ်ပါသည်။ Admin ထံ ဆက်သွယ်ပါ။":"Additional support is needed. Please contact the Admin team.")+'</p>';
+  if(p?.reviewer_feedback)action+='<p class="journey-feedback"><b>'+(language==="my"?"စစ်ဆေးသူ၏ အကြံပြုချက်":"Reviewer feedback")+':</b> '+escapeHtml(p.reviewer_feedback)+'</p>';
+  const linked=modules.get(n)||[];
+  return '<article class="journey-stage '+(done?"is-verified":p?"is-active":ready?"is-ready":"is-locked")+'"><div class="journey-stage-head"><span class="journey-stage-number">'+n+'</span><div class="journey-stage-title"><h4>'+escapeHtml(language==="my"?s.title_my:s.title_en)+'</h4><small>'+escapeHtml(p?label(p.status):ready?(language==="my"?"စတင်နိုင်သည်":"Ready to start"):(language==="my"?"ယခင်အဆင့်ကို စောင့်ဆိုင်းနေသည်":"Locked until previous stage is verified"))+'</small></div>'+(done?'<span class="journey-check">✓</span>':"")+'</div><p>'+escapeHtml(language==="my"?s.outcome_my:s.outcome_en)+'</p>'+(linked.length?'<div class="journey-modules"><b>'+(language==="my"?"ဆက်စပ်သင်ခန်းစာများ":"Related learning modules")+'</b><ul>'+linked.map(m=>'<li>'+escapeHtml(language==="my"?m.title_my:m.title_en)+'</li>').join("")+'</ul></div>':(n===4?'<p class="muted">'+(language==="my"?"လက်တွေ့လုပ်ငန်းနှင့် Portfolio လုပ်ဆောင်ချက်များကို နောက်အဆင့်တွင် ထည့်သွင်းမည်။":"Practical tasks and portfolio activities will be added in a later build.")+'</p>':""))+action+'</article>';
+ }).join("");
+ root.querySelectorAll("[data-stage-start]").forEach(btn=>btn.addEventListener("click",async()=>{btn.disabled=true;const {error}=await supabase.from("learner_stage_progress").insert({learner_id:currentUser.id,stage_no:Number(btn.dataset.stageStart),status:"in_progress"});if(error){alert(error.message);btn.disabled=false;return;}await renderLearnerJourney();}));
+ root.querySelectorAll("[data-stage-evidence]").forEach(form=>form.addEventListener("submit",async e=>{e.preventDefault();const evidence=form.elements.evidence.value.trim(),button=form.querySelector("button");if(evidence.length<20){alert("Please provide at least 20 characters of evidence.");return;}button.disabled=true;const {error}=await supabase.from("learner_stage_progress").update({evidence_summary:evidence,status:"submitted",reviewer_feedback:null,reviewed_by:null,reviewed_at:null,updated_at:new Date().toISOString()}).eq("id",form.dataset.stageEvidence).eq("learner_id",currentUser.id);if(error){alert(error.message);button.disabled=false;return;}await renderLearnerJourney();}));
+}
+
 async function loadCourses(){
   const {data,error}=await supabase.from("courses").select("id,title_my,title_en,description_my,description_en,level").eq("is_published",true).order("sort_order");
   if(error)throw error;
