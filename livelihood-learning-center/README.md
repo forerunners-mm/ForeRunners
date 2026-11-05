@@ -35,6 +35,7 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 - Trainer accounts, course assignment and trainer lesson draft submission
 - Trainer competency assessments and learner skills portfolio / career-readiness self-assessment
 - Employment, internship, apprenticeship, self-employment, grant and training opportunities with learner applications
+- Learner-facing Livelihood & Career Pathway overview explaining the intended assessment-to-guidance-to-training-to-opportunity sequence
 - Graduate follow-up surveys at 30, 90 and 180 days
 - Course-filterable donor outcome dashboard with small-sample suppression and aggregate-only export
 - Automated in-app graduate follow-up reminders: daily Supabase Cron job creates one reminder per due period; learners see and mark their own reminders as read inside their account
