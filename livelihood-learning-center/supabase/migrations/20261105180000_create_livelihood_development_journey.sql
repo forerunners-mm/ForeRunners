@@ -35,21 +35,27 @@ alter table public.modules
   add column if not exists stage_no smallint
   references public.livelihood_stages(stage_no) on delete set null;
 
--- Map current modules to their most relevant stage without moving or duplicating courses.
-update public.modules set stage_no = case id
-  when '8ead850e-df1a-4164-bc6c-a8e9b2fe2cf7'::uuid then 1
-  when '773d4729-7b61-40e4-849f-2650ec61e9b7'::uuid then 1
-  when '4910d3a5-5a50-434a-847c-6fef08269a5b'::uuid then 2
-  when '58ff53b2-8b15-4c7a-83c2-44504778b179'::uuid then 2
-  when 'e48e369d-5d51-42aa-b490-c7f335770640'::uuid then 2
-  when '495cc5c0-239a-43a3-a247-50fadd68670f'::uuid then 3
-  when 'bc2d1832-ad70-41e3-b2cf-2eab098677cc'::uuid then 3
-  when 'e0fce07c-a899-4e58-9bc9-17aea1acf037'::uuid then 5
-  when 'c32eb306-17df-4540-9243-7ae8ced7ba82'::uuid then 5
-  when '454b9c23-a2c3-498d-9dce-9af73702bccf'::uuid then 6
-  when '1d924239-bc26-4bf6-81fa-521a00cd6d31'::uuid then 6
-  when 'd1e9107b-6367-4301-94c8-584933061353'::uuid then 7
-  else stage_no end;
+-- Map current modules by stable course level and bilingual module title,
+-- not by generated UUIDs. Existing course/module rows are preserved.
+update public.modules as module
+set stage_no = case
+  when course.level = 'ADVANCED' and module.title_en = 'Livelihood Assessment' then 1
+  when course.level = 'BASIC' and module.title_en = 'Self-awareness & Life Skills' then 1
+  when course.level = 'BASIC' and module.title_en in ('Understanding Livelihood','Community Needs & Resources','Basic Financial Literacy') then 2
+  when module.title_en in ('Vocational Skills','Advanced Vocational Skills') then 3
+  when course.level = 'BASIC' and module.title_en = 'Starting a Livelihood' then 5
+  when course.level = 'ADVANCED' and module.title_en = 'Business Planning' then 5
+  when course.level = 'ADVANCED' and module.title_en in ('Financial Management','Market Linkage & Digital Marketing') then 6
+  when course.level = 'ADVANCED' and module.title_en = 'Sustainable Livelihood Development' then 7
+  else module.stage_no
+end
+from public.courses as course
+where course.id = module.course_id
+  and (
+    (course.level = 'ADVANCED' and module.title_en in ('Livelihood Assessment','Business Planning','Financial Management','Market Linkage & Digital Marketing','Sustainable Livelihood Development'))
+    or (course.level = 'BASIC' and module.title_en in ('Self-awareness & Life Skills','Understanding Livelihood','Community Needs & Resources','Basic Financial Literacy','Starting a Livelihood'))
+    or module.title_en in ('Vocational Skills','Advanced Vocational Skills')
+  );
 
 create table if not exists public.learner_stage_progress (
   id uuid primary key default gen_random_uuid(),
