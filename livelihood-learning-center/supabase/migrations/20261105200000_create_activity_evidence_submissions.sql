@@ -14,7 +14,7 @@ create table if not exists public.livelihood_activity_submissions (
   score numeric(5,2),
   criterion_results jsonb not null default '{}'::jsonb,
   reviewer_feedback text,
-  reviewed_by uuid references public.profiles(id) on delete set null,
+  reviewed_by uuid references public.profiles(id) on delete restrict,
   reviewed_at timestamptz,
   submitted_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
