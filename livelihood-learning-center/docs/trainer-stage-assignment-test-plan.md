@@ -40,7 +40,7 @@ Use synthetic names and evidence only. Do not copy real learner data into the te
 | TR-02 | Trainer A loads Learner A's assigned-stage evidence | Can view evidence for Stages 2 and 3. |
 | TR-03 | Trainer A tries to load Learner B's Stage 4 evidence | No Stage 4 evidence is returned. |
 | TR-04 | Trainer C opens the Trainer workspace | No stage assignments and no learner evidence are shown. |
-| TR-05 | Trainer A calls `get_assigned_stage_learner_names()` | Receives only learner IDs and names associated with assigned stages. |
+| TR-05 | Trainer A calls `get_assigned_stage_learner_names()` | Receives only learner IDs and names associated with assigned stages, and only when the caller is an approved Trainer. |
 | TR-06 | Trainer A attempts to read all learner profiles | Must not gain general profile access or see phone numbers/private profile fields. |
 | TR-07 | Anonymous user calls the name RPC | Execution is denied. |
 | TR-08 | Signed-in learner calls the name RPC | Returns no unrelated learner names; confirm this is acceptable or restrict RPC execution to Trainer/Admin roles in a follow-up hardening change. |
