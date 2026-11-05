@@ -619,7 +619,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null,activitySubmissions:[],activitySubmissionsError:null};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -656,8 +656,12 @@ async function loadAdmin(){
  const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications","graduate follow-ups","initial assessments","career guidance referrals"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
  [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups,adminCache.initialAssessments,adminCache.referrals]=rs.map(r=>r.data||[]);
- const stageResult=await supabase.from("learner_stage_progress").select("id,learner_id,stage_no,status,evidence_summary,reviewer_feedback,started_at,updated_at,reviewed_at,reviewed_by").order("updated_at",{ascending:false});
+ const [stageResult,activityResult]=await Promise.all([
+  supabase.from("learner_stage_progress").select("id,learner_id,stage_no,status,evidence_summary,reviewer_feedback,started_at,updated_at,reviewed_at,reviewed_by").order("updated_at",{ascending:false}),
+  supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,reviewed_at").order("submitted_at",{ascending:false})
+ ]);
  adminCache.stageProgress=stageResult.data||[];adminCache.stageProgressError=stageResult.error?.message||null;
+ adminCache.activitySubmissions=activityResult.data||[];adminCache.activitySubmissionsError=activityResult.error?.message||null;
  renderAdmin();
 }
 
@@ -985,8 +989,28 @@ function renderAdminStageProgress(){
   const submitted=p.status==="submitted";
   return '<article class="panel stage-review-card"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+' · '+adminEsc(title)+'</h4><p class="muted">Started '+new Date(p.started_at).toLocaleString()+' · Updated '+new Date(p.updated_at).toLocaleString()+'</p></div><span class="chip">'+adminEsc(p.status.replaceAll("_"," "))+'</span></div><h5>Practical evidence / လက်တွေ့အထောက်အထား</h5><p class="stage-review-evidence">'+adminEsc(p.evidence_summary||"No evidence submitted yet.")+'</p><div class="field"><label for="stage-feedback-'+p.id+'">Reviewer feedback / စစ်ဆေးသူ၏ အကြံပြုချက်</label><textarea id="stage-feedback-'+p.id+'" rows="3" maxlength="3000">'+adminEsc(p.reviewer_feedback||"")+'</textarea></div><div class="row-actions"><select id="stage-status-'+p.id+'"><option value="submitted" '+(p.status==="submitted"?"selected":"")+'>Submitted</option><option value="verified" '+(p.status==="verified"?"selected":"")+'>Verified</option><option value="needs_support" '+(p.status==="needs_support"?"selected":"")+'>Needs support</option><option value="in_progress" '+(p.status==="in_progress"?"selected":"")+'>In progress / Reopen</option></select><button type="button" class="small-btn approve" data-stage-review-save="'+p.id+'">Save review</button></div>'+(p.reviewed_at?'<small class="muted">Last reviewed: '+new Date(p.reviewed_at).toLocaleString()+'</small>':"")+'</article>';
  }).join("")||'<p class="muted">No learner stage records yet. / သင်ယူသူများ Stage မစတင်ရသေးပါ။</p>';
+ const activityCards=(adminCache.activitySubmissions||[]).map(a=>{
+  const learner=adminCache.users.find(u=>u.id===a.learner_id);
+  return '<article class="panel stage-review-card"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+' · Activity '+adminEsc(a.activity_id.slice(0,8))+'</h4><small class="muted">'+new Date(a.submitted_at).toLocaleString()+'</small></div><span class="chip">'+adminEsc(a.status.replaceAll("_"," "))+'</span></div><p class="stage-review-evidence">'+adminEsc(a.evidence_text)+'</p><div class="field"><label>Score / 100</label><input type="number" id="activity-score-'+a.id+'" min="0" max="100" step="0.5" value="'+(a.score??"")+'"></div><div class="field"><label>Feedback</label><textarea id="activity-feedback-'+a.id+'" rows="2" maxlength="3000">'+adminEsc(a.reviewer_feedback||"")+'</textarea></div><div class="row-actions"><select id="activity-status-'+a.id+'"><option value="reviewing" '+(a.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="needs_revision" '+(a.status==="needs_revision"?"selected":"")+'>Needs revision</option><option value="approved" '+(a.status==="approved"?"selected":"")+'>Approved</option></select><button type="button" class="small-btn approve" data-activity-review-save="'+a.id+'">Save assessment</button></div></article>';
+ }).join("");
+ root.insertAdjacentHTML("beforeend",'<h3>Practical activity assessments / လက်တွေ့လုပ်ငန်း အကဲဖြတ်မှု</h3>'+(adminCache.activitySubmissionsError?'<p class="muted">Activity assessment migration is not available yet: '+adminEsc(adminCache.activitySubmissionsError)+'</p>':activityCards||'<p class="muted">No activity evidence submitted yet.</p>'));
+ root.querySelectorAll("[data-activity-review-save]").forEach(button=>button.onclick=()=>saveAdminActivityReview(button.dataset.activityReviewSave,button));
  root.querySelectorAll("[data-stage-review-save]").forEach(button=>button.onclick=()=>saveAdminStageReview(button.dataset.stageReviewSave,button));
 }
+async function saveAdminActivityReview(id,button){
+ const record=adminCache.activitySubmissions.find(x=>x.id===id);if(!record)return;
+ const status=el("activity-status-"+id).value,scoreText=el("activity-score-"+id).value,feedback=el("activity-feedback-"+id).value.trim();
+ const score=scoreText===""?null:Number(scoreText);
+ if(score!==null&&(!Number.isFinite(score)||score<0||score>100)){alert("Score must be between 0 and 100.");return;}
+ if(status==="needs_revision"&&!feedback){alert("Feedback is required when requesting revision.");return;}
+ if(status==="approved"&&score===null){alert("Enter a score before approving the activity.");return;}
+ button.disabled=true;
+ const {error}=await supabase.from("livelihood_activity_submissions").update({status,score,reviewer_feedback:feedback||null,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);
+ button.disabled=false;
+ if(error){alert("Unable to save assessment: "+error.message);return;}
+ alert("Activity assessment saved.");await loadAdmin();
+}
+
 async function saveAdminStageReview(id,button){
  const record=adminCache.stageProgress.find(x=>x.id===id);if(!record)return;
  const status=el("stage-status-"+id).value,feedback=el("stage-feedback-"+id).value.trim();
