@@ -600,7 +600,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -637,6 +637,8 @@ async function loadAdmin(){
  const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications","graduate follow-ups","initial assessments","career guidance referrals"];
  rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
  [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups,adminCache.initialAssessments,adminCache.referrals]=rs.map(r=>r.data||[]);
+ const stageResult=await supabase.from("learner_stage_progress").select("id,learner_id,stage_no,status,evidence_summary,reviewer_feedback,started_at,updated_at,reviewed_at,reviewed_by").order("updated_at",{ascending:false});
+ adminCache.stageProgress=stageResult.data||[];adminCache.stageProgressError=stageResult.error?.message||null;
  renderAdmin();
 }
 
@@ -951,6 +953,35 @@ function guidanceField(summary,label){
 function guidanceNotes(summary){
  return String(summary||"").split("\n").filter(line=>!/^((Recommended pathway|Learning priorities|Support needed|Next action):)/i.test(line)).join("\n").replace(/^Learner-facing summary:\s*/i,"").trim();
 }
+
+function renderAdminStageProgress(){
+ const root=el("admin-stage-progress");if(!root)return;
+ if(adminCache.stageProgressError){root.innerHTML='<p class="muted">Journey database migration is not available yet. Apply the reviewed migrations before using this workspace. / Database Migration မလုပ်ရသေးပါ။</p>';return;}
+ const rows=adminCache.stageProgress||[];
+ const counts={submitted:rows.filter(x=>x.status==="submitted").length,verified:rows.filter(x=>x.status==="verified").length,needs_support:rows.filter(x=>x.status==="needs_support").length};
+ el("admin-stage-progress-summary").innerHTML=[["Awaiting review",counts.submitted],["Verified stages",counts.verified],["Support needed",counts.needs_support]].map(([k,v])=>'<article class="admin-stat"><span>'+k+'</span><strong>'+v+'</strong></article>').join("");
+ root.innerHTML=rows.map(p=>{
+  const learner=adminCache.users.find(u=>u.id===p.learner_id),stage=LIVELIHOOD_STAGE_COPY.find(x=>x.no===p.stage_no);
+  const title=stage?(language==="my"?stage.my:stage.en):"Stage "+p.stage_no;
+  const submitted=p.status==="submitted";
+  return '<article class="panel stage-review-card"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+' · '+adminEsc(title)+'</h4><p class="muted">Started '+new Date(p.started_at).toLocaleString()+' · Updated '+new Date(p.updated_at).toLocaleString()+'</p></div><span class="chip">'+adminEsc(p.status.replaceAll("_"," "))+'</span></div><h5>Practical evidence / လက်တွေ့အထောက်အထား</h5><p class="stage-review-evidence">'+adminEsc(p.evidence_summary||"No evidence submitted yet.")+'</p><div class="field"><label for="stage-feedback-'+p.id+'">Reviewer feedback / စစ်ဆေးသူ၏ အကြံပြုချက်</label><textarea id="stage-feedback-'+p.id+'" rows="3" maxlength="3000">'+adminEsc(p.reviewer_feedback||"")+'</textarea></div><div class="row-actions"><select id="stage-status-'+p.id+'"><option value="submitted" '+(p.status==="submitted"?"selected":"")+'>Submitted</option><option value="verified" '+(p.status==="verified"?"selected":"")+'>Verified</option><option value="needs_support" '+(p.status==="needs_support"?"selected":"")+'>Needs support</option><option value="in_progress" '+(p.status==="in_progress"?"selected":"")+'>In progress / Reopen</option></select><button type="button" class="small-btn approve" data-stage-review-save="'+p.id+'">Save review</button></div>'+(p.reviewed_at?'<small class="muted">Last reviewed: '+new Date(p.reviewed_at).toLocaleString()+'</small>':"")+'</article>';
+ }).join("")||'<p class="muted">No learner stage records yet. / သင်ယူသူများ Stage မစတင်ရသေးပါ။</p>';
+ root.querySelectorAll("[data-stage-review-save]").forEach(button=>button.onclick=()=>saveAdminStageReview(button.dataset.stageReviewSave,button));
+}
+async function saveAdminStageReview(id,button){
+ const record=adminCache.stageProgress.find(x=>x.id===id);if(!record)return;
+ const status=el("stage-status-"+id).value,feedback=el("stage-feedback-"+id).value.trim();
+ if(status==="verified"&&(!record.evidence_summary||record.evidence_summary.trim().length<20)){el("admin-alert").textContent="A stage can only be verified after the learner submits practical evidence.";el("admin-alert").classList.add("error");return;}
+ if(status==="needs_support"&&!feedback){el("admin-alert").textContent="Please explain what additional support or evidence is needed.";el("admin-alert").classList.add("error");return;}
+ button.disabled=true;
+ const reviewed=status==="verified";
+ const {error}=await supabase.from("learner_stage_progress").update({status,reviewer_feedback:feedback||null,reviewed_by:reviewed?currentUser.id:null,reviewed_at:reviewed?new Date().toISOString():null,updated_at:new Date().toISOString()}).eq("id",id);
+ button.disabled=false;
+ if(error){el("admin-alert").textContent="Unable to save stage review: "+error.message;el("admin-alert").classList.add("error");return;}
+ el("admin-alert").textContent=reviewed?"Stage verified. The learner can now begin the next stage.":"Stage review updated.";
+ el("admin-alert").classList.remove("error");await loadAdmin();
+}
+
 function renderAdminInitialAssessments(){
  const rows=adminCache.initialAssessments.map(a=>{
   const learner=adminCache.users.find(u=>u.id===a.learner_id);
@@ -1016,6 +1047,7 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminStageProgress();
  renderAdminReferrals();
  renderAdminInitialAssessments();
  setupLessonEditor();
