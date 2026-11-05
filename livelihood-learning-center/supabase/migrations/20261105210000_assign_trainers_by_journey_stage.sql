@@ -63,14 +63,14 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $$
   select distinct p.id, p.full_name
   from public.profiles p
   join public.learner_stage_progress sp on sp.learner_id = p.id
   join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
   where st.trainer_id = (select auth.uid())
     and (select auth.uid()) is not null;
-$;
+$$;
 
 revoke all on function public.get_assigned_stage_learner_names() from public, anon;
 grant execute on function public.get_assigned_stage_learner_names() to authenticated;
