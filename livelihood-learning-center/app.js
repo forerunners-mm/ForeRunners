@@ -111,10 +111,11 @@ el("auth-form").addEventListener("submit",async (event)=>{
 });
 
 el("signout-btn").addEventListener("click",async()=>{await supabase.auth.signOut();});
-let trainerWorkspace={assignments:[],courses:[],modules:[],lessons:[],assessments:[],learners:[]};
+let trainerWorkspace={assignments:[],courses:[],modules:[],lessons:[],assessments:[],learners:[],stageAssignments:[],activitySubmissions:[],stageReviewError:null};
 async function loadTrainerWorkspace(){
  const {data:assignments,error}=await supabase.from("course_trainers").select("id,course_id,courses(id,title_my,title_en,level)").eq("trainer_id",currentUser.id);
  if(error)throw error;trainerWorkspace.assignments=assignments||[];
+ await loadTrainerStageReviews();
  const ids=trainerWorkspace.assignments.map(x=>x.course_id);
  if(!ids.length){el("trainer-course-list").innerHTML='<p class="muted">No courses assigned yet. Please contact the administrator.</p>';el("trainer-module").innerHTML="";return;}
  const [m,l]=await Promise.all([
@@ -147,6 +148,34 @@ async function loadTrainerAssessmentLearners(){
  trainerWorkspace.learners=data||[];
  el("assessment-learner").innerHTML=trainerWorkspace.learners.map(x=>'<option value="'+x.learner_id+'">'+adminEsc(x.full_name||"Learner")+'</option>').join("");
  if(!trainerWorkspace.learners.length)el("assessment-learner").innerHTML='<option value="">No approved learners enrolled</option>';
+}
+async function loadTrainerStageReviews(){
+ const host=el("trainer-stage-activity-reviews");if(!host)return;
+ const [assigned,submissions]=await Promise.all([
+  supabase.from("livelihood_stage_trainers").select("id,stage_no,livelihood_stages(title_my,title_en)").eq("trainer_id",currentUser.id).order("stage_no"),
+  supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en),learner_stage_progress(stage_no,profiles(full_name))").order("submitted_at",{ascending:false}).limit(100)
+ ]);
+ trainerWorkspace.stageAssignments=assigned.data||[];trainerWorkspace.stageReviewError=assigned.error?.message||submissions.error?.message||null;trainerWorkspace.activitySubmissions=submissions.data||[];
+ if(trainerWorkspace.stageReviewError){host.innerHTML='<p class="muted">Stage review is not available yet. The required database migration must be deployed first. / လိုအပ်သော Database Migration မတင်ရသေးသဖြင့် Stage Review ကို လောလောဆယ် အသုံးမပြုနိုင်သေးပါ။</p>';return;}
+ const allowed=new Set(trainerWorkspace.stageAssignments.map(x=>Number(x.stage_no)));
+ const rows=trainerWorkspace.activitySubmissions.filter(s=>allowed.has(Number(s.learner_stage_progress?.stage_no)));
+ host.innerHTML='<p class="muted">'+(language==="my"?"မိမိတာဝန်ယူထားသော Journey Stage များအတွက်သာ Evidence များကို စစ်ဆေးနိုင်ပါသည်။":"You can review evidence only for your assigned journey stages.")+'</p>'+
+ (trainerWorkspace.stageAssignments.length?'<p><strong>Assigned stages:</strong> '+trainerWorkspace.stageAssignments.map(s=>adminEsc(language==="my"?s.livelihood_stages?.title_my:s.livelihood_stages?.title_en)).join(" · ")+'</p>':'<p class="muted">No journey stages assigned yet. Contact the Admin. / Stage တာဝန်မပေးရသေးပါ။ Admin ကို ဆက်သွယ်ပါ။</p>')+
+ adminTable(["Learner","Stage / Activity","Evidence","Score","Decision & feedback"],rows.map(s=>{
+  const stage=trainerWorkspace.stageAssignments.find(x=>Number(x.stage_no)===Number(s.learner_stage_progress?.stage_no));
+  const activity=s.livelihood_stage_activities||{},learner=s.learner_stage_progress?.profiles?.full_name||"Learner";
+  return '<tr><td>'+adminEsc(learner)+'</td><td>'+adminEsc(language==="my"?stage?.livelihood_stages?.title_my:stage?.livelihood_stages?.title_en)+'<br>'+adminEsc(language==="my"?activity.title_my:activity.title_en)+'</td><td><details><summary>View evidence</summary><p>'+adminEsc(s.evidence_text)+'</p></details></td><td><input type="number" min="0" max="100" step="0.5" data-trainer-activity-score="'+s.id+'" value="'+(s.score??"")+'" placeholder="0–100"></td><td><select data-trainer-activity-status="'+s.id+'"><option value="reviewing" '+(s.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="needs_revision" '+(s.status==="needs_revision"?"selected":"")+'>Needs revision</option><option value="approved" '+(s.status==="approved"?"selected":"")+'>Approved</option></select><textarea rows="2" maxlength="3000" data-trainer-activity-feedback="'+s.id+'" placeholder="Feedback">'+adminEsc(s.reviewer_feedback||"")+'</textarea><button type="button" class="small-btn approve" data-trainer-activity-save="'+s.id+'">Save review</button></td></tr>';
+ })); 
+ document.querySelectorAll("[data-trainer-activity-save]").forEach(button=>button.onclick=()=>saveTrainerActivityReview(button.dataset.trainerActivitySave,button));
+}
+async function saveTrainerActivityReview(id,button){
+ const scoreText=document.querySelector('[data-trainer-activity-score="'+id+'"]').value,score=scoreText===""?null:Number(scoreText);
+ const status=document.querySelector('[data-trainer-activity-status="'+id+'"]').value,feedback=document.querySelector('[data-trainer-activity-feedback="'+id+'"]').value.trim();
+ if(score!==null&&(!Number.isFinite(score)||score<0||score>100)){alert("Score must be between 0 and 100.");return;}
+ if(status==="needs_revision"&&!feedback){alert("Feedback is required when requesting a revision.");return;}
+ button.disabled=true;
+ const {error}=await supabase.from("livelihood_activity_submissions").update({score,status,reviewer_feedback:feedback||null,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);
+ if(error){alert(error.message);button.disabled=false;return;}await loadTrainerStageReviews();
 }
 function renderTrainerAssessments(){
  el("trainer-assessment-list").innerHTML=adminTable(["Learner","Course","Type","Score","Status","Date"],trainerWorkspace.assessments.map(a=>'<tr><td>'+adminEsc(a.learner?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?a.courses?.title_my:a.courses?.title_en)+'</td><td>'+adminEsc(a.assessment_type)+'</td><td>'+Number(a.overall_score).toFixed(1)+'%</td><td>'+adminEsc(a.status)+'</td><td>'+new Date(a.assessed_at).toLocaleDateString()+'</td></tr>'));
@@ -621,7 +650,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null,activitySubmissions:[],activitySubmissionsError:null};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null,activitySubmissions:[],activitySubmissionsError:null,stageTrainers:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -918,6 +947,21 @@ async function changeLessonStatus(id,status){
  const patch={content_status:status,is_published:status==="published",updated_at:new Date().toISOString(),reviewed_by:currentUser.id,reviewed_at:new Date().toISOString()};
  const {error}=await supabase.from("lessons").update(patch).eq("id",id);
  if(error){alert(error.message);return;}await loadAdmin();
+}
+function renderAdminStageTrainers(){
+ const trainerSelect=el("stage-trainer-user-select"),keep=trainerSelect.value;
+ trainerSelect.innerHTML=adminCache.users.filter(u=>u.role==="trainer"&&u.account_status==="approved").map(u=>'<option value="'+u.id+'">'+adminEsc(u.full_name||"Trainer")+'</option>').join("");
+ if([...trainerSelect.options].some(o=>o.value===keep))trainerSelect.value=keep;
+ const stageSelect=el("stage-trainer-stage-select");
+ stageSelect.innerHTML=Array.from({length:7},(_,i)=>{const n=i+1,labels=["Self-Discovery & Assessment","Foundation & Life Skills","Skill Development","Practical Application","Income Generation","Growth & Stability","Leadership & Sustainability"],my=["မိမိကိုယ်ကို သိရှိနားလည်ခြင်း","အခြေခံအရည်အချင်း တည်ဆောက်ခြင်း","ကျွမ်းကျင်မှု ဖွံ့ဖြိုးတည်ဆောက်ခြင်း","လက်တွေ့အသုံးချခြင်း","ဝင်ငွေဖန်တီးခြင်း","တိုးတက်မှုနှင့် တည်ငြိမ်မှု","ဦးဆောင်မှုနှင့် ရေရှည်တည်တံ့မှု"];return '<option value="'+n+'">'+n+'. '+adminEsc(language==="my"?my[i]:labels[i])+'</option>';}).join("");
+ el("admin-stage-trainer-assignments").innerHTML=adminTable(["Stage","Trainer","Assigned","Action"],adminCache.stageTrainers.map(x=>'<tr><td>'+Number(x.stage_no)+'. '+adminEsc(language==="my"?x.livelihood_stages?.title_my:x.livelihood_stages?.title_en)+'</td><td>'+adminEsc(x.trainer?.full_name||"Trainer")+'</td><td>'+new Date(x.assigned_at).toLocaleDateString()+'</td><td><button class="small-btn reject" data-stage-trainer-remove="'+x.id+'">Remove</button></td></tr>'));
+ document.querySelectorAll("[data-stage-trainer-remove]").forEach(b=>b.onclick=async()=>{const {error}=await supabase.from("livelihood_stage_trainers").delete().eq("id",b.dataset.stageTrainerRemove);if(error){alert(error.message);return;}await loadAdmin();});
+}
+async function assignStageTrainer(event){
+ event.preventDefault();const msg=el("stage-trainer-assignment-message");msg.textContent="";
+ const {error}=await supabase.from("livelihood_stage_trainers").insert({stage_no:Number(el("stage-trainer-stage-select").value),trainer_id:el("stage-trainer-user-select").value,assigned_by:currentUser.id});
+ if(error){msg.textContent=error.message;msg.classList.add("error");return;}
+ msg.textContent=language==="my"?"Journey Stage တာဝန်ပေးပြီးပါပြီ။":"Journey stage assigned.";event.currentTarget.reset();await loadAdmin();
 }
 function renderAdminTrainers(){
  const trainers=adminCache.users.filter(u=>u.role==="trainer"&&u.account_status==="approved");
