@@ -9,7 +9,6 @@ create table if not exists public.livelihood_stage_trainers (
   trainer_id uuid not null references public.profiles(id) on delete cascade,
   assigned_by uuid not null references public.profiles(id) on delete restrict,
   assigned_at timestamptz not null default now(),
-  unique (stage_no),
   unique (trainer_id, stage_no)
 );
 
@@ -17,6 +16,7 @@ create index if not exists idx_livelihood_stage_trainers_trainer
   on public.livelihood_stage_trainers(trainer_id, stage_no);
 
 alter table public.livelihood_stage_trainers enable row level security;
+revoke all on public.livelihood_stage_trainers from anon, authenticated;
 grant select, insert, delete on public.livelihood_stage_trainers to authenticated;
 
 drop policy if exists livelihood_stage_trainers_read_admin_or_assigned on public.livelihood_stage_trainers;
@@ -108,6 +108,6 @@ grant update (status, score, criterion_results, reviewer_feedback, reviewed_by, 
 on public.livelihood_activity_submissions to authenticated;
 
 comment on table public.livelihood_stage_trainers is
-  'One Admin-assigned trainer per livelihood journey stage; grants access only to submissions and learner names for that stage.';
+  'Admin-assigned trainers receive access only to submissions and learner names for their assigned livelihood journey stages.';
 
 commit;
