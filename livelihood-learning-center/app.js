@@ -191,7 +191,7 @@ async function loadProfile(){
   show("learner-section",data.role==="learner");show("trainer-section",data.role==="trainer");show("admin-section",data.role==="admin");
   if(data.role==="admin"){await loadAdmin();}
   else if(data.role==="trainer"){await loadTrainerWorkspace();el("trainer-lesson-form").onsubmit=saveTrainerLesson;el("trainer-lesson-reset").onclick=()=>{el("trainer-lesson-form").reset();el("trainer-lesson-id").value="";};}
-  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("learner-initial-assessment-form").onsubmit=submitLearnerInitialAssessment;await loadLearnerInitialAssessments();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
+  else{await loadCourses();await loadEnrollments();await loadLearning();await loadCareerPortfolio();await loadCareerOpportunities();await loadGraduateFollowups();await loadLearnerNotifications();el("learner-initial-assessment-form").onsubmit=submitLearnerInitialAssessment;await loadLearnerInitialAssessments();el("career-referral-form").onsubmit=submitCareerReferral;await loadLearnerReferrals();el("skill-profile-form").onsubmit=saveSkillProfile;el("portfolio-item-form").onsubmit=addPortfolioItem;el("career-readiness-form").onsubmit=submitCareerReadiness;el("career-print-cv").onclick=printLearnerCV;el("career-opportunity-list").addEventListener("click",applyForCareerOpportunity);el("graduate-followup-form").onsubmit=submitGraduateFollowup;}
 }
 
 async function loadLearnerInitialAssessments(){
@@ -214,6 +214,23 @@ async function submitLearnerInitialAssessment(event){
  message.textContent=language==="my"?"ကနဦးအကဲဖြတ်ချက်ကို ပေးပို့ပြီးပါပြီ။":"Initial assessment submitted successfully.";
  event.currentTarget.reset();await loadLearnerInitialAssessments();
 }
+
+async function loadLearnerReferrals(){
+ const {data,error}=await supabase.from("career_guidance_referrals").select("id,referral_type,status,learner_message,provider_name,provider_contact,meeting_mode,meeting_at,meeting_location,learner_visible_summary,created_at,updated_at").eq("learner_id",currentUser.id).order("created_at",{ascending:false}).limit(20);
+ const box=el("learner-referral-history");
+ if(error){box.textContent="Referral history is not available yet.";return;}
+ const labels={career_counselor:"Career Counselor",business_mentor:"Business Mentor",vocational_guidance:"Vocational Training Guidance",digital_skills:"Digital Skills Guidance",other:"Other guidance"};
+ box.innerHTML=(data||[]).map(r=>'<article class="assignment-card"><b>'+escapeHtml(labels[r.referral_type]||r.referral_type)+'</b><p>Status: '+escapeHtml(r.status.replaceAll("_"," "))+'</p>'+(r.provider_name?'<p>Assigned person: '+escapeHtml(r.provider_name)+'</p>':'')+(r.provider_contact?'<p>Contact: '+escapeHtml(r.provider_contact)+'</p>':'')+(r.meeting_at?'<p>Meeting: '+new Date(r.meeting_at).toLocaleString()+'</p>':'')+(r.meeting_mode?'<p>Mode: '+escapeHtml(r.meeting_mode.replaceAll("_"," "))+'</p>':'')+(r.meeting_location?'<p>Location / link: '+escapeHtml(r.meeting_location)+'</p>':'')+(r.learner_visible_summary?'<p>'+escapeHtml(r.learner_visible_summary)+'</p>':'')+'<small>'+new Date(r.created_at).toLocaleString()+'</small></article>').join("")||'<p class="muted">You have not requested a referral yet.</p>';
+}
+async function submitCareerReferral(event){
+ event.preventDefault();const msg=el("referral-message-status");msg.textContent="";msg.classList.remove("error");
+ if(!el("referral-consent").checked){msg.textContent="Please provide consent before submitting.";msg.classList.add("error");return;}
+ const {error}=await supabase.from("career_guidance_referrals").insert({learner_id:currentUser.id,referral_type:el("referral-type").value,learner_message:el("referral-message").value.trim()||null,consent_given:true,consent_text_version:"2026-11-05-v1"});
+ if(error){msg.textContent=error.message;msg.classList.add("error");return;}
+ msg.textContent=language==="my"?"Referral တောင်းဆိုချက် ပေးပို့ပြီးပါပြီ။ Admin မှ ဆက်သွယ်ပေးပါမည်။":"Referral request submitted. An Admin will follow up.";
+ event.currentTarget.reset();await loadLearnerReferrals();
+}
+
 async function loadLearnerNotifications(){
  const {data:rows,error}=await supabase.from("learner_notifications")
   .select("id,title_my,title_en,body_my,body_en,metadata,read_at,created_at")
@@ -543,7 +560,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[]};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[]};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -863,6 +880,29 @@ async function saveCareerOpportunity(event){
  const {error}=await supabase.from("career_opportunities").insert(payload);if(error){msg.textContent=error.message;msg.classList.add("error");return;}msg.textContent="Opportunity saved.";msg.classList.remove("error");event.currentTarget.reset();await loadAdmin();
 }
 
+
+function renderAdminReferrals(){
+ const labels={career_counselor:"Career Counselor",business_mentor:"Business Mentor",vocational_guidance:"Vocational Training Guidance",digital_skills:"Digital Skills Guidance",other:"Other guidance"};
+ const rows=adminCache.referrals.map(r=>{
+  const learner=adminCache.users.find(u=>u.id===r.learner_id);
+  const dt=r.meeting_at?new Date(r.meeting_at).toISOString().slice(0,16):"";
+  return '<article class="panel"><div class="section-heading"><div><h4>'+adminEsc(learner?.full_name||"Learner")+' · '+adminEsc(labels[r.referral_type]||r.referral_type)+'</h4><p class="muted">Requested '+new Date(r.created_at).toLocaleString()+' · Consent: '+(r.consent_given?"Yes":"No")+'</p></div><span class="chip">'+adminEsc(r.status.replaceAll("_"," "))+'</span></div><p>'+adminEsc(r.learner_message||"No additional message")+'</p><div class="field"><label>Assigned Counselor / Mentor name</label><input id="ref-provider-'+r.id+'" maxlength="180" value="'+adminEsc(r.provider_name||"")+'"></div><div class="field"><label>Contact details (shared with learner)</label><input id="ref-contact-'+r.id+'" maxlength="500" value="'+adminEsc(r.provider_contact||"")+'"></div><div class="field"><label>Meeting mode</label><select id="ref-mode-'+r.id+'"><option value="">Not set</option><option value="online" '+(r.meeting_mode==="online"?"selected":"")+'>Online</option><option value="in_person" '+(r.meeting_mode==="in_person"?"selected":"")+'>In person</option><option value="phone" '+(r.meeting_mode==="phone"?"selected":"")+'>Phone</option></select></div><div class="field"><label>Meeting date and time</label><input type="datetime-local" id="ref-date-'+r.id+'" value="'+dt+'"></div><div class="field"><label>Location or meeting link</label><input id="ref-location-'+r.id+'" maxlength="500" value="'+adminEsc(r.meeting_location||"")+'"></div><div class="field"><label>Learner-visible update / သင်တန်းသားထံ ပြသမည့် အကြောင်းကြားချက်</label><textarea id="ref-summary-'+r.id+'" rows="2" maxlength="2000">'+adminEsc(r.learner_visible_summary||"")+'</textarea></div><div class="row-actions"><select id="ref-status-'+r.id+'"><option value="requested" '+(r.status==="requested"?"selected":"")+'>Requested</option><option value="under_review" '+(r.status==="under_review"?"selected":"")+'>Under review</option><option value="accepted" '+(r.status==="accepted"?"selected":"")+'>Accepted</option><option value="scheduled" '+(r.status==="scheduled"?"selected":"")+'>Scheduled</option><option value="completed" '+(r.status==="completed"?"selected":"")+'>Completed</option><option value="cancelled" '+(r.status==="cancelled"?"selected":"")+'>Cancelled</option><option value="declined" '+(r.status==="declined"?"selected":"")+'>Declined</option></select><button type="button" class="small-btn approve" data-referral-save="'+r.id+'">Save referral</button></div></article>';
+ });
+ el("admin-referrals").innerHTML=rows.join("")||'<p class="muted">No referral requests yet.</p>';
+ document.querySelectorAll("[data-referral-save]").forEach(b=>b.onclick=()=>saveAdminReferral(b.dataset.referralSave,b));
+}
+async function saveAdminReferral(id,button){
+ const status=el("ref-status-"+id).value,meeting=el("ref-date-"+id).value,mode=el("ref-mode-"+id).value,provider=el("ref-provider-"+id).value.trim();
+ if(status==="scheduled"&&(!meeting||!mode||!provider)){el("admin-alert").textContent="To mark as scheduled, enter the assigned person, meeting mode and date/time.";el("admin-alert").classList.add("error");return;}
+ button.disabled=true;
+ const payload={status,provider_name:provider||null,provider_contact:el("ref-contact-"+id).value.trim()||null,meeting_mode:mode||null,meeting_at:meeting?new Date(meeting).toISOString():null,meeting_location:el("ref-location-"+id).value.trim()||null,learner_visible_summary:el("ref-summary-"+id).value.trim()||null,updated_at:new Date().toISOString()};
+ const {error}=await supabase.from("career_guidance_referrals").update(payload).eq("id",id);
+ button.disabled=false;
+ if(error){el("admin-alert").textContent="Unable to save referral: "+error.message;el("admin-alert").classList.add("error");return;}
+ el("admin-alert").textContent="Referral updated. The learner can see the update in their dashboard.";
+ el("admin-alert").classList.remove("error");await loadAdmin();
+}
+
 function renderAdminInitialAssessments(){
  const rows=adminCache.initialAssessments.map(a=>{
   const learner=adminCache.users.find(u=>u.id===a.learner_id);
@@ -915,6 +955,7 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminReferrals();
  renderAdminInitialAssessments();
  setupLessonEditor();
  renderAdminTrainers();
