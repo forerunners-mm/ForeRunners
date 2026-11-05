@@ -153,7 +153,7 @@ async function loadTrainerStageReviews(){
  const host=el("trainer-stage-activity-reviews");if(!host)return;
  const [assigned,submissions]=await Promise.all([
   supabase.from("livelihood_stage_trainers").select("id,stage_no,livelihood_stages(title_my,title_en)").eq("trainer_id",currentUser.id).order("stage_no"),
-  supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en),learner_stage_progress(stage_no,profiles(full_name))").order("submitted_at",{ascending:false}).limit(100)
+  supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en),learner_stage_progress(stage_no,profiles!learner_stage_progress_learner_id_fkey(full_name))").order("submitted_at",{ascending:false}).limit(100)
  ]);
  trainerWorkspace.stageAssignments=assigned.data||[];trainerWorkspace.stageReviewError=assigned.error?.message||submissions.error?.message||null;trainerWorkspace.activitySubmissions=submissions.data||[];
  if(trainerWorkspace.stageReviewError){host.innerHTML='<p class="muted">Stage review is not available yet. The required database migration must be deployed first. / လိုအပ်သော Database Migration မတင်ရသေးသဖြင့် Stage Review ကို လောလောဆယ် အသုံးမပြုနိုင်သေးပါ။</p>';return;}
