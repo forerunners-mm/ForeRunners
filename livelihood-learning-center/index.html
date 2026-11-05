@@ -212,6 +212,7 @@
     </section>
     <section id="trainer-section" class="hidden">
       <div class="section-heading"><div><p class="eyebrow">TRAINER WORKSPACE / သင်တန်းဆရာ Workspace</p><h2>My Assigned Courses / တာဝန်ပေးထားသော သင်တန်းများ</h2></div><span class="chip">TRAINER</span></div>
+      <div id="trainer-stage-activity-reviews" class="panel"><h3>Journey Stage Practical Reviews / Journey Stage လက်တွေ့လုပ်ငန်း စစ်ဆေးခြင်း</h3><p class="muted">Loading assigned stages…</p></div>
       <div id="trainer-course-list" class="admin-grid"></div>
       <div class="panel"><h3>Lesson Editor / သင်ခန်းစာ မူကြမ်း</h3>
         <form id="trainer-lesson-form">
@@ -262,7 +263,11 @@
       <section class="admin-view hidden" data-admin-view="trainers">
  <div class="panel"><h3>Assign trainer to course / သင်တန်းဆရာ တာဝန်ပေးရန်</h3>
  <form id="trainer-assignment-form"><div class="field"><label>Approved trainer</label><select id="trainer-user-select" required></select></div><div class="field"><label>Course</label><select id="trainer-course-select" required></select></div><button class="primary-btn" type="submit">Assign course</button><p id="trainer-assignment-message" class="message" role="status"></p></form></div>
- <div class="panel"><h3>Current trainer assignments</h3><div id="admin-trainer-assignments"></div></div>
+ <div class="panel"><h3>Assign trainer by Journey Stage / Journey Stage အလိုက် တာဝန်ပေးရန်</h3>
+ <p class="muted">Each stage can have one assigned trainer. Trainers can view and assess only learner evidence in their assigned stage. / Stage တစ်ခုလျှင် Trainer တစ်ဦးသာ တာဝန်ပေးနိုင်ပြီး မိမိတာဝန်ယူထားသော Stage ၏ Evidence များကိုသာ ကြည့်ရှုစစ်ဆေးနိုင်ပါသည်။</p>
+ <form id="stage-trainer-assignment-form"><div class="field"><label>Approved trainer / အတည်ပြုထားသော Trainer</label><select id="stage-trainer-user-select" required></select></div><div class="field"><label>Journey Stage / တိုးတက်မှုအဆင့်</label><select id="stage-trainer-stage-select" required></select></div><button class="primary-btn" type="submit">Assign stage / တာဝန်ပေးရန်</button><p id="stage-trainer-assignment-message" class="message" role="status"></p></form></div>
+ <div class="panel"><h3>Current Journey Stage trainer assignments / လက်ရှိ Stage တာဝန်ခွဲဝေမှု</h3><div id="admin-stage-trainer-assignments"></div></div>
+ <div class="panel"><h3>Current trainer course assignments</h3><div id="admin-trainer-assignments"></div></div>
 </section>
 <section class="admin-view hidden" data-admin-view="enrollments"><div class="panel"><h3>Course applications / သင်တန်းလျှောက်ထားမှု</h3><div id="admin-enrollments" class="admin-table-wrap"></div></div></section>
       <section class="admin-view hidden" data-admin-view="courses">
