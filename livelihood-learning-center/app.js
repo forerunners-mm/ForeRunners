@@ -621,7 +621,7 @@ async function submitQuiz(event){
 el("lesson-back-btn").addEventListener("click",()=>el("lesson-reader").classList.add("hidden"));
 
 
-const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null};
+const adminCache={users:[],enrollments:[],courses:[],modules:[],lessons:[],quizzes:[],questions:[],progress:[],attempts:[],assignments:[],submissions:[],certificates:[],attendance:[],announcements:[],supportRequests:[],supportMessages:[],courseTrainers:[],evaluations:[],careerAssessments:[],skillProfiles:[],opportunities:[],careerApplications:[],graduateFollowups:[],initialAssessments:[],referrals:[],stageProgress:[],stageProgressError:null,activitySubmissions:[],activitySubmissionsError:null};
 const adminEsc=v=>escapeHtml(v??"");
 function adminTable(headers,rows){return rows.length?'<table class="admin-data-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>':'<p class="muted">No records found / မှတ်တမ်းမရှိသေးပါ။</p>';}
 function setAdminTab(tab){document.querySelectorAll("[data-admin-tab]").forEach(b=>b.classList.toggle("active",b.dataset.adminTab===tab));document.querySelectorAll("[data-admin-view]").forEach(v=>v.classList.toggle("hidden",v.dataset.adminView!==tab));}
@@ -660,6 +660,8 @@ async function loadAdmin(){
  [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups,adminCache.initialAssessments,adminCache.referrals]=rs.map(r=>r.data||[]);
  const stageResult=await supabase.from("learner_stage_progress").select("id,learner_id,stage_no,status,evidence_summary,reviewer_feedback,started_at,updated_at,reviewed_at,reviewed_by").order("updated_at",{ascending:false});
  adminCache.stageProgress=stageResult.data||[];adminCache.stageProgressError=stageResult.error?.message||null;
+ const activityResult=await supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,criterion_results,reviewer_feedback,submitted_at,reviewed_at,profiles(full_name),livelihood_stage_activities(activity_no,title_my,title_en,assessment_criteria),learner_stage_progress(stage_no)").order("submitted_at",{ascending:false});
+ adminCache.activitySubmissions=activityResult.data||[];adminCache.activitySubmissionsError=activityResult.error?.message||null;
  renderAdmin();
 }
 
@@ -1048,6 +1050,30 @@ function renderAdminEvaluations(){
  el("admin-evaluations").innerHTML=adminTable(["Learner","Course","Trainer","Type","Score","Recommendation","Status","Review"],adminCache.evaluations.map(a=>'<tr><td>'+adminEsc(a.learner?.full_name||"Learner")+'</td><td>'+adminEsc(language==="my"?a.courses?.title_my:a.courses?.title_en)+'</td><td>'+adminEsc(a.trainer?.full_name||"Trainer")+'</td><td>'+adminEsc(a.assessment_type)+'</td><td>'+Number(a.overall_score).toFixed(1)+'%</td><td>'+adminEsc(a.recommendation||"—")+'</td><td>'+adminEsc(a.status)+'</td><td>'+(a.status==="submitted"?'<textarea data-evaluation-feedback="'+a.id+'" rows="2" placeholder="Admin review feedback"></textarea><button class="small-btn approve" data-evaluation-review="'+a.id+'">Mark reviewed</button>':'<small>'+adminEsc(a.trainer_feedback||"Reviewed")+'</small>')+'</td></tr>'));
  document.querySelectorAll("[data-evaluation-review]").forEach(b=>b.onclick=async()=>{const id=b.dataset.evaluationReview,feedback=document.querySelector('[data-evaluation-feedback="'+id+'"]').value;const {error}=await supabase.rpc("admin_review_learner_evaluation",{p_evaluation_id:id,p_feedback:feedback});if(error){el("admin-alert").textContent=error.message;el("admin-alert").classList.add("error");return;}await loadAdmin();});
 }
+
+function renderAdminActivitySubmissions(){
+ const root=el("admin-activity-submissions");if(!root)return;
+ if(adminCache.activitySubmissionsError){root.innerHTML='<p class="muted">Activity submissions are not available yet. Apply and validate the migration in a test environment first. / Activity Submission ဇယားကို Test Environment တွင် စစ်ဆေးပြီးမှ အသုံးပြုနိုင်ပါမည်။</p><small class="muted">'+adminEsc(adminCache.activitySubmissionsError)+'</small>';return;}
+ const pending=adminCache.activitySubmissions.filter(s=>["submitted","reviewing"].includes(s.status));
+ if(!pending.length){root.innerHTML='<p class="muted">No activity submissions are waiting for review. / စစ်ဆေးရန် တင်သွင်းထားသော လက်တွေ့အထောက်အထား မရှိသေးပါ။</p>';return;}
+ root.innerHTML=pending.map(s=>{
+  const a=s.livelihood_stage_activities||{},criteria=Array.isArray(a.assessment_criteria)?a.assessment_criteria:[],results=s.criterion_results&&typeof s.criterion_results==="object"?s.criterion_results:{};
+  const fields=criteria.map((x,i)=>'<div class="field"><label>'+adminEsc(language==="my"?(x.my||x.en||("စံနှုန်း "+(i+1))):(x.en||x.my||("Criterion "+(i+1))))+'</label><input type="number" min="0" max="100" step="0.5" data-activity-criterion="'+i+'" value="'+adminEsc(results[String(i)]?.score??"")+'" placeholder="0–100"></div>').join("");
+  return '<article class="panel" data-activity-review-card="'+s.id+'"><div class="section-heading"><div><h4>'+adminEsc(s.profiles?.full_name||"Learner")+' · '+adminEsc(language==="my"?(a.title_my||a.title_en):(a.title_en||a.title_my))+'</h4><p class="muted">Stage '+adminEsc(s.learner_stage_progress?.stage_no||"—")+' · Activity '+adminEsc(a.activity_no||"—")+' · '+new Date(s.submitted_at).toLocaleString()+'</p></div><span class="chip">'+adminEsc(s.status.replaceAll("_"," "))+'</span></div><details><summary>View learner evidence / သက်သေခံအထောက်အထား</summary><p class="journey-note">'+adminEsc(s.evidence_text)+'</p></details><div class="field"><label>Overall score / စုစုပေါင်းအမှတ် (0–100)</label><input type="number" min="0" max="100" step="0.5" data-activity-score value="'+(s.score??"")+'" placeholder="0–100"></div>'+(fields?'<h5>Criteria assessment / စံနှုန်းအလိုက် အကဲဖြတ်ခြင်း</h5>'+fields:'<p class="muted">No rubric criteria were provided for this activity.</p>')+'<div class="field"><label>Feedback for learner / သင်ယူသူထံ ပေးမည့် အကြံပြုချက်</label><textarea rows="3" maxlength="3000" data-activity-feedback>'+adminEsc(s.reviewer_feedback||"")+'</textarea></div><div class="field"><label>Decision / ဆုံးဖြတ်ချက်</label><select data-activity-status><option value="reviewing" '+(s.status==="reviewing"?"selected":"")+'>Reviewing / စစ်ဆေးနေဆဲ</option><option value="needs_revision">Needs revision / ပြင်ဆင်ရန်လိုအပ်</option><option value="approved">Approved / အတည်ပြု</option></select></div><button class="small-btn primary-btn" type="button" data-activity-save="'+s.id+'">Save assessment / အကဲဖြတ်ချက် သိမ်းရန်</button></article>';
+ }).join("");
+ root.querySelectorAll("[data-activity-save]").forEach(button=>button.addEventListener("click",async()=>{
+  const id=button.dataset.activitySave,card=root.querySelector('[data-activity-review-card="'+id+'"]'),scoreText=card.querySelector("[data-activity-score]").value.trim(),score=scoreText===""?null:Number(scoreText),status=card.querySelector("[data-activity-status]").value,feedback=card.querySelector("[data-activity-feedback]").value.trim();
+  if(score===null||!Number.isFinite(score)||score<0||score>100){alert("Enter an overall score from 0 to 100.");return;}
+  if(status==="needs_revision"&&!feedback){alert("Feedback is required when requesting a revision.");return;}
+  const criterionResults={};card.querySelectorAll("[data-activity-criterion]").forEach(input=>{if(input.value.trim()!=="")criterionResults[input.dataset.activityCriterion]={score:Number(input.value)};});
+  if(Object.values(criterionResults).some(x=>!Number.isFinite(x.score)||x.score<0||x.score>100)){alert("Each criterion score must be between 0 and 100.");return;}
+  button.disabled=true;
+  const {error}=await supabase.from("livelihood_activity_submissions").update({score,status,reviewer_feedback:feedback||null,criterion_results:criterionResults,reviewed_by:currentUser.id,reviewed_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq("id",id);
+  if(error){alert(error.message);button.disabled=false;return;}
+  el("admin-alert").textContent="Activity assessment saved. / အကဲဖြတ်ချက် သိမ်းဆည်းပြီးပါပြီ။";await loadAdmin();
+ }));
+}
+
 function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
@@ -1068,6 +1094,7 @@ function renderAdmin(){
  bindAdminActions();
 }
 function bindAdminActions(){
+ renderAdminActivitySubmissions();
  renderAdminStageProgress();
  renderAdminReferrals();
  renderAdminInitialAssessments();
