@@ -69,8 +69,14 @@ as $$
   join public.learner_stage_progress sp on sp.learner_id = p.id
   join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
   where st.trainer_id = (select auth.uid())
-    and (select auth.uid()) is not null;
-$$;
+    and (select auth.uid()) is not null
+    and exists (
+      select 1 from public.profiles caller
+      where caller.id = (select auth.uid())
+        and caller.role = 'trainer'
+        and caller.account_status = 'approved'
+    );
+$;
 
 revoke all on function public.get_assigned_stage_learner_names() from public, anon;
 grant execute on function public.get_assigned_stage_learner_names() to authenticated;
