@@ -80,9 +80,9 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Function configuration is incomplete" }, 500, corsHeaders);
   }
 
-  // The gateway JWT check is disabled in config.toml so both legacy and new
-  // publishable API keys can reach this handler. The user's JWT is still
-  // independently verified below with Supabase Auth before any privileged query.
+  // The gateway verifies the signed-in user's JWT (verify_jwt = true).
+  // The handler independently confirms the session with Auth before any
+  // privileged query, and checks that apikey is the configured publishable key.
   if (req.headers.get("apikey") !== publishableKey) {
     return json({ error: "Unauthorized" }, 401, corsHeaders);
   }
