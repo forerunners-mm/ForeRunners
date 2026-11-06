@@ -85,7 +85,7 @@ Deno.serve(async (req: Request) => {
 
   if (assignmentError) return json({ error: "Unable to load assigned stages" }, 500, corsHeaders);
   const stageNumbers = [...new Set((assignments || []).map((row) => Number(row.stage_no)))];
-  if (!stageNumbers.length) return json({ learners: [] }, 200, corsHeaders);
+  if (!stageNumbers.length) return json({ learners: [], stage_progress: [] }, 200, corsHeaders);
 
   const { data: progress, error: progressError } = await adminClient
     .from("learner_stage_progress")
@@ -94,7 +94,7 @@ Deno.serve(async (req: Request) => {
 
   if (progressError) return json({ error: "Unable to load assigned-stage learners" }, 500, corsHeaders);
   const learnerIds = [...new Set((progress || []).map((row) => row.learner_id))];
-  if (!learnerIds.length) return json({ learners: [] }, 200, corsHeaders);
+  if (!learnerIds.length) return json({ learners: [], stage_progress: [] }, 200, corsHeaders);
 
   const { data: profiles, error: profileError } = await adminClient
     .from("profiles")
