@@ -1,0 +1,5 @@
+# Require a valid signed-in user JWT at the Supabase Edge gateway.
+# The handler also verifies the session with Auth and checks approved Trainer role.
+
+[functions.trainer-assigned-learner-names]
+verify_jwt = true
