@@ -19,13 +19,14 @@
    - `SUPABASE_SECRET_KEY` (local/singular format), or
    - `SUPABASE_SERVICE_ROLE_KEY` (legacy format).
 4. Never place a secret/service-role key in frontend code, Git, or browser-visible configuration.
-5. `config.toml` sets `verify_jwt = false` for this function because current publishable API keys are not JWTs. The function must retain its explicit API-key comparison and `auth.getUser(token)` verification. Do not remove either check.
+5. `config.toml` keeps `verify_jwt = true`. The learner-facing app invokes this function through `supabase.functions.invoke`, which sends the signed-in user's session JWT in `Authorization` and the project's publishable API key in `apikey`. The gateway validates the JWT before the handler runs. The handler additionally checks the expected publishable key and calls `auth.getUser(token)` before using the server-only elevated client. Do not disable either layer.
 
 ## Authentication and authorization tests
 - OPTIONS preflight from the published origin returns CORS headers.
 - An unapproved origin is rejected.
 - GET is rejected; POST is accepted.
 - Missing or incorrect `apikey` is rejected.
+- Missing, expired, malformed, or invalid Bearer session is rejected by the gateway before handler execution; verify the handler's Auth check also rejects invalid sessions in local tests where gateway behavior differs.
 - Missing, expired, malformed, or invalid Bearer session is rejected.
 - Authenticated learner, Admin, pending Trainer, suspended Trainer, and rejected Trainer are denied.
 - Approved Trainer with no stage assignment receives empty `learners` and `stage_progress` arrays.
