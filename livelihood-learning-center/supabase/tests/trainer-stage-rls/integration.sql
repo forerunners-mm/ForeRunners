@@ -6,6 +6,15 @@ set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000011', true);
 
 select public.test_assert(
+  auth.uid() = '00000000-0000-0000-0000-000000000011'::uuid,
+  'test JWT subject is visible to auth.uid()'
+);
+select public.test_assert(
+  (select count(*) = 1 from public.profiles where id = auth.uid()),
+  'Trainer profile fixture is visible to its owner'
+);
+
+select public.test_assert(
   (select count(*) = 1 from public.livelihood_stage_trainers),
   'approved Trainer sees only their own stage assignment'
 );
