@@ -2,10 +2,14 @@
 
 > **Environment:** Use a dedicated Supabase test project only. Do not run these tests against Production.
 >
-> **Migration order:**
-> 1. `20261105180000_create_livelihood_development_journey.sql`
-> 2. `20261105200000_create_activity_evidence_submissions.sql`
-> 3. `20261105210000_assign_trainers_by_journey_stage.sql`
+> **Migration order (apply in this exact order in the isolated test project):**
+> 1. `20261105180000_create_livelihood_development_journey.sql` — creates stages and learner stage progress.
+> 2. `20261105183000_fix_livelihood_stage_rls.sql` — replaces recursive learner stage RLS checks with the private previous-stage helper.
+> 3. `20261105190000_add_stage_practical_activities.sql` — creates the activity catalogue referenced by activity submissions.
+> 4. `20261105200000_create_activity_evidence_submissions.sql` — creates activity-level learner evidence and review records.
+> 5. `20261105210000_assign_trainers_by_journey_stage.sql` — creates stage-scoped Trainer assignments and review policies.
+>
+> The first migration is already part of the merged journey foundation. The next two are included in PR #23; the fourth is PR #25; the fifth is PR #29 as security-hardened by PR #30. Confirm that all prerequisite PRs are integrated into the test branch before applying this sequence.
 >
 > PR #30 replaces the former public-schema learner-name SECURITY DEFINER RPC with the `trainer-assigned-learner-names` Edge Function. The migration should not create that RPC.
 >
