@@ -16,6 +16,8 @@ Keep the Supabase Edge gateway's default JWT verification enabled. The browser s
 
 The function requires the caller's profile to be an approved Trainer, reads only that Trainer's assigned stages, and returns only approved learner IDs and names found in progress for those stages. It accepts no learner ID or stage number from the caller and never returns phone numbers or other profile fields.
 
+The function's browser CORS allowlist currently permits only `https://forerunners-mm.github.io`, the published LMS origin. If the LMS moves to a custom domain or a different hosting origin, update the allowlist to that exact origin before deployment; do not replace it with a wildcard. Responses include `Cache-Control: no-store` so learner names are not stored by browser or intermediary caches.
+
 The server-only secret key bypasses RLS. Therefore, the function must retain all authorization checks and must never expose that secret to the browser. The related RLS policies independently require the caller to remain an approved Trainer for stage progress and activity submission access/review.
 
 ## Deployment and verification
