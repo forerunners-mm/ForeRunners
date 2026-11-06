@@ -41,23 +41,34 @@ create policy livelihood_stage_trainers_admin_delete
 on public.livelihood_stage_trainers for delete to authenticated
 using ((select private.is_admin()));
 
--- Trainers can see only the stage progress and learner names required for their assigned stages.
-drop policy if exists livelihood_stage_progress_trainer_read on public.learner_stage_progress;
-create policy livelihood_stage_progress_trainer_read
-on public.learner_stage_progress for select to authenticated
-using (
-  exists (
-    select 1 from public.profiles caller
-    where caller.id = (select auth.uid())
+-- Do not grant Trainers SELECT access to learner_stage_progress rows:
+-- RLS is row-scoped, so that would also expose evidence_summary/reviewer_feedback.
+-- This private boolean helper authorizes a submission by stage without exposing progress fields.
+create or replace function private.trainer_can_access_livelihood_stage_progress(p_stage_progress_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select exists (
+    select 1
+    from public.learner_stage_progress sp
+    join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
+    join public.profiles caller on caller.id = (select auth.uid())
+    where sp.id = p_stage_progress_id
+      and st.trainer_id = (select auth.uid())
       and caller.role = 'trainer'
       and caller.account_status = 'approved'
-  )
-  and exists (
-    select 1 from public.livelihood_stage_trainers st
-    where st.stage_no = learner_stage_progress.stage_no
-      and st.trainer_id = (select auth.uid())
-  )
-);
+  );
+$;
+
+revoke all on function private.trainer_can_access_livelihood_stage_progress(uuid) from public, anon;
+grant execute on function private.trainer_can_access_livelihood_stage_progress(uuid) to authenticated;
+
+-- No Trainer SELECT policy is created on learner_stage_progress.
+-- Learner and Admin policies remain responsible for direct table access.
+drop policy if exists livelihood_stage_progress_trainer_read on public.learner_stage_progress;
 
 -- Expose only learner names to assigned trainers; do not expand profile access
 -- to phone numbers or other profile fields.
@@ -75,12 +86,7 @@ using (
       and caller.role = 'trainer'
       and caller.account_status = 'approved'
   )
-  and exists (
-    select 1 from public.learner_stage_progress sp
-    join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
-    where sp.id = livelihood_activity_submissions.stage_progress_id
-      and st.trainer_id = (select auth.uid())
-  )
+  and private.trainer_can_access_livelihood_stage_progress(livelihood_activity_submissions.stage_progress_id)
 );
 
 drop policy if exists livelihood_activity_submission_trainer_update
@@ -94,12 +100,7 @@ using (
       and caller.role = 'trainer'
       and caller.account_status = 'approved'
   )
-  and exists (
-    select 1 from public.learner_stage_progress sp
-    join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
-    where sp.id = livelihood_activity_submissions.stage_progress_id
-      and st.trainer_id = (select auth.uid())
-  )
+  and private.trainer_can_access_livelihood_stage_progress(livelihood_activity_submissions.stage_progress_id)
 )
 with check (
   reviewed_by = (select auth.uid())
@@ -110,12 +111,7 @@ with check (
       and caller.role = 'trainer'
       and caller.account_status = 'approved'
   )
-  and exists (
-    select 1 from public.learner_stage_progress sp
-    join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
-    where sp.id = livelihood_activity_submissions.stage_progress_id
-      and st.trainer_id = (select auth.uid())
-  )
+  and private.trainer_can_access_livelihood_stage_progress(livelihood_activity_submissions.stage_progress_id)
 );
 
 -- Prevent changing ownership, learner, activity or submission evidence during review.
