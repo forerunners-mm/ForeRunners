@@ -31,7 +31,7 @@ Deno.test("chunks rejects invalid batch sizes", () => {
   assert(threw, "zero batch size must throw");
 });
 
-for (const count of [0, 1, 499, 500, 501, 1000, 1001]) {
+for (const count of [0, 1, 499, 500, 501, 1000, 1001, 10_000]) {
   Deno.test(`collectPagedRows returns all ${count} rows exactly once`, async () => {
     const source = Array.from({ length: count }, (_, index) => index);
     const requestedRanges: Array<[number, number]> = [];
@@ -63,4 +63,23 @@ Deno.test("collectPagedRows does not expose page query errors", async () => {
     error: new Error("private database detail"),
   }), 500, 10_000);
   assertEquals(result, { kind: "query_error" }, "generic query error result");
+});
+
+Deno.test("collectPagedRows accepts exactly 10,000 rows", async () => {
+  const source = Array.from({ length: 10_000 }, (_, index) => index);
+  const result = await collectPagedRows(async (from, to) => ({
+    data: source.slice(from, to + 1),
+    error: null,
+  }), 500, 10_000);
+  assert(result.kind === "ok", "exactly the maximum should be accepted");
+  assertEquals(result.rows.length, 10_000, "all rows returned at the limit");
+});
+
+Deno.test("collectPagedRows rejects 10,001 rows", async () => {
+  const source = Array.from({ length: 10_001 }, (_, index) => index);
+  const result = await collectPagedRows(async (from, to) => ({
+    data: source.slice(from, to + 1),
+    error: null,
+  }), 500, 10_000);
+  assertEquals(result, { kind: "too_many" }, "one row over the limit is rejected");
 });
