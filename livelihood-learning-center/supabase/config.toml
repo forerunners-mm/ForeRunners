@@ -1,0 +1,7 @@
+# Supabase CLI project configuration for the Livelihood Learning Center.
+# The function verifies the user's session with Supabase Auth itself. Disabling
+# gateway JWT verification is required when the project uses sb_publishable keys,
+# which are not JWTs. Do not remove the in-function authentication checks.
+
+[functions.trainer-assigned-learner-names]
+verify_jwt = false
