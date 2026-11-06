@@ -1,0 +1,36 @@
+name: Trainer Edge Function Type Check
+
+on:
+  pull_request:
+    paths:
+      - "livelihood-learning-center/supabase/functions/trainer-assigned-learner-names/**"
+      - "livelihood-learning-center/supabase/config.toml"
+      - ".github/workflows/trainer-edge-function-check.yml"
+  push:
+    branches:
+      - "fix/trainer-edge-function-pagination-auth"
+    paths:
+      - "livelihood-learning-center/supabase/functions/trainer-assigned-learner-names/**"
+      - "livelihood-learning-center/supabase/config.toml"
+      - ".github/workflows/trainer-edge-function-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deno-check:
+    name: Deno type check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Type-check trainer Edge Function
+        working-directory: livelihood-learning-center
+        run: deno check supabase/functions/trainer-assigned-learner-names/index.ts
