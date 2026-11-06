@@ -33,13 +33,15 @@ select public.test_assert(
 );
 
 -- Column-level grants must prevent changing learner/evidence ownership.
-savepoint forbidden_ownership_change;
-\set ON_ERROR_STOP off
-update public.livelihood_activity_submissions
-set learner_id = '00000000-0000-0000-0000-000000000022'
-where id = '20000000-0000-0000-0000-000000000001';
-\set ON_ERROR_STOP on
-rollback to savepoint forbidden_ownership_change;
+select public.test_assert(
+  not has_column_privilege(
+    current_user,
+    'public.livelihood_activity_submissions',
+    'learner_id',
+    'UPDATE'
+  ),
+  'Trainer cannot update learner ownership or evidence columns'
+);
 
 reset role;
 set local role authenticated;
