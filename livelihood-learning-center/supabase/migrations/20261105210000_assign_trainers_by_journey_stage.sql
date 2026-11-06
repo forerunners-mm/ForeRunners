@@ -50,7 +50,7 @@ language sql
 stable
 security definer
 set search_path = ''
-as $
+as $$
   select exists (
     select 1
     from public.learner_stage_progress sp
@@ -61,7 +61,7 @@ as $
       and caller.role = 'trainer'
       and caller.account_status = 'approved'
   );
-$;
+$$;
 
 revoke all on function private.trainer_can_access_livelihood_stage_progress(uuid) from public, anon;
 grant execute on function private.trainer_can_access_livelihood_stage_progress(uuid) to authenticated;
