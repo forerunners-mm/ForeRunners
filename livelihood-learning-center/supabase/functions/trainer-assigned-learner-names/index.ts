@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: progress, error: progressError } = await adminClient
     .from("learner_stage_progress")
-    .select("learner_id, stage_no")
+    .select("id, learner_id, stage_no")
     .in("stage_no", stageNumbers);
 
   if (progressError) return json({ error: "Unable to load assigned-stage learners" }, 500, corsHeaders);
@@ -105,9 +105,18 @@ Deno.serve(async (req: Request) => {
 
   if (profileError) return json({ error: "Unable to load learner names" }, 500, corsHeaders);
 
-  const learners = (profiles || []).map((profile) => ({
-    learner_id: profile.id,
-    full_name: profile.full_name || "Learner",
-  }));
-  return json({ learners }, 200, corsHeaders);
+  const approvedProfiles = new Map((profiles || []).map((profile) => [profile.id, profile]));
+  const stage_progress = (progress || [])
+    .filter((row) => approvedProfiles.has(row.learner_id))
+    .map((row) => ({
+      stage_progress_id: row.id,
+      learner_id: row.learner_id,
+      stage_no: Number(row.stage_no),
+      full_name: approvedProfiles.get(row.learner_id)?.full_name || "Learner",
+    }));
+  const learners = [...new Map(stage_progress.map((row) => [row.learner_id, {
+    learner_id: row.learner_id,
+    full_name: row.full_name,
+  }])).values()];
+  return json({ learners, stage_progress }, 200, corsHeaders);
 });
