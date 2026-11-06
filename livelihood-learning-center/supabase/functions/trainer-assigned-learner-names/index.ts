@@ -34,14 +34,14 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const publishableKey = readApiKey(
-    Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"),
-    Deno.env.get("SUPABASE_PUBLISHABLE_KEY"),
-    Deno.env.get("SUPABASE_ANON_KEY"),
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") ?? null,
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? null,
+    Deno.env.get("SUPABASE_ANON_KEY") ?? null,
   );
   const secretKey = readApiKey(
-    Deno.env.get("SUPABASE_SECRET_KEYS"),
-    Deno.env.get("SUPABASE_SECRET_KEY"),
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
+    Deno.env.get("SUPABASE_SECRET_KEYS") ?? null,
+    Deno.env.get("SUPABASE_SECRET_KEY") ?? null,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? null,
   );
   if (!supabaseUrl || !publishableKey || !secretKey) {
     return json({ error: "Function configuration is incomplete" }, 500, corsHeaders);
