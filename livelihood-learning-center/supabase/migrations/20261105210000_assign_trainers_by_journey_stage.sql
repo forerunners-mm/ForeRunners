@@ -63,6 +63,7 @@ as $$
   );
 $$;
 
+grant usage on schema private to authenticated;
 revoke all on function private.trainer_can_access_livelihood_stage_progress(uuid) from public, anon;
 grant execute on function private.trainer_can_access_livelihood_stage_progress(uuid) to authenticated;
 
