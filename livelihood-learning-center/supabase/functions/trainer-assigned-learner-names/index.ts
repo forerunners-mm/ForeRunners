@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { chunks, collectPagedRows } from "./trainer-lookup-utils.ts";
+import { corsHeadersFor, readApiKey } from "./trainer-request-utils.ts";
 
 const allowedOrigins = new Set([
   "https://forerunners-mm.github.io",
@@ -7,18 +8,6 @@ const allowedOrigins = new Set([
 const PAGE_SIZE = 500;
 const MAX_STAGE_PROGRESS_ROWS = 10_000;
 const PROFILE_ID_BATCH_SIZE = 200;
-
-function corsHeadersFor(origin: string | null) {
-  const headers: Record<string, string> = {
-    "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Vary": "Origin",
-  };
-  if (origin && allowedOrigins.has(origin)) {
-    headers["Access-Control-Allow-Origin"] = origin;
-  }
-  return headers;
-}
 
 function json(body: unknown, status = 200, corsHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
@@ -32,24 +21,9 @@ function json(body: unknown, status = 200, corsHeaders: Record<string, string> =
   });
 }
 
-// Supabase's current hosted runtime provides named key maps. The singular and
-// legacy variables remain supported for local development and older projects.
-function readApiKey(namedEnv: string, singleEnv: string, legacyEnv: string): string | null {
-  const namedValue = Deno.env.get(namedEnv);
-  if (namedValue) {
-    try {
-      const keys = JSON.parse(namedValue) as Record<string, string>;
-      if (typeof keys.default === "string" && keys.default.length > 0) return keys.default;
-    } catch {
-      return null;
-    }
-  }
-  return Deno.env.get(singleEnv) || Deno.env.get(legacyEnv) || null;
-}
-
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("Origin");
-  const corsHeaders = corsHeadersFor(origin);
+  const corsHeaders = corsHeadersFor(origin, allowedOrigins);
   if (origin && !allowedOrigins.has(origin)) {
     return json({ error: "Origin not allowed" }, 403, corsHeaders);
   }
@@ -60,14 +34,14 @@ Deno.serve(async (req: Request) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const publishableKey = readApiKey(
-    "SUPABASE_PUBLISHABLE_KEYS",
-    "SUPABASE_PUBLISHABLE_KEY",
-    "SUPABASE_ANON_KEY",
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"),
+    Deno.env.get("SUPABASE_PUBLISHABLE_KEY"),
+    Deno.env.get("SUPABASE_ANON_KEY"),
   );
   const secretKey = readApiKey(
-    "SUPABASE_SECRET_KEYS",
-    "SUPABASE_SECRET_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
+    Deno.env.get("SUPABASE_SECRET_KEYS"),
+    Deno.env.get("SUPABASE_SECRET_KEY"),
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"),
   );
   if (!supabaseUrl || !publishableKey || !secretKey) {
     return json({ error: "Function configuration is incomplete" }, 500, corsHeaders);
