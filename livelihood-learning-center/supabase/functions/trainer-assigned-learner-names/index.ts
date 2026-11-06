@@ -24,8 +24,8 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Function configuration is incomplete" }, 500);
   }
 
-  // Edge gateway JWT verification is disabled for modern sb_publishable keys.
-  // Enforce the public API key header here, then independently validate the user's JWT.
+  // Keep the Edge gateway's default JWT verification enabled.
+  // Also validate the configured publishable API key and independently verify the user with Auth.
   if (req.headers.get("apikey") !== publishableKey) {
     return json({ error: "Unauthorized" }, 401);
   }
