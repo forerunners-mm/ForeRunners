@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { chunks, collectPagedRows } from "./trainer-lookup-utils.ts";
 
 const allowedOrigins = new Set([
   "https://forerunners-mm.github.io",
@@ -44,14 +45,6 @@ function readApiKey(namedEnv: string, singleEnv: string, legacyEnv: string): str
     }
   }
   return Deno.env.get(singleEnv) || Deno.env.get(legacyEnv) || null;
-}
-
-function chunks<T>(items: T[], size: number): T[][] {
-  const result: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    result.push(items.slice(index, index + size));
-  }
-  return result;
 }
 
 Deno.serve(async (req: Request) => {
@@ -125,25 +118,29 @@ Deno.serve(async (req: Request) => {
 
   // Fetch progress in stable, bounded pages so the API's row limit cannot
   // silently truncate a Trainer's assigned-stage learner list.
-  const progress: Array<{ id: string; learner_id: string; stage_no: number }> = [];
-  for (let offset = 0; ; offset += PAGE_SIZE) {
-    const { data, error } = await adminClient
-      .from("learner_stage_progress")
-      .select("id, learner_id, stage_no")
-      .in("stage_no", stageNumbers)
-      .order("id", { ascending: true })
-      .range(offset, offset + PAGE_SIZE - 1);
+  const progressResult = await collectPagedRows(
+    async (from, to) => {
+      const { data, error } = await adminClient
+        .from("learner_stage_progress")
+        .select("id, learner_id, stage_no")
+        .in("stage_no", stageNumbers)
+        .order("id", { ascending: true })
+        .range(from, to);
+      return { data, error };
+    },
+    PAGE_SIZE,
+    MAX_STAGE_PROGRESS_ROWS,
+  );
 
-    if (error) return json({ error: "Unable to load assigned-stage learners" }, 500, corsHeaders);
-    const page = data || [];
-    progress.push(...page);
-    if (progress.length > MAX_STAGE_PROGRESS_ROWS) {
-      return json({
-        error: "Too many assigned-stage learners for one request. Please contact an Admin.",
-      }, 413, corsHeaders);
-    }
-    if (page.length < PAGE_SIZE) break;
+  if (progressResult.kind === "query_error") {
+    return json({ error: "Unable to load assigned-stage learners" }, 500, corsHeaders);
   }
+  if (progressResult.kind === "too_many") {
+    return json({
+      error: "Too many assigned-stage learners for one request. Please contact an Admin.",
+    }, 413, corsHeaders);
+  }
+  const progress = progressResult.rows;
 
   const learnerIds = [...new Set(progress.map((row) => row.learner_id))];
   if (!learnerIds.length) return json({ learners: [], stage_progress: [] }, 200, corsHeaders);
