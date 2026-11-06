@@ -153,18 +153,19 @@ async function loadTrainerStageReviews(){
  const host=el("trainer-stage-activity-reviews");if(!host)return;
  const [assigned,submissions,names]=await Promise.all([
   supabase.from("livelihood_stage_trainers").select("id,stage_no,livelihood_stages(title_my,title_en)").eq("trainer_id",currentUser.id).order("stage_no"),
-  supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en),learner_stage_progress(stage_no)").order("submitted_at",{ascending:false}).limit(100),
+  supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en)").order("submitted_at",{ascending:false}).limit(100),
   supabase.functions.invoke("trainer-assigned-learner-names")
  ]);
  trainerWorkspace.stageAssignments=assigned.data||[];trainerWorkspace.stageReviewError=assigned.error?.message||submissions.error?.message||names.error?.message||null;trainerWorkspace.activitySubmissions=submissions.data||[];
  const learnerNameById=new Map((names.data?.learners||[]).map(x=>[x.learner_id,x.full_name]));
+ const stageProgressById=new Map((names.data?.stage_progress||[]).map(x=>[x.stage_progress_id,x]));
  if(trainerWorkspace.stageReviewError){host.innerHTML='<p class="muted">Stage review is not available yet. The required database migration must be deployed first. / လိုအပ်သော Database Migration မတင်ရသေးသဖြင့် Stage Review ကို လောလောဆယ် အသုံးမပြုနိုင်သေးပါ။</p>';return;}
  const allowed=new Set(trainerWorkspace.stageAssignments.map(x=>Number(x.stage_no)));
- const rows=trainerWorkspace.activitySubmissions.filter(s=>allowed.has(Number(s.learner_stage_progress?.stage_no)));
+ const rows=trainerWorkspace.activitySubmissions.filter(s=>allowed.has(Number(stageProgressById.get(s.stage_progress_id)?.stage_no)));
  host.innerHTML='<p class="muted">'+(language==="my"?"မိမိတာဝန်ယူထားသော Journey Stage များအတွက်သာ Evidence များကို စစ်ဆေးနိုင်ပါသည်။":"You can review evidence only for your assigned journey stages.")+'</p>'+
  (trainerWorkspace.stageAssignments.length?'<p><strong>Assigned stages:</strong> '+trainerWorkspace.stageAssignments.map(s=>adminEsc(language==="my"?s.livelihood_stages?.title_my:s.livelihood_stages?.title_en)).join(" · ")+'</p>':'<p class="muted">No journey stages assigned yet. Contact the Admin. / Stage တာဝန်မပေးရသေးပါ။ Admin ကို ဆက်သွယ်ပါ။</p>')+
  adminTable(["Learner","Stage / Activity","Evidence","Score","Decision & feedback"],rows.map(s=>{
-  const stage=trainerWorkspace.stageAssignments.find(x=>Number(x.stage_no)===Number(s.learner_stage_progress?.stage_no));
+  const stage=trainerWorkspace.stageAssignments.find(x=>Number(x.stage_no)===Number(stageProgressById.get(s.stage_progress_id)?.stage_no));
   const activity=s.livelihood_stage_activities||{},learner=learnerNameById.get(s.learner_id)||"Learner";
   return '<tr><td>'+adminEsc(learner)+'</td><td>'+adminEsc(language==="my"?stage?.livelihood_stages?.title_my:stage?.livelihood_stages?.title_en)+'<br>'+adminEsc(language==="my"?activity.title_my:activity.title_en)+'</td><td><details><summary>View evidence</summary><p>'+adminEsc(s.evidence_text)+'</p></details></td><td><input type="number" min="0" max="100" step="0.5" data-trainer-activity-score="'+s.id+'" value="'+(s.score??"")+'" placeholder="0–100"></td><td><select data-trainer-activity-status="'+s.id+'"><option value="reviewing" '+(s.status==="reviewing"?"selected":"")+'>Reviewing</option><option value="needs_revision" '+(s.status==="needs_revision"?"selected":"")+'>Needs revision</option><option value="approved" '+(s.status==="approved"?"selected":"")+'>Approved</option></select><textarea rows="2" maxlength="3000" data-trainer-activity-feedback="'+s.id+'" placeholder="Feedback">'+adminEsc(s.reviewer_feedback||"")+'</textarea><button type="button" class="small-btn approve" data-trainer-activity-save="'+s.id+'">Save review</button></td></tr>';
  })); 
