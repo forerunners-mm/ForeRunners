@@ -1,0 +1,82 @@
+name: Trainer Edge Function and RLS Tests
+
+on:
+  pull_request:
+    paths:
+      - "livelihood-learning-center/supabase/functions/trainer-assigned-learner-names/**"
+      - "livelihood-learning-center/supabase/migrations/20261105210000_assign_trainers_by_journey_stage.sql"
+      - "livelihood-learning-center/supabase/migrations/20261105220000_harden_stage_trainer_assignment_read.sql"
+      - "livelihood-learning-center/supabase/tests/trainer-stage-rls/**"
+      - "livelihood-learning-center/supabase/config.toml"
+      - ".github/workflows/trainer-edge-function-check.yml"
+  push:
+    branches:
+      - "fix/trainer-edge-function-pagination-auth"
+    paths:
+      - "livelihood-learning-center/supabase/functions/trainer-assigned-learner-names/**"
+      - "livelihood-learning-center/supabase/migrations/20261105210000_assign_trainers_by_journey_stage.sql"
+      - "livelihood-learning-center/supabase/migrations/20261105220000_harden_stage_trainer_assignment_read.sql"
+      - "livelihood-learning-center/supabase/tests/trainer-stage-rls/**"
+      - "livelihood-learning-center/supabase/config.toml"
+      - ".github/workflows/trainer-edge-function-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trainer-tests:
+    name: Trainer unit, type, and RLS integration tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: trainer_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d trainer_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Run trainer lookup unit tests
+        working-directory: livelihood-learning-center
+        run: deno test --allow-read supabase/functions/trainer-assigned-learner-names/
+
+      - name: Type-check trainer Edge Function
+        working-directory: livelihood-learning-center
+        run: deno check supabase/functions/trainer-assigned-learner-names/index.ts
+
+      - name: Prepare isolated PostgreSQL fixture
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d trainer_test -v ON_ERROR_STOP=1 \
+            -f livelihood-learning-center/supabase/tests/trainer-stage-rls/fixture.sql
+
+      - name: Apply actual trainer assignment migrations
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d trainer_test -v ON_ERROR_STOP=1 \
+            -f livelihood-learning-center/supabase/migrations/20261105210000_assign_trainers_by_journey_stage.sql
+          psql -h localhost -U postgres -d trainer_test -v ON_ERROR_STOP=1 \
+            -f livelihood-learning-center/supabase/migrations/20261105220000_harden_stage_trainer_assignment_read.sql
+
+      - name: Run Trainer RLS integration tests
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d trainer_test -v ON_ERROR_STOP=1 \
+            -f livelihood-learning-center/supabase/tests/trainer-stage-rls/integration.sql
