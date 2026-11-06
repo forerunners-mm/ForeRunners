@@ -31,6 +31,10 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Run trainer lookup unit tests
+        working-directory: livelihood-learning-center
+        run: deno test --allow-read supabase/functions/trainer-assigned-learner-names/trainer-lookup-utils.test.ts
+
       - name: Type-check trainer Edge Function
         working-directory: livelihood-learning-center
         run: deno check supabase/functions/trainer-assigned-learner-names/index.ts
