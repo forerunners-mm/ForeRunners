@@ -16,6 +16,17 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 4. Enable GitHub Pages for the repository after the pull request is reviewed and merged. The intended subpath is `/ForeRunners/livelihood-learning-center/`.
 5. Confirm the published URL and Supabase Auth redirect/site URL settings before inviting learners.
 
+## First Admin bootstrap (required for Admin dashboard)
+Public signup always creates `profiles.role = 'learner'` with `account_status = 'pending'`. The UI shows the Admin workspace only when the signed-in profile is `role = 'admin'` and `account_status = 'approved'`. In-app role controls cannot grant Admin, and a database trigger blocks privilege changes unless an Admin session already exists.
+
+To create the first Admin (or recover Admin access):
+
+1. Sign up / sign in once with the account that should become Admin (so `auth.users` and `profiles` exist).
+2. In Supabase project `fsypwxvenjqujielhtqb` → SQL Editor, open [`supabase/recovery/bootstrap_first_admin.sql`](supabase/recovery/bootstrap_first_admin.sql).
+3. Replace `YOUR_EMAIL_HERE` with that account's email and run the script.
+4. Sign out and sign back in. You should see the Admin dashboard, not the learner UI.
+5. Keep a second non-admin account for learner flow testing. Use Admin → Users to approve learners and assign trainers.
+
 ## Current learning programme
 - Two course levels: BASIC and ADVANCED
 - Six modules and one published bilingual introductory lesson in each level/module (12 lessons total)
@@ -72,6 +83,7 @@ Bilingual (Myanmar / English) learning platform for the ForeRunners Livelihood &
 ## Supabase recovery files
 - `supabase/recovery/live_schema_snapshot_20261103.sql` — current-state DDL, constraints, indexes, functions, RLS, policies, grants, triggers, private bucket metadata and Cron schedule. No learner PII or credentials.
 - `supabase/recovery/live_seed_data_20261103.sql` — 2 courses, 12 modules, 12 bilingual introductory lessons, 1 unpublished BASIC quiz, 10 questions and private answer keys. Does not contain learner records.
+- `supabase/recovery/bootstrap_first_admin.sql` — one-time SQL Editor script to promote an existing Auth user to approved Admin (disables `guard_profile_privileges` only for that update). Replace the email placeholder before running; do not commit real emails.
 - Replay on a disposable Supabase project first; ensure platform roles, Auth and Storage are provisioned, and check the pg_cron extension and scheduler. Do not run these recovery scripts over an existing production database.
 
 ## Release gate
