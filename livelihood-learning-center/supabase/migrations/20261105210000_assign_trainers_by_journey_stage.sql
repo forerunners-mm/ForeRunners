@@ -47,6 +47,12 @@ create policy livelihood_stage_progress_trainer_read
 on public.learner_stage_progress for select to authenticated
 using (
   exists (
+    select 1 from public.profiles caller
+    where caller.id = (select auth.uid())
+      and caller.role = 'trainer'
+      and caller.account_status = 'approved'
+  )
+  and exists (
     select 1 from public.livelihood_stage_trainers st
     where st.stage_no = learner_stage_progress.stage_no
       and st.trainer_id = (select auth.uid())
@@ -57,30 +63,6 @@ using (
 -- to phone numbers or other profile fields.
 drop policy if exists profiles_assigned_stage_trainer_read on public.profiles;
 
-create or replace function public.get_assigned_stage_learner_names()
-returns table (learner_id uuid, full_name text)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select distinct p.id, p.full_name
-  from public.profiles p
-  join public.learner_stage_progress sp on sp.learner_id = p.id
-  join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
-  where st.trainer_id = (select auth.uid())
-    and (select auth.uid()) is not null
-    and exists (
-      select 1 from public.profiles caller
-      where caller.id = (select auth.uid())
-        and caller.role = 'trainer'
-        and caller.account_status = 'approved'
-    );
-$$;
-
-revoke all on function public.get_assigned_stage_learner_names() from public, anon;
-grant execute on function public.get_assigned_stage_learner_names() to authenticated;
-
 -- Activity evidence remains private to the learner, Admins and the assigned stage trainer.
 drop policy if exists livelihood_activity_submission_read_assigned_trainer
 on public.livelihood_activity_submissions;
@@ -88,6 +70,12 @@ create policy livelihood_activity_submission_read_assigned_trainer
 on public.livelihood_activity_submissions for select to authenticated
 using (
   exists (
+    select 1 from public.profiles caller
+    where caller.id = (select auth.uid())
+      and caller.role = 'trainer'
+      and caller.account_status = 'approved'
+  )
+  and exists (
     select 1 from public.learner_stage_progress sp
     join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
     where sp.id = livelihood_activity_submissions.stage_progress_id
@@ -101,6 +89,12 @@ create policy livelihood_activity_submission_trainer_update
 on public.livelihood_activity_submissions for update to authenticated
 using (
   exists (
+    select 1 from public.profiles caller
+    where caller.id = (select auth.uid())
+      and caller.role = 'trainer'
+      and caller.account_status = 'approved'
+  )
+  and exists (
     select 1 from public.learner_stage_progress sp
     join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
     where sp.id = livelihood_activity_submissions.stage_progress_id
@@ -110,6 +104,12 @@ using (
 with check (
   reviewed_by = (select auth.uid())
   and status in ('reviewing','needs_revision','approved')
+  and exists (
+    select 1 from public.profiles caller
+    where caller.id = (select auth.uid())
+      and caller.role = 'trainer'
+      and caller.account_status = 'approved'
+  )
   and exists (
     select 1 from public.learner_stage_progress sp
     join public.livelihood_stage_trainers st on st.stage_no = sp.stage_no
