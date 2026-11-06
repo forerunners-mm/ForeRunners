@@ -53,7 +53,7 @@ Invoke `trainer-assigned-learner-names` using the LMS session. Keep the Edge gat
 | EF-04 | Request with invalid or expired user token | Rejected with 401. |
 | EF-05 | Approved Learner calls the function | Rejected with 403. |
 | EF-06 | Pending or suspended Trainer calls the function | Rejected with 403. |
-| EF-07 | Approved Trainer with no assignments calls the function | Returns an empty `learners` array. |
+| EF-07 | Approved Trainer with no assignments calls the function | Returns empty `learners` and `stage_progress` arrays. |
 | EF-08 | Trainer A calls the function | Returns only approved learners with progress in Stages 2 and 3. |
 | EF-09 | Trainer A is assigned Stage 2 only after Stage 3 removal | Stage 3-only learners disappear from the next response. |
 | EF-10 | Inspect response body | `learners` contains only `learner_id` and `full_name`; `stage_progress` contains only `stage_progress_id`, `learner_id`, `stage_no`, and `full_name`. No phone, email, notes, assessment, or referral data. |
@@ -166,7 +166,7 @@ where schemaname = 'public'
 order by tablename, policyname;
 ```
 
-Expected public RPC query result: **zero rows**. Expected Trainer SELECT policy query result: **zero rows**. The private helper should appear only in the `private` schema. Do not treat the absence of a database RPC as a failure; PR #30 uses the Edge Function instead.
+Expected public RPC query result: **zero rows**. Expected Trainer SELECT policy query result: **zero rows**. The private helper should appear only in the `private` schema. Confirm `authenticated` has `USAGE` on `private` and `EXECUTE` only on the helper; `anon` and `public` must not have helper execution. Do not treat the absence of a database RPC as a failure; PR #30 uses the Edge Function instead.
 
 ## 8. Release gate
 
