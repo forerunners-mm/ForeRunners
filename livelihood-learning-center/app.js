@@ -165,13 +165,18 @@ async function loadTrainerStageReviews(){
  await loadMoreTrainerActivitySubmissions(true);
 }
 async function loadMoreTrainerActivitySubmissions(reset=false){
- const host=el("trainer-stage-activity-reviews");if(!host)return;
- const pageSize=100,page=reset?0:(trainerWorkspace.activityPage||0);
- const {data,error}=await supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en)").order("submitted_at",{ascending:false}).range(page*pageSize,(page+1)*pageSize-1);
- if(error){trainerWorkspace.stageReviewError=error.message;host.textContent=error.message;return;}
- trainerWorkspace.activitySubmissions=reset?(data||[]):[...(trainerWorkspace.activitySubmissions||[]),...(data||[])];
- trainerWorkspace.activityPage=page+1;trainerWorkspace.hasMoreActivitySubmissions=(data||[]).length===pageSize;
- renderTrainerStageActivityRows();
+ const host=el("trainer-stage-activity-reviews");if(!host||trainerWorkspace.activityLoading)return;
+ trainerWorkspace.activityLoading=true;
+ try{
+  const pageSize=100,page=reset?0:(trainerWorkspace.activityPage||0);
+  const {data,error}=await supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en)").order("submitted_at",{ascending:false}).order("id",{ascending:true}).range(page*pageSize,(page+1)*pageSize-1);
+  if(error){trainerWorkspace.stageReviewError=error.message;host.textContent=error.message;return;}
+  trainerWorkspace.activitySubmissions=reset?(data||[]):[...(trainerWorkspace.activitySubmissions||[]),...(data||[])];
+  trainerWorkspace.activityPage=page+1;trainerWorkspace.hasMoreActivitySubmissions=(data||[]).length===pageSize;
+  renderTrainerStageActivityRows();
+ }finally{
+  trainerWorkspace.activityLoading=false;
+ }
 }
 function renderTrainerStageActivityRows(){
  const host=el("trainer-stage-activity-reviews");
