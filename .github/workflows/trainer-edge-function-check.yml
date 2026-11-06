@@ -52,7 +52,7 @@ jobs:
 
       - name: Run trainer lookup unit tests
         working-directory: livelihood-learning-center
-        run: deno test --allow-read supabase/functions/trainer-assigned-learner-names/trainer-lookup-utils.test.ts
+        run: deno test --allow-read supabase/functions/trainer-assigned-learner-names/
 
       - name: Type-check trainer Edge Function
         working-directory: livelihood-learning-center
