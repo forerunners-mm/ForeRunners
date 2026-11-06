@@ -27,7 +27,6 @@
 - GET is rejected; POST is accepted.
 - Missing or incorrect `apikey` is rejected.
 - Missing, expired, malformed, or invalid Bearer session is rejected by the gateway before handler execution; verify the handler's Auth check also rejects invalid sessions in local tests where gateway behavior differs.
-- Missing, expired, malformed, or invalid Bearer session is rejected.
 - Authenticated learner, Admin, pending Trainer, suspended Trainer, and rejected Trainer are denied.
 - Approved Trainer with no stage assignment receives empty `learners` and `stage_progress` arrays.
 - Approved Trainer receives only approved Learner names and progress for assigned stages.
