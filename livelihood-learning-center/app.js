@@ -154,10 +154,10 @@ async function loadTrainerStageReviews(){
  const [assigned,submissions,names]=await Promise.all([
   supabase.from("livelihood_stage_trainers").select("id,stage_no,livelihood_stages(title_my,title_en)").eq("trainer_id",currentUser.id).order("stage_no"),
   supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en),learner_stage_progress(stage_no)").order("submitted_at",{ascending:false}).limit(100),
-  supabase.rpc("get_assigned_stage_learner_names")
+  supabase.functions.invoke("trainer-assigned-learner-names")
  ]);
  trainerWorkspace.stageAssignments=assigned.data||[];trainerWorkspace.stageReviewError=assigned.error?.message||submissions.error?.message||names.error?.message||null;trainerWorkspace.activitySubmissions=submissions.data||[];
- const learnerNameById=new Map((names.data||[]).map(x=>[x.learner_id,x.full_name]));
+ const learnerNameById=new Map((names.data?.learners||[]).map(x=>[x.learner_id,x.full_name]));
  if(trainerWorkspace.stageReviewError){host.innerHTML='<p class="muted">Stage review is not available yet. The required database migration must be deployed first. / လိုအပ်သော Database Migration မတင်ရသေးသဖြင့် Stage Review ကို လောလောဆယ် အသုံးမပြုနိုင်သေးပါ။</p>';return;}
  const allowed=new Set(trainerWorkspace.stageAssignments.map(x=>Number(x.stage_no)));
  const rows=trainerWorkspace.activitySubmissions.filter(s=>allowed.has(Number(s.learner_stage_progress?.stage_no)));
