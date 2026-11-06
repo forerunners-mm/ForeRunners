@@ -165,13 +165,22 @@ async function loadTrainerStageReviews(){
  await loadMoreTrainerActivitySubmissions(true);
 }
 async function loadMoreTrainerActivitySubmissions(reset=false){
- const host=el("trainer-stage-activity-reviews");if(!host)return;
- const pageSize=100,page=reset?0:(trainerWorkspace.activityPage||0);
- const {data,error}=await supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en)").order("submitted_at",{ascending:false}).range(page*pageSize,(page+1)*pageSize-1);
- if(error){trainerWorkspace.stageReviewError=error.message;host.textContent=error.message;return;}
- trainerWorkspace.activitySubmissions=reset?(data||[]):[...(trainerWorkspace.activitySubmissions||[]),...(data||[])];
- trainerWorkspace.activityPage=page+1;trainerWorkspace.hasMoreActivitySubmissions=(data||[]).length===pageSize;
- renderTrainerStageActivityRows();
+ const host=el("trainer-stage-activity-reviews");if(!host||trainerWorkspace.activityLoading)return;
+ trainerWorkspace.activityLoading=true;
+ const moreButton=host.querySelector("[data-load-more-activities]");
+ if(moreButton){moreButton.disabled=true;moreButton.textContent=language==="my"?"ခဏစောင့်ပါ...":"Loading...";}
+ try{
+  const pageSize=100,page=reset?0:(trainerWorkspace.activityPage||0);
+  const {data,error}=await supabase.from("livelihood_activity_submissions").select("id,learner_id,stage_progress_id,activity_id,evidence_text,status,score,reviewer_feedback,submitted_at,livelihood_stage_activities(activity_no,title_my,title_en)").order("submitted_at",{ascending:false}).order("id",{ascending:true}).range(page*pageSize,(page+1)*pageSize-1);
+  if(error){trainerWorkspace.stageReviewError=error.message;host.textContent=error.message;return;}
+  trainerWorkspace.activitySubmissions=reset?(data||[]):[...(trainerWorkspace.activitySubmissions||[]),...(data||[])];
+  trainerWorkspace.activityPage=page+1;trainerWorkspace.hasMoreActivitySubmissions=(data||[]).length===pageSize;
+  renderTrainerStageActivityRows();
+ }finally{
+  trainerWorkspace.activityLoading=false;
+  const nextButton=host.querySelector("[data-load-more-activities]");
+  if(nextButton){nextButton.disabled=false;nextButton.textContent=language==="my"?"နောက်ထပ် Evidence များ ကြည့်ရန်":"Load more submissions";}
+ }
 }
 function renderTrainerStageActivityRows(){
  const host=el("trainer-stage-activity-reviews");
@@ -187,7 +196,7 @@ function renderTrainerStageActivityRows(){
  }));
  host.querySelectorAll("[data-trainer-activity-save]").forEach(button=>button.onclick=()=>saveTrainerActivityReview(button.dataset.trainerActivitySave,button));
  if(trainerWorkspace.hasMoreActivitySubmissions){
-  const more=document.createElement("button");more.type="button";more.className="small-btn";more.textContent=language==="my"?"နောက်ထပ် Evidence များ ကြည့်ရန်":"Load more submissions";more.onclick=()=>loadMoreTrainerActivitySubmissions(false);host.appendChild(more);
+  const more=document.createElement("button");more.type="button";more.className="small-btn";more.dataset.loadMoreActivities="true";more.textContent=language==="my"?"နောက်ထပ် Evidence များ ကြည့်ရန်":"Load more submissions";more.onclick=()=>loadMoreTrainerActivitySubmissions(false);host.appendChild(more);
  }
 }
 async function saveTrainerActivityReview(id,button){
