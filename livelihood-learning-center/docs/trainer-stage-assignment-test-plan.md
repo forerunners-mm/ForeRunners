@@ -56,7 +56,7 @@ Invoke `trainer-assigned-learner-names` using the LMS session. Keep the Edge gat
 | EF-07 | Approved Trainer with no assignments calls the function | Returns an empty `learners` array. |
 | EF-08 | Trainer A calls the function | Returns only approved learners with progress in Stages 2 and 3. |
 | EF-09 | Trainer A is assigned Stage 2 only after Stage 3 removal | Stage 3-only learners disappear from the next response. |
-| EF-10 | Inspect response body | Contains only `learner_id` and `full_name`; no phone, email, notes, assessment, or referral data. |
+| EF-10 | Inspect response body | `learners` contains only `learner_id` and `full_name`; `stage_progress` contains only `stage_progress_id`, `learner_id`, `stage_no`, and `full_name`. No phone, email, notes, assessment, or referral data. |
 | EF-11 | Inspect browser bundle and network response | Server-only `SUPABASE_SECRET_KEY` is never sent to the browser. |
 | EF-12 | Change Trainer A role/status after assignment | Function denies access on the next request. |
 
@@ -75,6 +75,9 @@ The function uses an elevated server-side key to perform its lookup. Its authori
 | TR-07 | Learner A queries another learner's submission | No other learner's submission is returned. |
 | TR-08 | Remove Trainer A's Stage 2 assignment, then repeat Stage 2 query | Access is denied on the next request. |
 | TR-09 | Change Trainer A role to learner or account status to suspended | Stage progress and activity submission access is denied. |
+| TR-10 | Trainer A directly selects `learner_stage_progress` using PostgREST | No rows are returned for Trainer; no `evidence_summary` or `reviewer_feedback` can be read. |
+| TR-11 | Trainer A reads assigned activity submissions | Submission rows and related activity metadata load without a `learner_stage_progress` relationship join. |
+| TR-12 | Trainer A attempts to call the private authorization helper for another user's stage progress ID | The helper returns false; it reveals no learner or progress fields. |
 
 ## 5. Activity assessment tests
 
@@ -128,6 +131,19 @@ from information_schema.routines
 where routine_schema = 'public'
   and routine_name = 'get_assigned_stage_learner_names';
 
+-- Confirm the stage authorization helper is private, not in the exposed public schema.
+select routine_schema, routine_name, security_type
+from information_schema.routines
+where routine_schema = 'private'
+  and routine_name = 'trainer_can_access_livelihood_stage_progress';
+
+-- Confirm no Trainer SELECT policy exists on learner_stage_progress.
+select policyname, cmd
+from pg_policies
+where schemaname = 'public'
+  and tablename = 'learner_stage_progress'
+  and policyname = 'livelihood_stage_progress_trainer_read';
+
 -- Confirm Trainer UPDATE is limited to review fields.
 select column_name, privilege_type
 from information_schema.column_privileges
@@ -150,7 +166,7 @@ where schemaname = 'public'
 order by tablename, policyname;
 ```
 
-Expected RPC query result: **zero rows**. Do not treat the absence of a database RPC as a failure; PR #30 uses the Edge Function instead.
+Expected public RPC query result: **zero rows**. Expected Trainer SELECT policy query result: **zero rows**. The private helper should appear only in the `private` schema. Do not treat the absence of a database RPC as a failure; PR #30 uses the Edge Function instead.
 
 ## 8. Release gate
 
