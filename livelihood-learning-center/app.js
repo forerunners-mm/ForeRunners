@@ -597,9 +597,12 @@ async function loadAdmin(){
   supabase.from("career_guidance_referrals").select("id,learner_id,referral_type,status,learner_message,provider_name,provider_contact,meeting_mode,meeting_at,meeting_location,learner_visible_summary,created_at,updated_at,consent_given").order("created_at",{ascending:false})
  ]);
  const names=["profiles","enrollments","courses","modules","lessons","quizzes","questions","progress","attempts","assignments","submissions","certificates","attendance","announcements","support requests","support messages","course trainer assignments","learner evaluations","career readiness assessments","learner skill profiles","career opportunities","career opportunity applications","graduate follow-ups","initial assessments","career guidance referrals"];
- rs.forEach((r,i)=>{if(r.error)throw new Error(names[i]+": "+r.error.message);});
- [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups,adminCache.initialAssessments,adminCache.referrals]=rs.map(r=>r.data||[]);
+ if(rs[0].error)throw new Error("profiles: "+rs[0].error.message);
+ const failed=rs.map((r,i)=>r.error?names[i]+": "+r.error.message:null).filter(Boolean);
+ [adminCache.users,adminCache.enrollments,adminCache.courses,adminCache.modules,adminCache.lessons,adminCache.quizzes,adminCache.questions,adminCache.progress,adminCache.attempts,adminCache.assignments,adminCache.submissions,adminCache.certificates,adminCache.attendance,adminCache.announcements,adminCache.supportRequests,adminCache.supportMessages,adminCache.courseTrainers,adminCache.evaluations,adminCache.careerAssessments,adminCache.skillProfiles,adminCache.opportunities,adminCache.careerApplications,adminCache.graduateFollowups,adminCache.initialAssessments,adminCache.referrals]=rs.map(r=>r.error?[]:(r.data||[]));
  renderAdmin();
+ if(failed.length){el("admin-alert").textContent="Some dashboard sections could not load: "+failed.join(" | ");el("admin-alert").classList.add("error");}
+ else{el("admin-alert").textContent="";el("admin-alert").classList.remove("error");}
 }
 
 let adminQuizQuestionCount = 0;
