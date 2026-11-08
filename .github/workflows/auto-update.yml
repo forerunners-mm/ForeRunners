@@ -8,6 +8,9 @@ on:
     - cron: '30 2 1 * *'
   workflow_dispatch:  # Manual trigger option
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -27,7 +30,7 @@ jobs:
 
       - name: Generate Excel file
         run: |
-          python scripts/generate_roadmap_excel.py
+          python .github/workflows/generate_roadmap_excel.py
 
       - name: Commit and push if changed
         run: |
