@@ -58,6 +58,13 @@ try {
   if (!(await page.locator("#name-field").isVisible())) {
     throw new Error("Sign-up mode did not reveal the full-name field.");
   }
+  if (!(await page.locator("#signup-role-field").isVisible())) {
+    throw new Error("Sign-up mode did not reveal the account-type selector.");
+  }
+  const roleOptions = await page.locator("#signup-role option").evaluateAll(options => options.map(option => option.value));
+  if (roleOptions.join(",") !== "learner,trainer") {
+    throw new Error("Sign-up role selector must offer Learner and Trainer.");
+  }
   if ((await page.locator("#auth-submit").innerText()).trim().length === 0) {
     throw new Error("Sign-up submit button has no label.");
   }
@@ -65,6 +72,9 @@ try {
   await page.locator("#login-tab").click();
   if (await page.locator("#name-field").isVisible()) {
     throw new Error("Login mode did not hide the full-name field.");
+  }
+  if (await page.locator("#signup-role-field").isVisible()) {
+    throw new Error("Login mode did not hide the account-type selector.");
   }
 
   if (errors.length) {
