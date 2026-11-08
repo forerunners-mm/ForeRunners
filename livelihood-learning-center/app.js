@@ -857,6 +857,9 @@ async function changeLessonStatus(id,status){
  if(error){alert(error.message);return;}await loadAdmin();
 }
 function renderAdminTrainers(){
+ const trainerRequests=adminCache.users.filter(u=>u.requested_role==="trainer"&&u.role!=="trainer"&&u.account_status!=="rejected"&&u.account_status!=="suspended");
+ el("admin-trainer-requests").innerHTML=adminTable(["Applicant","Current role","Account status","Action"],trainerRequests.map(u=>'<tr><td>'+adminEsc(u.full_name||"—")+'<br><small>'+adminEsc(u.phone||"")+'</small></td><td>'+adminEsc(u.role)+'</td><td>'+adminEsc(u.account_status)+'</td><td><button class="small-btn approve" data-trainer-approve="'+u.id+'">Approve as Trainer</button></td></tr>'));
+ document.querySelectorAll("[data-trainer-approve]").forEach(b=>b.onclick=async()=>{b.disabled=true;await updateAdminProfile(b.dataset.trainerApprove,"trainer","approved");});
  const trainers=adminCache.users.filter(u=>u.role==="trainer"&&u.account_status==="approved");
  el("trainer-user-select").innerHTML=trainers.map(u=>'<option value="'+u.id+'">'+adminEsc(u.full_name||u.phone||u.id)+'</option>').join("");
  el("trainer-course-select").innerHTML=adminCache.courses.map(c=>'<option value="'+c.id+'">'+adminEsc(c.level)+' — '+adminEsc(language==="my"?c.title_my:c.title_en)+'</option>').join("");
