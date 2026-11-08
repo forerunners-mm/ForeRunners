@@ -22,7 +22,7 @@ const translations = {
     eyebrow:"FORE RUNNERS ORGANIZATION", heroTitle:"ကျွမ်းကျင်မှု တည်ဆောက်ပါ။ အသက်မွေးဝမ်းကျောင်း ဖန်တီးပါ။",
     heroText:"အခြေခံမှ အဆင့်မြင့်အထိ လက်တွေ့အခြေပြု သင်ယူမှုဖြင့် မိမိအသက်မွေးဝမ်းကျောင်းကို တည်ဆောက်ပါ။",
     access:"LEARNER ACCESS", welcome:"သင်ယူမှုစတင်ရန် ဝင်ရောက်ပါ", approvalNote:"သင်တန်းဝင်ခွင့်ကို ForeRunners အဖွဲ့မှ အတည်ပြုပေးရပါမည်။",
-    loginTab:"အကောင့်ဝင်ရန်", signupTab:"အကောင့်ဖွင့်ရန်", fullName:"အမည်", email:"အီးမေးလ်", password:"စကားဝှက်",
+    loginTab:"အကောင့်ဝင်ရန်", signupTab:"အကောင့်ဖွင့်ရန်", fullName:"အမည်", email:"အီးမေးလ်", password:"စကားဝှက်", signupRole:"အကောင့်အမျိုးအစား",
     login:"အကောင့်ဝင်ရန်", signup:"အကောင့်ဖွင့်ရန်", signout:"ထွက်ရန်", pendingTitle:"အတည်ပြုရန် စောင့်ဆိုင်းနေပါသည်",
     pendingText:"သင့်အကောင့်ကို အဖွဲ့မှ စစ်ဆေးအတည်ပြုပြီးနောက် သင်တန်းလျှောက်ထားနိုင်ပါမည်။",
     learnerSpace:"LEARNER SPACE", hello:"မင်္ဂလာပါ", coursesTitle:"သင်တန်းများ",
@@ -42,7 +42,7 @@ const translations = {
     eyebrow:"FORE RUNNERS ORGANIZATION", heroTitle:"Build Skills. Create Livelihoods.",
     heroText:"Develop your livelihood through practical learning, from foundational skills to advanced growth.",
     access:"LEARNER ACCESS", welcome:"Sign in to start learning", approvalNote:"Course access is granted after approval by the ForeRunners team.",
-    loginTab:"Sign in", signupTab:"Create account", fullName:"Full name", email:"Email", password:"Password",
+    loginTab:"Sign in", signupTab:"Create account", fullName:"Full name", email:"Email", password:"Password", signupRole:"Account type",
     login:"Sign in", signup:"Create account", signout:"Sign out", pendingTitle:"Your account is awaiting approval",
     pendingText:"The ForeRunners team will review your account. You can apply for a course after approval.",
     learnerSpace:"LEARNER SPACE", hello:"Welcome,", coursesTitle:"Available courses",
@@ -75,6 +75,8 @@ function applyLanguage() {
   el("signup-tab").textContent=t("signupTab");
   el("auth-submit").textContent=t(authMode);
   el("name-field").classList.toggle("hidden",authMode!=="signup");
+  el("signup-role-field").classList.toggle("hidden",authMode!=="signup");
+  el("signup-role-label").textContent=t("signupRole");
 }
 el("lang-toggle").addEventListener("click",()=>{language=language==="my"?"en":"my";localStorage.setItem("lvc-language",language);applyLanguage();if(currentUser)handleSession({user:currentUser});});
 function setAuthMode(mode){authMode=mode;el("login-tab").classList.toggle("active",mode==="login");el("signup-tab").classList.toggle("active",mode==="signup");applyLanguage();setMessage("auth-message","");}
@@ -93,7 +95,7 @@ el("auth-form").addEventListener("submit",async (event)=>{
     if(authMode==="signup"){
       const fullName=el("full-name").value.trim();
       if(!fullName) throw new Error(language==="my"?"အမည်ဖြည့်ပါ။":"Please enter your name.");
-      const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName}}});
+      const {error}=await supabase.auth.signUp({email,password,options:{data:{full_name:fullName,requested_role:el("signup-role").value}}});
       if(error) throw error;
       setMessage("auth-message",t("signUpSuccess"));
     }else{
@@ -568,7 +570,7 @@ document.querySelectorAll("[data-admin-tab]").forEach(b=>b.addEventListener("cli
 const verifyForm=el("certificate-verify-form");if(verifyForm){verifyForm.onsubmit=e=>{e.preventDefault();verifyCertificate(el("certificate-verify-code").value.trim());};const code=new URLSearchParams(window.location.search).get("verify");if(code){el("certificate-verification").classList.remove("hidden");el("certificate-verify-code").value=code;verifyCertificate(code);}}
 async function loadAdmin(){
  const rs=await Promise.all([
-  supabase.from("profiles").select("id,full_name,phone,role,account_status,created_at").order("created_at",{ascending:false}),
+  supabase.from("profiles").select("id,full_name,phone,role,requested_role,account_status,created_at").order("created_at",{ascending:false}),
   supabase.from("enrollments").select("id,learner_id,course_id,status,applied_at,completed_at,profiles(full_name,phone),courses(title_my,title_en,level)").order("applied_at",{ascending:false}),
   supabase.from("courses").select("id,title_my,title_en,level,is_published,sort_order").order("sort_order"),
   supabase.from("modules").select("id,course_id,title_my,title_en,sort_order").order("sort_order"),
@@ -960,9 +962,9 @@ function renderAdmin(){
  const pending=adminCache.users.filter(x=>x.account_status==="pending"),apps=adminCache.enrollments.filter(x=>x.status==="pending");
  const stats=[["Total learners",adminCache.users.filter(x=>x.role!=="admin").length],["Pending accounts",pending.length],["Applications",adminCache.enrollments.length],["Published courses",adminCache.courses.filter(x=>x.is_published).length],["Lessons",adminCache.lessons.length],["Published quizzes",adminCache.quizzes.filter(x=>x.is_published).length]];
  el("admin-stats").innerHTML=stats.map(([k,v])=>'<article class="admin-stat"><span>'+k+'</span><strong>'+v+'</strong></article>').join("");
- el("pending-users").innerHTML=pending.slice(0,8).map(u=>'<div class="admin-row"><span><b>'+adminEsc(u.full_name||"Learner")+'</b><br><small class="muted">'+adminEsc(u.phone||"")+'</small></span><div class="row-actions"><button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button><button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button></div></div>').join("")||'<p class="muted">'+t("noPending")+'</p>';
+ el("pending-users").innerHTML=pending.slice(0,8).map(u=>'<div class="admin-row"><span><b>'+adminEsc(u.full_name||"Learner")+'</b><br><small class="muted">Requested: '+adminEsc(u.requested_role||"learner")+' · '+adminEsc(u.phone||"")+'</small></span><div class="row-actions"><button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button><button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button></div></div>').join("")||'<p class="muted">'+t("noPending")+'</p>';
  el("pending-enrollments").innerHTML=apps.slice(0,8).map(a=>'<div class="admin-row"><span><b>'+adminEsc(a.profiles?.full_name||"Learner")+'</b><br><small class="muted">'+adminEsc(a.courses?.[language==="my"?"title_my":"title_en"]||"Course")+'</small></span><div class="row-actions"><button class="small-btn approve" data-app-approve="'+a.id+'">'+t("approve")+'</button><button class="small-btn reject" data-app-reject="'+a.id+'">'+t("reject")+'</button></div></div>').join("")||'<p class="muted">'+t("noPending")+'</p>';
- const userRows=adminCache.users.filter(u=>u.role!=="admin").map(u=>'<tr><td>'+adminEsc(u.full_name||"—")+' <small class="muted">'+adminEsc(u.role)+'</small></td><td>'+adminEsc(u.phone||"—")+'</td><td>'+adminEsc(u.account_status)+'</td><td>'+new Date(u.created_at).toLocaleDateString()+'</td><td><select data-user-role="'+u.id+'"><option value="learner" '+(u.role==="learner"?"selected":"")+'>Learner</option><option value="trainer" '+(u.role==="trainer"?"selected":"")+'>Trainer</option></select> <button class="small-btn" data-user-role-save="'+u.id+'">Save role</button> '+(u.account_status==="pending"?'<button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button>':u.account_status==="approved"?'<button class="small-btn reject" data-user-suspend="'+u.id+'">Suspend</button>':'<button class="small-btn approve" data-user-approve="'+u.id+'">Approve</button>')+'</td></tr>');
+ const userRows=adminCache.users.filter(u=>u.role!=="admin").map(u=>'<tr><td>'+adminEsc(u.full_name||"—")+' <small class="muted">'+adminEsc(u.role)+' · requested '+adminEsc(u.requested_role||"learner")+'</small></td><td>'+adminEsc(u.phone||"—")+'</td><td>'+adminEsc(u.account_status)+'</td><td>'+new Date(u.created_at).toLocaleDateString()+'</td><td><select data-user-role="'+u.id+'"><option value="learner" '+(u.role==="learner"?"selected":"")+'>Learner</option><option value="trainer" '+(u.role==="trainer"?"selected":"")+'>Trainer</option></select> <button class="small-btn" data-user-role-save="'+u.id+'">Save role</button> '+(u.account_status==="pending"?'<button class="small-btn approve" data-user-approve="'+u.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-user-reject="'+u.id+'">'+t("reject")+'</button>':u.account_status==="approved"?'<button class="small-btn reject" data-user-suspend="'+u.id+'">Suspend</button>':'<button class="small-btn approve" data-user-approve="'+u.id+'">Approve</button>')+'</td></tr>');
  el("admin-learners").innerHTML=adminTable(["Name / Role","Phone","Status","Joined","Role & Status"],userRows);
  el("admin-enrollments").innerHTML=adminTable(["Learner","Course","Status","Action"],adminCache.enrollments.map(a=>'<tr><td>'+adminEsc(a.profiles?.full_name||"Learner")+'</td><td>'+adminEsc(a.courses?.[language==="my"?"title_my":"title_en"]||"—")+'</td><td>'+adminEsc(a.status)+'</td><td>'+(a.status==="pending"?'<button class="small-btn approve" data-app-approve="'+a.id+'">'+t("approve")+'</button> <button class="small-btn reject" data-app-reject="'+a.id+'">'+t("reject")+'</button>':"—")+'</td></tr>'));
  el("admin-courses").innerHTML=adminTable(["Level","Course","Status","Action"],adminCache.courses.map(q=>'<tr><td>'+adminEsc(q.level)+'</td><td>'+adminEsc(language==="my"?q.title_my:q.title_en)+'</td><td>'+(q.is_published?"Published":"Draft")+'</td><td><button class="small-btn" data-course-publish="'+q.id+'" data-next="'+(!q.is_published)+'">'+(q.is_published?"Unpublish":"Publish")+'</button></td></tr>'));
@@ -1015,7 +1017,7 @@ function bindAdminActions(){
  document.querySelectorAll("[data-quiz-publish]").forEach(b=>b.onclick=()=>adminSave(supabase.from("quizzes").update({is_published:b.dataset.next==="true"}).eq("id",b.dataset.quizPublish)));
 }
 async function adminSave(p){const {error}=await p;if(error){el("admin-alert").textContent=error.message;el("admin-alert").classList.add("error");return;}el("admin-alert").textContent=language==="my"?"သိမ်းဆည်းပြီးပါပြီ။":"Changes saved.";el("admin-alert").classList.remove("error");await loadAdmin();}
-async function reviewUser(id,status){await updateAdminProfile(id,null,status);}
+async function reviewUser(id,status){const user=adminCache.users.find(u=>u.id===id);await updateAdminProfile(id,status==="approved"?(user?.requested_role||"learner"):null,status);}
 async function updateAdminProfile(id,role,status){const user=adminCache.users.find(u=>u.id===id);if(!user)return;const {error}=await supabase.rpc("admin_update_profile",{p_user_id:id,p_role:role||user.role,p_account_status:status||user.account_status});if(error){el("admin-alert").textContent=error.message;el("admin-alert").classList.add("error");return;}await loadAdmin();}
 async function reviewEnrollment(id,status){await adminSave(supabase.from("enrollments").update({status,reviewed_at:new Date().toISOString(),reviewed_by:currentUser.id}).eq("id",id));}
 el("learner-search").addEventListener("input",()=>{

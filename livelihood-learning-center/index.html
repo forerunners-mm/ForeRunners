@@ -38,6 +38,7 @@
       </div>
       <form id="auth-form">
         <div id="name-field" class="field hidden"><label for="full-name" data-i18n="fullName">အမည်</label><input id="full-name" autocomplete="name"></div>
+        <div id="signup-role-field" class="field hidden"><label id="signup-role-label" for="signup-role">အကောင့်အမျိုးအစား</label><select id="signup-role" autocomplete="off"><option value="learner">Learner / သင်ယူသူ</option><option value="trainer">Trainer / သင်တန်းဆရာ</option></select><small class="muted">Trainer accounts require Admin approval before Trainer Workspace access.</small></div>
         <div class="field"><label for="email" data-i18n="email">အီးမေးလ်</label><input id="email" type="email" required autocomplete="email"></div>
         <div class="field"><label for="password" data-i18n="password">စကားဝှက်</label><input id="password" type="password" required minlength="8" autocomplete="current-password"></div>
         <button id="auth-submit" class="primary-btn" type="submit" data-i18n="login">အကောင့်ဝင်ရန်</button>
