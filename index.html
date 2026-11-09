@@ -12,6 +12,8 @@
   <title>ForeRunners Organization | Empowering Communities</title>
   <link rel="stylesheet" href="./assets/css/styles.css">
   <script src="./assets/js/app.js" defer></script>
+  <script src="./assets/js/champion-config.js" defer></script>
+  <script src="./assets/js/champion-embed.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -24,6 +26,7 @@
     <nav id="primaryNav" class="nav" aria-label="Primary navigation">
       <a href="#about" data-i18n="navAbout">About</a>
       <a href="#programs" data-i18n="navPrograms">Our Programs</a>
+      <a href="#environmental-champion" data-i18n="navChampion">Environmental Champion</a>
       <a href="#learning" data-i18n="navLearning">Learning Center</a>
       <a href="#get-involved" data-i18n="navInvolved">Get Involved</a>
       <button class="language-toggle" id="languageToggle" type="button" aria-label="Change language">မြန်မာ</button>
@@ -74,6 +77,33 @@
         <article class="program-card"><span class="card-number">04</span><div class="card-icon" aria-hidden="true">⌘</div><h3 data-i18n="p4Title">Digital Literacy & Safety</h3><p data-i18n="p4Text">Developing accessible digital skills, digital safety and responsible AI use.</p><span class="card-tag" data-i18n="tagDigital">Digital inclusion</span></article>
         <article class="program-card"><span class="card-number">05</span><div class="card-icon" aria-hidden="true">♧</div><h3 data-i18n="p5Title">Green Business & Resilience</h3><p data-i18n="p5Text">Encouraging environmentally responsible enterprise and community resilience.</p><span class="card-tag" data-i18n="tagGreen">Environment</span></article>
         <article class="program-card"><span class="card-number">06</span><div class="card-icon" aria-hidden="true">✳</div><h3 data-i18n="p6Title">Gender Equality & Inclusion</h3><p data-i18n="p6Text">Working toward meaningful participation and opportunity for women and underserved groups.</p><span class="card-tag" data-i18n="tagInclusion">Inclusion</span></article>
+      </div>
+    </section>
+
+    <section class="champion-section section" id="environmental-champion">
+      <div class="champion-panel">
+        <div class="champion-intro">
+          <p class="eyebrow" data-i18n="championEyebrow">ENVIRONMENTAL ACTION</p>
+          <h2 data-i18n="championTitle">Understand your environmental impact. Build a greener future.</h2>
+          <p data-i18n="championText">Use the Environmental Protector Champion assessment to review current practices and identify practical next steps for individuals, households, companies and NGOs.</p>
+          <div class="champion-highlights">
+            <span data-i18n="championFeature1">Four assessment pathways</span>
+            <span data-i18n="championFeature2">Personalized action recommendations</span>
+            <span data-i18n="championFeature3">Carbon footprint estimation</span>
+          </div>
+        </div>
+        <div class="champion-assessment">
+          <div class="champion-assessment-heading">
+            <div>
+              <p class="eyebrow" data-i18n="championToolLabel">FORE RUNNERS DIGITAL TOOL</p>
+              <h3 data-i18n="championAssessmentTitle">Start your Champion assessment</h3>
+              <p id="championStatus" class="champion-status" role="status" aria-live="polite" data-i18n="championNotConfigured">The assessment will appear here once its secure public deployment URL is configured.</p>
+            </div>
+            <a id="championOpenLink" class="button button-dark" href="#" target="_blank" rel="noopener noreferrer" hidden data-i18n="championOpen">Open assessment in a new tab</a>
+          </div>
+          <iframe id="championFrame" class="champion-frame" title="ForeRunners Environmental Protector Champion Assessment" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" hidden></iframe>
+          <noscript><p class="champion-status">Please enable JavaScript to load the assessment.</p></noscript>
+        </div>
       </div>
     </section>
 
