@@ -4,3 +4,21 @@
 @media(max-width:900px){.site-header{padding:0 5%}.nav{gap:16px}.hero{padding:65px 5%;gap:25px}.hero-art{height:350px}.section{padding:75px 5%}.intro{gap:35px}.program-grid{grid-template-columns:repeat(2,1fr)}.learning-panel{padding:38px;gap:35px}.involved{padding-left:5%;padding-right:5%}.footer{padding-left:5%;padding-right:5%}}
 @media(max-width:650px){.site-header{height:72px}.menu-toggle{display:block;margin-left:auto;margin-right:10px}.nav{display:none;position:absolute;left:0;right:0;top:72px;background:var(--cream);padding:20px 5%;box-shadow:0 12px 20px #123b3512;align-items:stretch;flex-direction:column;gap:17px}.nav.open{display:flex}.nav a{padding:5px 0}.language-toggle{align-self:flex-start}.hero{grid-template-columns:1fr;padding-top:55px;padding-bottom:48px}.hero-art{height:300px;max-width:360px;width:100%;margin-top:10px}.hero-actions{align-items:flex-start;flex-direction:column;gap:18px}.intro{grid-template-columns:1fr;gap:25px}.section-heading-wide{display:block}.section-heading-wide>p{margin-top:22px}.program-grid{grid-template-columns:1fr}.program-card{min-height:auto}.learning-panel{grid-template-columns:1fr;padding:28px 22px;gap:30px}.involved{align-items:flex-start;flex-direction:column;gap:28px}.involved-actions{width:100%}.footer-bottom{flex-direction:column}.section{padding-top:65px;padding-bottom:65px}h1{letter-spacing:-1px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}}
+
+/* Environmental Protector Champion — integrated assessment */
+.champion-section{background:#e5eee5}
+.champion-panel{max-width:1200px;margin:0 auto;background:#f7f6f0;border:1px solid #d7e2d7;border-radius:30px;padding:clamp(26px,5vw,58px);display:grid;grid-template-columns:.82fr 1.18fr;gap:38px;align-items:start}
+.champion-intro h2{font-size:clamp(30px,3.5vw,44px);margin-bottom:20px}
+.champion-intro>p:not(.eyebrow){font-size:14px;line-height:1.9;color:#58655f}
+.champion-highlights{display:grid;gap:10px;margin-top:26px}
+.champion-highlights span{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;color:#315b45}
+.champion-highlights span:before{content:"✓";display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#dcebe1;color:#123b35;flex:0 0 24px}
+.champion-assessment{min-width:0;background:#fff;border:1px solid #dfe5de;border-radius:22px;padding:22px;box-shadow:0 12px 30px rgba(18,59,53,.06)}
+.champion-assessment-heading{display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:18px}
+.champion-assessment-heading h3{font-family:Manrope,'Noto Sans Myanmar',sans-serif;font-size:22px;line-height:1.35;margin-bottom:8px}
+.champion-assessment-heading .eyebrow{margin-bottom:10px}
+.champion-status{font-size:12px;color:#64716c;line-height:1.7;margin-bottom:0}
+.champion-frame{display:block;width:100%;min-height:1050px;border:1px solid #dfe5de;border-radius:14px;background:#fff}
+.champion-frame[hidden],#championOpenLink[hidden]{display:none}
+@media(max-width:900px){.champion-panel{grid-template-columns:1fr;gap:28px}}
+@media(max-width:650px){.champion-panel{padding:22px 16px;border-radius:22px}.champion-assessment{padding:14px}.champion-assessment-heading{flex-direction:column}.champion-frame{min-height:1250px}}
