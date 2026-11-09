@@ -1,4 +1,4 @@
-name: Deploy ForeRunners website to GitHub Pages
+name: Deploy ForeRunners public website to GitHub Pages
 
 on:
   push:
@@ -23,17 +23,39 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Bundle LMS dependencies locally
+
+      - name: Build Learning Center browser bundle
         run: |
           npm install --prefix /tmp/lvc-build --no-package-lock --no-save esbuild@0.25.0 @supabase/supabase-js@2.57.4
-          ln -s /tmp/lvc-build/node_modules livelihood-learning-center/node_modules
           /tmp/lvc-build/node_modules/.bin/esbuild livelihood-learning-center/app.js --bundle --format=esm --target=es2022 --outfile=livelihood-learning-center/app.bundle.js
+
+      - name: Assemble approved public website files only
+        run: |
+          mkdir -p _site/assets/css _site/assets/js
+          mkdir -p _site/livelihood-learning-center _site/livelihood-navigator
+
+          cp index.html _site/index.html
+          cp .nojekyll _site/.nojekyll
+          cp assets/css/styles.css _site/assets/css/styles.css
+          cp assets/js/app.js _site/assets/js/app.js
+          cp assets/js/champion-config.js _site/assets/js/champion-config.js
+          cp assets/js/champion-embed.js _site/assets/js/champion-embed.js
+
+          cp livelihood-learning-center/index.html _site/livelihood-learning-center/index.html
+          cp livelihood-learning-center/styles.css _site/livelihood-learning-center/styles.css
+          cp livelihood-learning-center/config.js _site/livelihood-learning-center/config.js
+          cp livelihood-learning-center/app.bundle.js _site/livelihood-learning-center/app.bundle.js
+
+          cp livelihood-navigator/index.html _site/livelihood-navigator/index.html
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
-      - name: Upload website files
+
+      - name: Upload approved public website
         uses: actions/upload-pages-artifact@v4
         with:
-          path: .
+          path: _site
+
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@v4
