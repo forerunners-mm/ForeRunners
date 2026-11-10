@@ -14,22 +14,24 @@ Do not deploy to real participants until the safeguarding readiness gate is sign
 
 The repository Apps Script prototype supports anonymous account creation, pseudonymous IDs, token-hash storage, lesson listing, lesson-read recording, quiz scoring and progress display. It seeds 100 unpublished placeholder levels.
 
-It does not provide production-grade authentication or recovery, age-based account assignment/access enforcement, admin interface or role-based publishing, rate limiting, robust audit logging, independent security testing, full retention/deletion workflow, offline synchronization, AI chat or operational Game Center.
+The revised prototype now includes facilitator-issued age-path access codes, server-side pathway checks on lesson access, expiring pseudonymous sessions, session revocation, browser-tab session storage, basic failed-code throttling, quiz question-ID validation and locking around progress writes. These are prototype safeguards only, not production-grade authentication or an independent security assurance.
 
-The browser stores a session token in local storage. Anyone with access to the same browser profile may be able to use the session. Do not store real child records or sensitive information until reviewed and remediated.
+Age assignment is based on which facilitator code is supplied; the system does not verify a learner's age. A facilitator must give the correct pathway code only to the intended group. Access codes are shared group credentials and can be forwarded; rotate them if disclosed. The current implementation does not provide individual invitation codes, verified age/guardian consent, password recovery, a complete admin interface, role-based publishing, robust audit logging, offline synchronization or a full retention/deletion workflow. Do not use it to collect real child records or sensitive information.
 
 ## 4. Build and configuration
 
 1. Use an organization-approved Google account and recovery process; do not make a staff member's personal account the sole owner.
 2. Create a dedicated Google Sheet with access limited to named administrators.
 3. Open Apps Script from that Sheet and add the reviewed Code.gs and Index.html.
-4. Run setupProject() once and confirm expected tabs and headers.
-5. Keep lesson and quiz data unpublished by default.
-6. Add dummy content only for technical testing.
-7. Verify execution identity and restrict access to named testers.
-8. Record script/sheet owner, authorized users, deployment version, restricted URL location and emergency disable procedure in an operations register.
-9. Do not publish restricted deployment URLs on public websites or repositories.
-10. Re-test after every code or configuration change.
+4. Run setupProject() once. It adds the new AgeGroup and session-expiry columns to the existing Users and Levels sheets only when the existing headers match; stop if it reports unexpected headers. Existing sessions without expiry values will need to sign in again.
+5. In Apps Script > Project Settings > Script Properties, set ACCESS_CODE_10_14 and ACCESS_CODE_15_19 to separate random codes of at least 8 characters. Never place the actual values in GitHub, the Sheet, client-side HTML or a public document. Share each code only with the responsible facilitator for that age group.
+6. Set the AgeGroup column in each Levels row to exactly 10-14 or 15-19 before setting IsPublished to TRUE. Blank or mismatched pathways are not accessible. Do not reuse one lesson across both pathways unless it has been separately reviewed and intentionally duplicated for each age group.
+7. Keep lesson and quiz data unpublished by default.
+8. Add dummy content only for technical testing.
+9. Verify execution identity and restrict access to named testers.
+10. Record script/sheet owner, authorized users, deployment version, restricted URL location and emergency disable procedure in an operations register.
+11. Do not publish restricted deployment URLs or access codes on public websites or repositories.
+12. Re-test after every code or configuration change.
 
 ## 5. Content publishing workflow
 
@@ -50,15 +52,20 @@ Do not turn real personal disclosures into examples without appropriate anonymiz
 
 | Test | Expected result |
 |---|---|
+| Valid facilitator code for 10-14 | Account receives only the 10-14 pathway |
+| Valid facilitator code for 15-19 | Account receives only the 15-19 pathway |
+| Invalid facilitator code | Rejected; repeated failures are temporarily throttled |
+| Expired session | Rejected after the configured 12-hour session |
+| Logout | Session is revoked server-side and token cleared from the tab |
 | New anonymous account | Unique pseudonymous ID and token |
-| Invalid/expired token | Safely rejected |
 | Unpublished lesson | Not listed and cannot be opened |
 | Published lesson | Only approved fields displayed |
-| Age pathway | Only assigned age-appropriate content accessible; implement and test before child use |
+| Age pathway | Only the assigned pathway's published content is accessible; test direct server calls for both groups |
 | Lesson prerequisite | Later lesson blocked until prerequisite completed |
 | Quiz scoring | Server scores only published questions for that lesson |
-| Missing/duplicate/foreign question IDs | Rejected or handled deterministically; cannot inflate score |
-| Incomplete quiz | Clearly rejected or marked incomplete |
+| Missing/duplicate/foreign question IDs | Rejected; cannot inflate score |
+| Duplicate IDs in published quiz | Detected and quiz submission rejected |
+| Incomplete quiz | Rejected |
 | Repeated submission | Progress remains consistent; log behavior documented |
 | Unauthorized spreadsheet user | Access denied |
 | Direct API request | Cannot bypass authorization or publication checks |
