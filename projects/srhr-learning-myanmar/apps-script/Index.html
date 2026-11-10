@@ -66,6 +66,7 @@
     <button class="secondary" onclick="refreshDashboard()">Progress ပြန်စစ်မည်</button>
     <button class="secondary" onclick="loadLessons()">သင်ခန်းစာများကြည့်ရန်</button>
     <button class="secondary" onclick="logout()">Logout / ထွက်မည်</button>
+    <button class="secondary" onclick="logout()">Logout / ထွက်မည်</button>
   </section>
 
   <section id="lessonsPanel" class="card section hidden">
@@ -98,11 +99,19 @@
     runner[method].apply(runner,args);
   }
   function createAccount(){
+    const accessCode=$('accessCode').value.trim();
+    if(!accessCode){status('Facilitator Access Code ထည့်ပါ။');return;}
     $('createBtn').disabled=true;status('Account ဖန်တီးနေပါသည်…');
-    callServer('createAnonymousAccount',[],result=>{
-      token=result.token;localStorage.setItem(TOKEN_KEY,token);localStorage.setItem(ID_KEY,result.learnerId);
-      status('သင့် Learner ID: '+result.learnerId+'\nSession token ကို လုံခြုံစွာ သိမ်းထားပါ။ အခြားသူများနှင့် မမျှဝေပါနှင့်။');
+    callServer('createAnonymousAccount',[accessCode],result=>{
+      token=result.token;sessionStorage.setItem(TOKEN_KEY,token);$('accessCode').value='';
+      status('သင့် Learner ID: '+result.learnerId+'\\nLearning pathway: '+result.ageGroup+'\\nSession သည် ၁၂ နာရီအကြာတွင် သက်တမ်းကုန်မည်။');
       $('dashboard').classList.remove('hidden');$('createBtn').disabled=false;refreshDashboard();loadLessons();
+    });
+  }
+  function logout(){
+    if(!token){sessionStorage.removeItem(TOKEN_KEY);location.reload();return;}
+    callServer('revokeSession',[token],()=>{
+      sessionStorage.removeItem(TOKEN_KEY);token='';currentLevel=null;location.reload();
     });
   }
   function refreshDashboard(){
