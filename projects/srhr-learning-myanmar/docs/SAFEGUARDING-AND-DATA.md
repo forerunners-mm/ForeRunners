@@ -102,6 +102,15 @@ The digital pilot should not collect names, phone numbers, exact addresses, scho
 - Never place credentials, tokens, participant data or private referral records in GitHub.
 - Test with dummy data until security approval is documented.
 
+### Current prototype age-path control — limitations
+- The prototype uses separate facilitator-issued access codes for the 10–14 and 15–19 learning pathways. The code determines the pathway; the system does not verify a participant's actual age or identity.
+- Facilitators must distribute the correct code only after following the approved age-appropriate enrolment and consent/assent process. Access codes are shared group credentials and may be forwarded; they are not proof of age, consent or eligibility.
+- Do not request a date of birth merely to make the current prototype work. If a safer enrolment method is required, obtain safeguarding and privacy review before collecting additional information.
+- The platform enforces the assigned pathway for published lessons on the server, but this control does not replace facilitator oversight, consent/assent, independent security review or age-appropriate content review.
+- Access codes must be configured as Apps Script Script Properties, never in source code, Sheets, browser HTML, public documents or GitHub. Rotate codes if disclosed and document who is authorized to distribute them.
+- The current session token is stored in browser session storage and expires after 12 hours. This is a prototype measure, not protection against a compromised device, malicious browser extension or script injection.
+- No real child data may be entered until the full release gate is approved.
+
 ### Retention and deletion
 Define retention by record type, purpose, applicable legal/donor requirement and deletion method before launch. Keep data only as long as necessary. Securely delete or anonymize at the end of the approved period, subject to lawful preservation requirements, and document deletion.
 

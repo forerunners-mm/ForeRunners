@@ -53,7 +53,10 @@
 
   <section class="card section">
     <h2>စတင်လေ့လာရန် / Start learning</h2>
-    <p class="muted">အမည်၊ email၊ ဖုန်းနံပါတ် မလိုသော anonymous learner ID ကို ဖန်တီးနိုင်သည်။ Session token ကို မိမိစက်တွင်သာ သိမ်းဆည်းပါ။ ဤ pilot တွင် အမည်၊ ဖုန်းနံပါတ်၊ လိပ်စာ သို့မဟုတ် ကိုယ်ရေးကိုယ်တာ/ကျန်းမာရေးအချက်အလက် မထည့်ပါနှင့်။</p>
+    <p class="muted">အမည်၊ မွေးသက္ကရာဇ်၊ email၊ ဖုန်းနံပါတ် မလိုပါ။ Facilitator ထံမှ ရရှိသော သင့်အသက်အုပ်စုအတွက် Access Code ကိုသာ ထည့်ပါ။ ဤ pilot တွင် ကိုယ်ရေးကိုယ်တာ/ကျန်းမာရေးအချက်အလက် မထည့်ပါနှင့်။</p>
+    <label for="accessCode"><strong>Facilitator Access Code</strong></label>
+    <input id="accessCode" type="password" autocomplete="off" maxlength="128" aria-describedby="accessHelp" style="display:block;width:100%;max-width:420px;padding:12px;border:1px solid var(--line);border-radius:10px;margin:8px 0">
+    <p id="accessHelp" class="muted">Access Code ကို အခြားသူများနှင့် မမျှဝေပါနှင့်။</p>
     <button id="createBtn" onclick="createAccount()">Anonymous Account ဖန်တီးမည်</button>
     <div id="status" role="status" aria-live="polite"></div>
   </section>
@@ -62,6 +65,7 @@
     <h2>My Learning Dashboard</h2><div id="dashInfo" class="muted"></div>
     <button class="secondary" onclick="refreshDashboard()">Progress ပြန်စစ်မည်</button>
     <button class="secondary" onclick="loadLessons()">သင်ခန်းစာများကြည့်ရန်</button>
+    <button class="secondary" onclick="logout()">Logout / ထွက်မည်</button>
   </section>
 
   <section id="lessonsPanel" class="card section hidden">
@@ -83,8 +87,9 @@
   Restricted pilot prototype — not a medical service. Do not submit personal or sensitive information.
 </footer>
 <script>
-  const TOKEN_KEY='srhr_learning_token', ID_KEY='srhr_learning_id';
-  let token=localStorage.getItem(TOKEN_KEY)||'', currentLevel=null;
+  // sessionStorage limits persistence to this browser tab; it is not a substitute for production authentication.
+  const TOKEN_KEY='srhr_learning_token';
+  let token=sessionStorage.getItem(TOKEN_KEY)||'', currentLevel=null;
   const $=id=>document.getElementById(id);
   function status(message){$('status').textContent=message;}
   function fail(err){status((err&&err.message)?err.message:'တစ်စုံတစ်ခု မှားယွင်းနေပါသည်။ Please try again.');}
@@ -93,18 +98,29 @@
     runner[method].apply(runner,args);
   }
   function createAccount(){
+    const accessCode=$('accessCode').value.trim();
+    if(!accessCode){status('Facilitator Access Code ထည့်ပါ။');return;}
     $('createBtn').disabled=true;status('Account ဖန်တီးနေပါသည်…');
-    callServer('createAnonymousAccount',[],result=>{
-      token=result.token;localStorage.setItem(TOKEN_KEY,token);localStorage.setItem(ID_KEY,result.learnerId);
-      status('သင့် Learner ID: '+result.learnerId+'\nSession token ကို လုံခြုံစွာ သိမ်းထားပါ။ အခြားသူများနှင့် မမျှဝေပါနှင့်။');
+    callServer('createAnonymousAccount',[accessCode],result=>{
+      token=result.token;sessionStorage.setItem(TOKEN_KEY,token);$('accessCode').value='';
+      status('သင့် Learner ID: '+result.learnerId+'\nLearning pathway: '+result.ageGroup+'\\nSession သည် ၁၂ နာရီအကြာတွင် သက်တမ်းကုန်မည်။');
       $('dashboard').classList.remove('hidden');$('createBtn').disabled=false;refreshDashboard();loadLessons();
     });
+  }
+  function logout(){
+    const oldToken=token;
+    sessionStorage.removeItem(TOKEN_KEY);token='';currentLevel=null;
+    if(!oldToken){location.reload();return;}
+    google.script.run
+      .withSuccessHandler(()=>location.reload())
+      .withFailureHandler(()=>location.reload())
+      .revokeSession(oldToken);
   }
   function refreshDashboard(){
     if(!token)return;
     callServer('getDashboard',[token],data=>{
       $('dashboard').classList.remove('hidden');
-      $('dashInfo').textContent='Learner ID: '+data.learnerId+' · Completed levels: '+data.completedLevels+'/'+data.totalLevels+' · Next level: '+data.currentLevel;
+      $('dashInfo').textContent='Learner ID: '+data.learnerId+' · Learning pathway: '+data.ageGroup+' · Completed levels: '+data.completedLevels+'/'+data.totalLevels+' · Next level: '+(data.currentLevel===null?'All available lessons completed':data.currentLevel);
     });
   }
   function loadLessons(){

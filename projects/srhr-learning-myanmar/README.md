@@ -27,15 +27,16 @@ NHE is proposed to lead community entry, participant engagement, facilitated lea
 
 ## Digital status
 
-The Apps Script application is a prototype. It currently supports pseudonymous accounts, published lesson listing, lesson-read recording, quiz scoring and a progress view. It uses a browser-stored session token and is not production-grade authentication.
+The Apps Script application remains a restricted prototype. The latest code adds facilitator-issued 10–14 and 15–19 pathway codes, server-side lesson-path checks, 12-hour pseudonymous sessions, server-side session revocation, tab-scoped token storage, basic failed-code throttling, quiz ID validation and locking around progress writes. Facilitators must configure ACCESS_CODE_10_14 and ACCESS_CODE_15_19 in Script Properties and assign each published lesson an exact AgeGroup value. The system does not verify a learner's actual age; facilitators must distribute the correct code to the intended group.
 
-Not implemented or approved for child-facing use:
-- Age-based account assignment and access enforcement.
+Still not implemented or approved for child-facing use:
+- Verified age, consent/assent and guardian processes.
+- Individual invitation codes or production-grade identity/session management.
 - Admin interface and role-based publishing.
 - AI Learning Companion.
 - Game Center.
-- Rate limiting and independent security assessment.
-- Production-grade authentication and complete retention/deletion workflows.
+- Independent security assessment and full audit logging.
+- Complete retention/deletion and incident-response automation.
 
 **AI chat is disabled for the initial phase.** Do not use real child data or deploy publicly to minors until safeguarding readiness and technical/privacy security reviews are complete.
 
