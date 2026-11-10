@@ -107,7 +107,8 @@ The digital pilot should not collect names, phone numbers, exact addresses, scho
 - Facilitators must distribute the correct code only after following the approved age-appropriate enrolment and consent/assent process. Access codes are shared group credentials and may be forwarded; they are not proof of age, consent or eligibility.
 - Do not request a date of birth merely to make the current prototype work. If a safer enrolment method is required, obtain safeguarding and privacy review before collecting additional information.
 - The platform enforces the assigned pathway for published lessons on the server, but this control does not replace facilitator oversight, consent/assent, independent security review or age-appropriate content review.
-- Access codes must be configured as Apps Script Script Properties, never in source code, Sheets, browser HTML, public documents or GitHub. Rotate codes if disclosed and document who is authorized to distribute them.
+- Access codes must be separate, cryptographically random values of at least 32 characters, configured as Apps Script Script Properties, never in source code, Sheets, browser HTML, public documents or GitHub. Rotate codes if disclosed and document who is authorized to distribute them.
+- The current prototype deliberately has no global failed-code lockout: a global counter could let one person deny access to every learner. It also has no reliable per-user/per-IP rate limiting. High-entropy shared codes reduce guessing risk but are not production-grade abuse protection; access monitoring, code rotation and an independently reviewed authentication design remain necessary.
 - The current session token is stored in browser session storage and expires after 12 hours. This is a prototype measure, not protection against a compromised device, malicious browser extension or script injection.
 - No real child data may be entered until the full release gate is approved.
 
