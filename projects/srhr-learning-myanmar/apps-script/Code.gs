@@ -34,6 +34,22 @@ function doGet() {
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
+/**
+ * Read-only preflight: returns sheet names and header rows only.
+ * It never reads or returns learner records.
+ */
+function inspectDatabase() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) throw new Error('Open Apps Script from the project Google Sheet.');
+  return ss.getSheets().map(sh => ({
+    name: sh.getName(),
+    lastRow: sh.getLastRow(),
+    headers: sh.getLastColumn()
+      ? sh.getRange(1,1,1,sh.getLastColumn()).getDisplayValues()[0]
+      : []
+  }));
+}
+
 /** Run once from the bound Google Sheet's Apps Script editor. */
 function setupProject() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -49,12 +65,8 @@ function setupProject() {
     }
     const actual = sh.getRange(1,1,1,Math.max(sh.getLastColumn(),1)).getValues()[0].map(String);
     const expected = SCHEMA[name];
-    if (name === 'Levels' && actual.length === 10 && actual[9] === 'AgeGroup') {
-      // Safe schema migration: remove only the obsolete AgeGroup header/column.
-      if (sh.getLastRow() > 1) sh.deleteColumn(10);
-      else sh.deleteColumn(10);
-      actual.pop();
-    }
+    // Never delete or rewrite existing columns automatically.
+    // If legacy headers differ, setup stops so an administrator can inspect first.
     if (actual.length !== expected.length ||
         expected.some((h,i) => actual[i] !== h)) {
       throw new Error('Unexpected headers in ' + name + '. Stop and review this sheet; no existing records were cleared.');
