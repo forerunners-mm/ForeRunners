@@ -1,230 +1,188 @@
 # PROJECT CONCEPT NOTE
-# SRHR Learning Myanmar
-### Digital Learning, Community Awareness and Women's Empowerment for Adolescent Girls in Insein Township, Myanmar
+## SRHR Learning Myanmar
+### Community-led, age-appropriate SRHR education and safe digital learning for adolescent girls in Insein Township, Yangon Region
 
-## 1. Project Overview
+**Status:** Revised planning draft — not approved or funded  
+**Duration:** 12 months | **Coverage:** Six selected wards, Insein Township  
+**Direct target:** 600 adolescent girls aged 10–19  
+**Proposed lead:** Nway Htway Eain Organization (NHE), subject to donor eligibility confirmation  
+**Technical support:** ForeRunners Organization (FR)  
+**Indicative ceiling:** USD 120,000, subject to detailed costing and donor rules
 
-| Item | Description |
-|---|---|
-| Lead organization | Nway Htway Eain Organization (NHE) |
-| Technical support partner | ForeRunners Organization (FR) |
-| Duration | 12 months |
-| Location | Six selected wards, Insein Township, Yangon Region |
-| Direct target | 600 adolescent girls aged 10–19 |
-| Proposed budget | USD 120,000 |
-| Approach | Community awareness, community initiatives, digital SRHR learning and AI-assisted education |
+> This is a proposal, not evidence that funding, ward access, referral agreements, content approval or platform deployment have been secured.
 
-## 2. Executive Summary
+## 1. Executive summary
 
-SRHR Learning Myanmar is a proposed 12-month initiative to improve access to accurate, age-appropriate sexual and reproductive health and rights (SRHR) education for 600 adolescent girls across six selected wards in Insein Township.
+SRHR Learning Myanmar is a proposed 12-month initiative to improve adolescent girls' access to accurate, age-appropriate, inclusive and safe sexual and reproductive health and rights (SRHR) information in six selected wards of Insein Township.
 
-NHE will lead community awareness sessions, community initiatives, participant engagement and local implementation. FR will provide technical support for a digital SRHR Learning Center, quizzes, educational games and an AI-assisted learning companion. Learning materials will be adapted for two broad age groups: 10–14 and 15–19.
+The project combines facilitated learning, community engagement, practical learning materials and a restricted digital learning pilot. Topics include puberty and body changes, menstrual health, reproductive health, bodily autonomy, consent, respectful relationships, personal safety, rights and how to seek trusted support. The approach will be rights-based, gender-responsive, disability-aware, non-stigmatizing and sensitive to local context.
 
-During the first two months, the partners will conduct community consultations and a baseline needs assessment to identify SRHR knowledge gaps, information access barriers, learning preferences and support needs in the selected wards.
+NHE will lead community entry, participant engagement, facilitated sessions, community initiatives and local referral coordination. FR will provide technical support for a privacy-conscious learning resource and aggregate monitoring. Qualified SRHR and child-protection professionals will review the curriculum and safeguarding arrangements. **AI chat will not be used with children in the initial phase.**
 
-## 3. Background and Rationale
+## 2. Context and rationale
 
-Adolescence is an important period of physical, emotional and social development. Girls need reliable, age-appropriate information about puberty, menstrual health, reproductive health, personal safety, consent, healthy relationships and their rights.
+Adolescents need reliable information and safe opportunities to ask questions about physical development, menstrual health, relationships, consent, safety and access to services. The project will not assume that all girls in Insein have the same knowledge, needs, beliefs, device access or family circumstances.
 
-Research among adolescent girls in Yangon has identified gaps in SRHR knowledge and limited exposure to reproductive-health education. One study involving 207 girls aged 10–19 in selected monastic-school hostels reported that approximately 80% had never received SRH information, health talks or training. This provides relevant Yangon context, but it is not a statistic for all adolescent girls or for Insein Township specifically.
+During Months 1–2, NHE will conduct safe community consultations and a proportionate needs assessment in the selected wards. Findings will guide the final curriculum, delivery methods and targets. No local prevalence claim will be made unless supported by credible, relevant evidence.
 
-Township-specific evidence for the six proposed implementation wards remains limited. The project will therefore begin with a baseline needs assessment. It will examine knowledge, information sources, learning preferences and barriers to appropriate support. The project will not present national or city-level statistics as local Insein findings.
+## 3. Goal and objectives
 
-## 4. Goal and Objectives
+**Goal:** Adolescent girls in the selected wards have improved access to trusted SRHR information and safer opportunities to build knowledge, confidence and informed decision-making.
 
-**Overall goal:** Improve adolescent girls' access to accurate SRHR information, strengthen their knowledge and informed decision-making capacity, and promote their empowerment through community-led activities and accessible digital learning in six wards of Insein Township.
+**Objectives**
+1. Provide 600 adolescent girls aged 10–19 with access to age-appropriate SRHR learning through facilitated and accessible formats.
+2. Improve knowledge of puberty, menstrual health, reproductive health, consent, bodily autonomy, respectful relationships, safety and routes to support.
+3. Strengthen facilitator and community stakeholder capacity for safe, inclusive and non-judgmental SRHR education.
+4. Conduct community engagement that reduces stigma and improves access to accurate information.
+5. Pilot a restricted digital resource that supports, but does not replace, facilitated education or professional health services.
+6. Establish safeguarding, referral, privacy and monitoring arrangements before direct engagement with minors.
 
-**Specific objectives:**
-1. Improve access to accurate, age-appropriate SRHR information for 600 adolescent girls.
-2. Increase knowledge of puberty, menstrual health, reproductive health, bodily autonomy, consent, personal safety and appropriate support services.
-3. Conduct community awareness sessions and support community initiatives that reduce stigma and misinformation.
-4. Develop and pilot an accessible digital SRHR Learning Center with lessons, quizzes, educational games and an AI-assisted learning companion, subject to content and safety review.
-5. Strengthen the capacity of community stakeholders and facilitators to support adolescent girls through safe, inclusive and evidence-informed SRHR education.
+## 4. Participants, inclusion and reach
 
-## 5. Target Beneficiaries and Coverage
+The primary target is 600 adolescent girls aged 10–19 in six selected wards. The planning assumption is approximately 100 per ward; final numbers depend on consultation, access, safety and inclusion findings.
 
-The primary target is 600 adolescent girls aged 10–19 living in six selected wards of Insein Township. An indicative planning target is 100 girls per ward, subject to baseline findings, access and inclusion considerations. The six ward names will be confirmed through community consultations and feasibility assessments.
+Two broad curriculum pathways will be developed:
+- **Ages 10–14:** age-appropriate puberty and body changes, menstrual basics, personal boundaries, trusted adults, safety and how to ask for help.
+- **Ages 15–19:** expanded reproductive health information, consent, healthy relationships, bodily autonomy, rights, safety and service navigation.
 
-Learning will be adapted for:
-- **Ages 10–14:** foundational puberty, body awareness, menstrual health, personal boundaries, safety and trusted adults.
-- **Ages 15–19:** expanded reproductive-health education, consent, healthy relationships, rights, informed decision-making and service access.
+These groupings do not replace individual developmental judgment. Activities will not pressure participants to disclose personal experiences. Consider disability access, language, literacy, out-of-school adolescents and digital access. Smartphone ownership is not a participation condition; facilitated and offline alternatives must be available.
 
-Potential secondary stakeholders include parents and caregivers, community leaders, youth volunteers, teachers where appropriate, and relevant health and protection service providers. Participation will not depend on owning a smartphone or having personal internet access; facilitated and offline learning options will be considered.
+Caregiver and community sessions may be held separately where appropriate. Caregiver involvement must not compromise an adolescent's safety, privacy or access to support.
 
-## 6. Partnership and Responsibilities
+## 5. Components and activities
 
-### Nway Htway Eain Organization — Lead
-- Overall project coordination and implementation oversight.
-- Community entry and engagement across six wards.
-- Identification and outreach to adolescent girl participants.
-- Community awareness sessions and community initiative activities.
-- Coordination with caregivers and community stakeholders where appropriate and safe.
-- Referral coordination with appropriate health and protection services.
-- Community-level monitoring, safeguarding and documentation.
-- Financial management and reporting, subject to agreed grant arrangements.
+### Component 1 — Consultation, baseline and safe participation (NHE lead; FR support)
+- Confirm six wards using documented feasibility, safety and access criteria.
+- Consult adolescents and relevant stakeholders using age-appropriate, voluntary methods.
+- Conduct baseline assessment of knowledge, information access and learning preferences using minimal, non-identifying data.
+- Map and verify health, psychosocial and child-protection services.
+- Establish consent/assent, safeguarding, complaints and referral procedures.
+- Finalize participant recruitment and inclusion plans.
 
-### ForeRunners Organization — Technical Support
-- Design and development of the SRHR Learning Myanmar website.
-- Development of the Learning Center, Quiz Center and Game Center.
-- Development of an AI-assisted learning companion grounded in approved SRHR materials.
-- Age-appropriate digital learning pathways.
-- Digital monitoring and reporting tools.
-- Technical testing, maintenance and user support.
-- Training NHE staff to use the platform and dashboards.
-- Technical support for privacy protection and responsible technology.
+### Component 2 — Facilitated SRHR learning (NHE lead)
+- Develop a curriculum with qualified SRHR reviewers.
+- Deliver structured small-group learning using age-appropriate materials.
+- Cover puberty, menstrual health, reproductive health, consent, bodily autonomy, respectful relationships, personal safety, rights and service navigation.
+- Use anonymous question collection only when a safe response and referral protocol exists.
+- Provide accessible materials and alternative learning formats.
 
-Qualified SRHR professionals must review educational content and AI responses before public deployment. A written partnership agreement should define deliverables, financial responsibilities, data access, intellectual property and accountability.
+### Component 3 — Community awareness and initiatives (NHE lead)
+- Conduct tailored awareness activities with caregivers and community stakeholders.
+- Facilitate community initiatives designed with participants and local stakeholders.
+- Address stigma and misinformation without exposing participants or requiring public disclosure.
+- Document activities using non-identifying records. Default to no identifiable images of minors.
 
-## 7. Main Components and Activities
+### Component 4 — Digital learning resource (FR technical lead; NHE content/implementation partner)
+Initial scope:
+1. Learning Center with expert-reviewed lessons separated into age-appropriate pathways.
+2. Quiz Center with reviewed knowledge checks and explanations; no sensitive personal questions.
+3. Minimal pseudonymous progress summary.
+4. Facilitator resources and downloadable/offline materials.
 
-### Component 1: Community Awareness and Engagement — NHE
-- Conduct community consultations and baseline needs assessment.
-- Develop age-appropriate awareness materials with qualified review.
-- Organize awareness sessions for adolescent girls.
-- Facilitate learning on puberty, menstrual health, reproductive health, consent, rights, personal safety and access to support.
-- Engage parents and caregivers where appropriate and safe.
-- Establish verified referral information for relevant health and protection services.
+**Excluded from initial child-facing pilot:** AI chat, open text chat, public leaderboards, social features, direct messaging, public profiles, location tracking, photo uploads and unmoderated user-generated content. The existing Apps Script is a prototype with placeholder lessons; it is not ready for real participant data or public access. Game features are not currently implemented. Begin with reviewed facilitated/offline activities.
 
-### Component 2: Community Initiative Activities — NHE
-- Facilitate community-led initiatives supporting adolescent girls' health and empowerment.
-- Promote constructive dialogue to reduce stigma and misinformation.
-- Support locally appropriate awareness campaigns.
-- Encourage community participation in sustaining accurate SRHR information and supportive environments.
-- Document feedback and lessons learned.
+A future AI educational companion is a separate possible phase only after documented risk assessment, curated source approval, independent safety testing, human escalation design and written approval by NHE, FR, qualified reviewers and donor where required. It must never diagnose, prescribe or replace a clinician.
 
-### Component 3: Digital SRHR Learning Platform — FR
-The proposed platform will include:
-1. **Learning Center:** structured SRHR lessons and age-appropriate learning pathways.
-2. **Quiz Center:** reviewed knowledge questions with explanations.
-3. **Game Center:** educational games and scenario-based learning.
-4. **AI Learning Companion:** educational responses based on approved SRHR materials, with safety boundaries and referral guidance.
-5. **Progress Dashboard:** learning completion and assessment information.
-6. **Admin Dashboard:** content management and aggregate monitoring.
+### Component 5 — Capacity strengthening and quality assurance (joint)
+- Train facilitators on content, professional boundaries, safeguarding, disclosures and referrals.
+- Train authorized NHE staff to use the digital tool without exposing participant data.
+- Maintain content source lists, reviewer approvals, version dates and change logs.
+- Conduct periodic quality and safety reviews.
 
-The proposed 100-level learning pathway:
-- Levels 1–20: Puberty and body awareness.
-- Levels 21–40: Menstrual health and hygiene.
-- Levels 41–60: Reproductive health.
-- Levels 61–80: Consent, relationships and personal safety.
-- Levels 81–100: SRHR, rights and informed decision-making.
+### Component 6 — Monitoring, evaluation and learning (joint)
+- Conduct baseline and endline knowledge checks.
+- Monitor reach, attendance, completion and feedback using data minimization.
+- Review disaggregated results only where safe and meaningful.
+- Conduct quarterly partner reviews and produce final narrative and financial reports.
 
-This is a proposed structure, not a claim that the complete curriculum has been developed. The Apps Script repository currently contains a pilot MVP with anonymous accounts, published lesson display, lesson-read recording, quiz scoring and a progress dashboard. The AI and Game Center are not yet operational, and an admin interface is not yet implemented.
+## 6. Partnership roles and accountability
 
-### Component 4: Monitoring, Evaluation and Learning — Joint
-- Conduct baseline and endline knowledge assessments.
-- Track community participation using privacy-conscious methods.
-- Measure digital learning engagement and quiz performance.
-- Collect anonymous or appropriately protected feedback.
-- Review progress across six wards.
-- Produce periodic and final reports.
+**NHE — proposed lead:** donor lead eligibility; community entry; ward coordination; participant engagement; facilitated learning; community initiatives; safeguarding focal person and referral coordination; field monitoring; financial management and donor reporting if confirmed as eligible and contractually responsible.
 
-## 8. Expected Results and Proposed Indicators
+**FR — proposed technical support:** digital learning design and maintenance; digitization of approved content; privacy-conscious aggregate monitoring; technical testing; staff orientation; technical documentation and support.
 
-| Expected result | Proposed indicator | Target |
-|---|---|---:|
-| Adolescent girls access SRHR education | Number of girls reached | 600 |
-| Community-level engagement | Wards engaged | 6 |
-| Digital learning is available | Platform developed and piloted | 1 |
-| Structured learning pathway prepared | Proposed learning levels | 100 |
-| Digital learning components developed | Learning, Quiz and Game components | 3 |
-| AI educational support prepared | Reviewed AI Learning Companion | 1 |
-| Knowledge change assessed | Baseline and endline rounds | 2 |
-| Community awareness strengthened | Sessions and initiatives | Set in detailed workplan |
-| Local capacity strengthened | Staff/facilitators trained | Set in detailed workplan |
-| Referral information available | Verified project-area referral directory | 1 |
+**Joint:** sign a partnership agreement defining deliverables, decision rights, financial responsibilities, procurement, data-controller/processor roles as applicable, data access, safeguarding accountability, incident notification, intellectual property, audit access and exit arrangements. Neither partner assumes the other's legal or safeguarding duties.
 
-The percentage knowledge-improvement target will be set after baseline findings and assessment-tool review. These are proposed targets, not completed achievements.
+## 7. Proposed results framework
 
-## 9. Indicative 12-Month Timeline
+| Result | Indicator | Provisional target | Verification |
+|---|---|---:|---|
+| Girls reached | Unique participants attending at least one structured learning activity | 600 | Coded attendance |
+| Geographic reach | Wards with documented activities | 6 | Activity reports |
+| Learning pathways | Approved age-specific pathways | 2 | Reviewer-approved curriculum |
+| Knowledge change | Participants with improved post-test score over baseline | Set after baseline | Approved pre/post tool |
+| Facilitator capacity | Facilitators completing training and competency check | Set after staffing plan | Training records |
+| Digital resource | Restricted pilot tested and approved for limited use | 1 | Test and approval report |
+| Community engagement | Sessions and initiatives delivered | Set after consultation | Activity records |
+| Safeguarding readiness | Mandatory pre-launch controls completed | 100% before child-facing activity | Signed readiness gate |
+| Referral readiness | Verified service directory available and reviewed | 1 | Restricted directory |
 
-| Period | Activities | Lead |
+Targets are provisional and must be finalized after baseline, staffing and budget validation. Do not claim results before they are achieved.
+
+## 8. Indicative 12-month workplan
+
+| Period | Main actions | Lead |
 |---|---|---|
-| Months 1–2 | Community consultation, ward selection, needs assessment, baseline, safeguarding plan and curriculum planning | NHE + FR |
-| Months 2–4 | Website development, content review, initial awareness sessions and platform testing | FR + NHE |
-| Months 4–6 | Digital pilot, awareness sessions and initial community initiatives | NHE + FR |
-| Months 6–9 | Expanded implementation across six wards, digital learning and monitoring | NHE + FR |
-| Months 9–11 | Follow-up activities, assessments, feedback and sustainability planning | NHE + FR |
-| Month 12 | Endline, final reporting, lessons learned and continuation plan | NHE + FR |
+| M1 | Partner agreement, eligibility check, ward feasibility, safeguarding focal persons and service mapping | NHE + FR |
+| M1–M2 | Consultation, baseline, access analysis and curriculum review | NHE + qualified reviewers |
+| M2–M3 | Curriculum finalization, facilitator training, prototype remediation and test plan | NHE + FR |
+| M3–M4 | Dummy-data testing and readiness gate; restricted pilot only if approved | FR + NHE |
+| M4–M6 | Initial facilitated learning and community engagement in feasible wards | NHE |
+| M6–M9 | Phased delivery across six wards; digital use only under approved controls | NHE + FR |
+| M9–M10 | Follow-up sessions, refresher training, feedback and quality review | NHE + FR |
+| M11 | Endline assessment and sustainability/handover planning | NHE + FR |
+| M12 | Analysis, final reporting and close-out | NHE + FR |
 
-The final schedule depends on the grant start date, community access, safeguarding readiness and implementation capacity.
+Schedule is indicative and depends on grant start date, access, safety and referral readiness. No child-facing activity starts before the readiness gate is signed.
 
-## 10. Safeguarding, Inclusion and Data Protection
+## 9. Monitoring, evaluation and learning
 
-The project will establish safeguarding and data-protection procedures before activities begin. Measures will include age-appropriate content, informed consent and age-appropriate assent, guardian involvement where required and safe, minimal data collection, restricted access to learning records, no public identifiable learner information, clear procedures for disclosures, verified referral information and human review of sensitive SRHR content.
+Baseline will establish starting knowledge, information access, preferences and barriers. Use short, age-appropriate questions reviewed by SRHR professionals. Do not collect sensitive personal histories. Use consistent pre/post scoring where appropriate and document changes to tools.
 
-The AI assistant will provide educational information only. It will not provide medical diagnosis, prescriptions or emergency intervention. AI chat transcript storage should be disabled by default. The current prototype's browser-stored session token is not production-grade authentication and requires security review before a child-facing public pilot.
+Monitor unique reach using non-identifying codes, sessions, ward coverage, attendance, digital aggregate use and anonymous feedback. Do not equate quiz scores with behavior change or health outcomes. Keep safeguarding case management separate from M&E. Suppress small reporting cells that could identify individuals. Quarterly reviews should document adaptations and lessons.
 
-## 11. Risk Management
+## 10. Safeguarding, ethics and data protection
 
-| Risk | Mitigation |
+Before engaging minors, partners must approve child safeguarding and staff conduct policies, appoint trained focal persons, complete a context-specific risk assessment, establish age-appropriate consent/assent, verify referral pathways, train staff and test incident response.
+
+Participation is voluntary; declining or withdrawing must not affect access to services. No participant is asked to disclose sexual activity, abuse, pregnancy, health conditions or trauma in group activities, quizzes or digital forms. Disclosures are handled by trained personnel under the approved protocol, not by the technology platform.
+
+Collect only minimum information. Keep consent/contact records, if required, separate from learning records. Keep safeguarding case records in a restricted location, not in the learning platform or general spreadsheets. Define access, retention, deletion, breach response and hosting arrangements with qualified advice.
+
+## 11. Risk management
+
+| Risk | Mitigation / owner |
 |---|---|
-| Social stigma around SRHR | Respectful community engagement and culturally appropriate materials |
-| Limited digital access | Facilitated sessions and offline materials |
-| Inaccurate SRHR content | Qualified professional review |
-| AI misinformation | Curated approved content, safety testing and human referral pathways |
-| Privacy or security incidents | Data minimization, restricted access and incident procedures |
-| Safeguarding concerns | Staff training, code of conduct and referral protocol |
-| Low participation | Community consultation and flexible delivery |
-| Technology delays | Phased development, testing and pilot deployment |
-| Limited health-service availability | Map and verify realistic local referral options |
+| Stigma or resistance | Consultation and respectful framing; NHE |
+| Disclosure of abuse or immediate risk | Trained focal person, approved SOP and verified referral; NHE |
+| Referral service unavailable | Verify capacity and alternatives before launch; review regularly; NHE |
+| Inaccurate or unsuitable content | Qualified review, source register and version control; NHE + reviewers |
+| Data breach | Minimize data, least-privilege access, incident plan and security testing; FR + NHE |
+| Digital exclusion | Facilitated/offline alternatives; NHE |
+| AI misinformation or unsafe interaction | No AI in initial child-facing phase; future approval gate; FR |
+| Staff misconduct | Code, training, reporting and disciplinary process; NHE |
+| Access/safety disruption | Pause or relocate based on documented risk review; NHE |
+| Ineligible or inflated costs | Donor-rule check, quotations and approval controls; lead finance team |
 
-## 12. Sustainability
+## 12. Sustainability and exit
 
-The project will seek to train NHE staff and community facilitators, maintain reusable digital educational resources, establish a content review process, build relationships with qualified SRHR educators and health-service providers, provide technical documentation and identify future resources for platform maintenance. The website will complement, not replace, community education and professional health services.
+Sustainability will focus on trained facilitators, reusable reviewed materials, a documented content-review process, verified service-provider relationships and maintainable low-cost digital resources. Before close-out, partners will agree platform ownership, content updates, secure data deletion/retention and referral-directory maintenance. Do not promise continuation without confirmed resources and accountable ownership.
 
-## 13. Proposed Budget
+## 13. Budget
 
-**Total proposed budget: USD 120,000 for 12 months.**
+USD 120,000 is an indicative planning ceiling only. The current partner allocation must be converted into an activity-based budget with quantities, unit rates, staff time, procurement basis, ward-level assumptions, taxes, exchange-rate assumptions and donor eligibility checks. The current allocation is not a validated cost estimate or approved grant budget.
 
-| No. | Budget category | NHE (USD) | FR (USD) | Total (USD) |
-|---:|---|---:|---:|---:|
-| 1 | Project Coordination and Personnel | 15,000 | 3,000 | 18,000 |
-| 2 | Community Awareness Sessions | 24,000 | 0 | 24,000 |
-| 3 | Community Initiative Activities | 15,000 | 0 | 15,000 |
-| 4 | SRHR Educational Materials and Accessibility | 6,000 | 2,000 | 8,000 |
-| 5 | Website and AI Assistant Development | 0 | 20,000 | 20,000 |
-| 6 | Digital Learning Content and Gamification | 0 | 10,000 | 10,000 |
-| 7 | Monitoring, Evaluation and Learning | 5,000 | 3,000 | 8,000 |
-| 8 | Safeguarding, Referral Support and Staff Training | 3,000 | 2,000 | 5,000 |
-| 9 | Transportation and Field Operations | 5,000 | 0 | 5,000 |
-| 10 | Administration and Communications | 1,500 | 1,500 | 3,000 |
-| 11 | Contingency (subject to funder approval) | 2,000 | 2,000 | 4,000 |
-| | **TOTAL** | **76,500** | **43,500** | **120,000** |
-| | **Budget share** | **63.75%** | **36.25%** | **100%** |
+## 14. Preconditions before submission or launch
 
-This is a proposed planning allocation, not an approved donor budget. A detailed activity-based budget must include staffing calculations, quantities, unit costs, procurement estimates and funder eligibility checks. Contingency is included only if permitted by the funder.
+1. Confirm NHE legal status, governance, financial controls and donor lead eligibility.
+2. Confirm FR's contractual role and eligible cost recovery.
+3. Sign partnership and data responsibility agreements.
+4. Confirm six wards through feasibility and safety assessment.
+5. Name qualified SRHR content reviewers and record approvals.
+6. Approve safeguarding policy, code, complaints and disclosure SOPs.
+7. Verify referral services and agreements where needed.
+8. Complete privacy impact and technical security reviews.
+9. Reconcile detailed budget with final workplan and donor rules.
+10. Obtain donor/partner approval for digital pilot and any future AI scope.
 
-## 14. Monitoring, Evaluation and Learning
-
-| Area | Method | Timing | Responsible |
-|---|---|---|---|
-| SRHR knowledge | Baseline/endline assessment | Start and end | NHE + FR |
-| Participation | Privacy-conscious attendance records | During activities | NHE |
-| Community awareness | Session reports and feedback | Throughout | NHE |
-| Digital learning | Aggregate platform activity | Monthly | FR |
-| Quiz performance | Aggregate quiz results | Monthly | FR |
-| Community initiatives | Activity documentation | Throughout | NHE |
-| Safeguarding | Restricted incident and response records | As required | Designated focal persons |
-| Project progress | Joint progress review | Quarterly | NHE + FR |
-| Overall results | Final evaluation and report | Month 12 | NHE + FR |
-
-## 15. Organizational Partnership Statement
-
-NHE will lead SRHR community awareness, community initiatives, participant engagement and local implementation across six selected wards in Insein Township. FR will provide technical support for the SRHR Learning Myanmar platform, including digital learning, quizzes, games, the planned AI-assisted learning companion and digital monitoring tools.
-
-Together, the organizations aim to connect community-based engagement with accessible digital education to strengthen adolescent girls' SRHR knowledge, confidence and empowerment.
-
-## 16. Information to Confirm Before Submission
-
-1. Names of the six implementation wards and selection rationale.
-2. NHE registration status, governance and lead-applicant eligibility.
-3. FR legal/organizational status and contractual partnership arrangement.
-4. Names and qualifications of SRHR content reviewers.
-5. Verified health and child-protection referral services.
-6. Baseline assessment tools and final sampling plan.
-7. Detailed activity-based budget and supporting cost estimates.
-8. Safeguarding policy, data-protection procedures and designated focal persons.
-9. Hosting, maintenance, security and AI-service arrangements.
-10. Donor-specific eligibility, budget rules and application requirements.
-
-**Important:** Activities, targets, budget and platform features are proposed commitments. They must not be represented as already implemented, funded, approved or operational until confirmed.
+**Submission note:** Replace provisional assumptions with verified partner information and donor requirements. This draft must not be represented as approved, funded or operational.

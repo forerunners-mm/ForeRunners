@@ -1,42 +1,140 @@
-# Safeguarding, Privacy and Responsible Technology
+# Safeguarding, Privacy and Responsible Technology Framework
+## SRHR Learning Myanmar
 
-This is a readiness checklist, not legal advice or a substitute for an approved child safeguarding policy.
+**Status:** Draft for partner and qualified safeguarding review. Not legal advice or a substitute for an approved organization-wide policy. Applies to NHE, FR, staff, volunteers, facilitators, consultants and vendors acting for the project.
 
-## Before any child-facing pilot
+## 1. Core commitments
 
-- [ ] Confirm NHE's legal/operational eligibility and the partnership arrangement with FR.
-- [ ] Approve a project-specific child safeguarding policy and staff/volunteer code of conduct.
-- [ ] Appoint a safeguarding focal person and define escalation responsibilities.
-- [ ] Train staff and facilitators on safe participation, disclosures, boundaries and referrals.
-- [ ] Establish age-appropriate consent and assent procedures, including guardian involvement where required and safe.
-- [ ] Identify qualified SRHR content reviewers.
-- [ ] Map and verify health, psychosocial and child-protection services in the target wards.
-- [ ] Establish a safe disclosure and referral protocol; do not promise confidentiality beyond what can be provided.
-- [ ] Complete a privacy/data-protection assessment and define retention/deletion periods.
-- [ ] Test the website with dummy accounts and dummy content before involving participants.
-- [ ] Establish a process to report and respond to security incidents.
-- [ ] Confirm accessible and offline alternatives for learners without devices or internet.
+- Best interests, dignity, safety and rights of every child are paramount.
+- Participation is voluntary, non-discriminatory and age-appropriate.
+- No child is required to disclose sexual, reproductive, health or trauma information.
+- Personnel maintain professional boundaries and do not initiate secret/private communications with children.
+- Do not promise absolute confidentiality; explain limits in age-appropriate language.
+- Technology is educational only, not a health, counseling, protection or emergency service.
+- Concerns are promptly reported to the designated safeguarding focal person.
 
-## Data minimization
+## 2. Mandatory pre-launch readiness gate
 
-The current prototype creates a pseudonymous learner ID and stores a hash of a random session token. It does not require names, phone numbers, addresses, school names, photographs or personal health histories. Do not add sensitive fields to the learner database.
+No child-facing activity, recruitment, digital launch, identifiable photography or participant-data collection may begin until the project lead documents approval of all applicable items:
 
-The current browser stores the session token in local storage. This is not strong authentication and may be accessible to another person using the same device. Use only for a restricted pilot with dummy data until an appropriate security review and safer authentication design are completed.
+- [ ] Partner agreement identifies safeguarding lead, focal persons, decision rights and incident notification timelines.
+- [ ] Project-specific child safeguarding risk assessment approved.
+- [ ] Child safeguarding policy and staff/volunteer code of conduct approved.
+- [ ] Personnel suitability checks completed where lawful and feasible.
+- [ ] All personnel trained on boundaries, safe facilitation, disclosures, reporting and referrals.
+- [ ] Named primary and alternate safeguarding focal persons with safe contact method.
+- [ ] Age-appropriate information, consent and assent materials approved.
+- [ ] Guardian consent process assessed for necessity, safety and applicable requirements; do not involve a caregiver if doing so may increase risk.
+- [ ] Health, psychosocial and child-protection referral directory verified.
+- [ ] Disclosure and urgent-risk response SOP rehearsed.
+- [ ] Accessible complaints and feedback mechanisms available.
+- [ ] Privacy assessment and retention/deletion schedule approved.
+- [ ] Digital security review and dummy-data tests completed.
+- [ ] Qualified SRHR reviewer approved every lesson and quiz to be published.
+- [ ] Accessible and offline alternatives available.
+- [ ] Incident recording, escalation and secure storage arrangements tested.
 
-## SRHR content governance
+A signed gate record must identify approvers, date, evidence and restrictions. If a critical item is incomplete, postpone or limit the activity; do not waive it informally.
 
-- Use reputable, current and locally appropriate educational sources.
-- Have qualified SRHR professionals review content for accuracy, age suitability and cultural context.
-- Maintain source references, review dates, reviewer details and version history.
-- Separate content for ages 10–14 and 15–19 where developmentally appropriate.
-- Avoid collecting personal disclosures through lessons, quizzes or free-text forms.
+## 3. Consent, assent and voluntary participation
 
-## AI safety status
+1. Explain activity purpose, topics, format, possible discomforts, data collected, access, confidentiality limits, complaints route and right to stop.
+2. Use language and format understandable to the participant's age and literacy.
+3. Obtain voluntary participant assent and guardian consent where required by applicable law, donor rules and qualified safeguarding advice.
+4. Assess whether guardian involvement is safe and appropriate in context. Escalate uncertainty to the safeguarding lead and qualified local adviser.
+5. Attendance, silence or device use is not consent.
+6. Obtain separate optional permission for photographs, recordings, quotations or case studies. Default is no identifiable images or stories of minors.
+7. Provide non-digital participation and do not penalize refusal.
+8. Keep minimum consent evidence separately from learning progress data with restricted access.
 
-AI integration is **not enabled** in the current Apps Script project.
+## 4. Staff and volunteer code — minimum rules
 
-Before adding AI, restrict answers to a curated, reviewed SRHR knowledge base; have qualified reviewers approve the content and test questions; clearly identify the assistant as an educational tool, not a clinician; do not diagnose, prescribe or provide emergency intervention; establish safe responses for abuse disclosures and urgent concerns; provide verified human referral pathways; do not retain chat transcripts by default; and test harmful, inaccurate, age-inappropriate and biased outputs.
+Personnel must treat children respectfully; use accountable communication channels; avoid isolated one-to-one settings and follow approved observable-space/two-adult practices where feasible; never request intimate images or personal details; never exchange gifts, money or favors for access; never use disappearing messages or personal social media for secret contact; never meet participants privately outside approved arrangements; never promise secrecy about harm; and report concerns promptly.
 
-## Public deployment gate
+Prohibited conduct includes sexual exploitation or abuse, grooming, harassment, corporal punishment, discrimination, retaliation, coercion and misuse of participant data. Allegations must be handled fairly and in a survivor-centered manner, prioritizing immediate safety and avoiding repeated questioning.
 
-Do not deploy this prototype publicly for minors until the organization has approved its safeguarding policy, consent/assent process, referral arrangements, privacy assessment, access controls, technical security review and qualified content review.
+## 5. Responding to a disclosure or concern
+
+**Facilitator / volunteer**
+1. Stay calm, listen, take the child seriously and thank them for telling you.
+2. Do not investigate, interrogate, ask leading questions or request repeated details.
+3. Do not promise secrecy. Explain that information will be shared only with people who need to help keep them safe.
+4. Ask only what is necessary to understand immediate safety and urgent help needs.
+5. Do not confront the alleged person or contact a caregiver without guidance if that could increase risk.
+6. Contact the designated safeguarding focal person promptly using the secure route.
+7. Record the child's words accurately, separating direct quotes from observations; do not speculate.
+8. Follow the approved referral and emergency procedure, sharing minimum necessary information.
+9. Never enter case details in the learning platform, general attendance sheet, group email or public report.
+
+**Safeguarding focal person**
+- Assess immediate safety and urgent health/protection needs with qualified services.
+- Explain options and confidentiality limits in age-appropriate language.
+- Make a safe referral with appropriate consent/assent and in line with applicable duties.
+- Keep a restricted case record separate from program monitoring data.
+- Notify authorized organizational leadership and donor only as required, without unnecessary identifiers.
+- Document actions and follow-up securely; prevent retaliation and unnecessary disclosure.
+
+This framework does not define local mandatory-reporting law. NHE must obtain qualified local advice and document applicable reporting duties and safe referral routes before implementation.
+
+## 6. Referral pathway requirements
+
+Before activities, map and verify adolescent-friendly/general health care, SRHR clinical care, psychosocial support, child protection/violence response, emergency medical care and disability-related support.
+
+For each service record: service scope, eligibility/age limits, hours, safe contact, cost if verified, accessibility, language, referral procedure, confidentiality limits, verification date and backup option. Keep sensitive provider contacts restricted. Re-verify at least monthly and after reported changes. Never promise availability until verified.
+
+## 7. Data protection and information governance
+
+### Data minimization
+The digital pilot should not collect names, phone numbers, exact addresses, school names, photographs, identity documents, sexual history, pregnancy status, diagnoses, abuse histories or free-text personal disclosures. Do not add such fields without a documented necessity assessment and approval.
+
+### Separate records
+- Consent/contact records, if required, are separate from pseudonymous learning progress.
+- Safeguarding case records are held separately in restricted case-management storage.
+- Routine monitoring uses aggregate counts and non-identifying codes.
+- Access is role-based and reviewed quarterly and whenever personnel leave.
+
+### Access and security
+- Use individual accounts, strong authentication and least-privilege access.
+- Do not share spreadsheets or web-app URLs publicly.
+- Do not use public leaderboards, public profiles, third-party ad trackers or open analytics on child-facing pages.
+- Restrict exports/downloads and maintain access logs where available.
+- Remove access promptly when roles end.
+- Never place credentials, tokens, participant data or private referral records in GitHub.
+- Test with dummy data until security approval is documented.
+
+### Retention and deletion
+Define retention by record type, purpose, applicable legal/donor requirement and deletion method before launch. Keep data only as long as necessary. Securely delete or anonymize at the end of the approved period, subject to lawful preservation requirements, and document deletion.
+
+### Incident response
+Any suspected loss, unauthorized access, disclosure, phishing, device compromise or misdirected communication must be reported immediately to the data/security focal person. Preserve evidence, restrict access, assess harm, contain the incident, notify leadership and affected people/regulators/donor where required, and document corrective action. Do not conceal a serious incident.
+
+## 8. Digital platform and AI rules
+
+### Initial pilot
+- Restricted access only; no open public deployment for children.
+- Dummy-data testing before any real use.
+- No open chat, direct messaging, photo upload, location tracking, public profile or public leaderboard.
+- No real learner data in the Apps Script prototype until an independent review confirms adequate authentication, access control, storage, retention and incident handling.
+- Provide offline/facilitated alternatives.
+
+### AI disabled for initial phase
+No AI assistant is to be exposed to child participants in the initial phase. A future AI feature requires:
+1. Written approval from NHE, FR, qualified SRHR and child-safeguarding reviewers, and donor where applicable.
+2. Curated, version-controlled, expert-approved knowledge base with references and review dates.
+3. Age-specific response rules and strict topic boundaries.
+4. Independent privacy/security assessment; no participant data used to train models.
+5. No default chat transcript storage; any proposed retention requires separate necessity and consent assessment.
+6. Safety testing for disclosures, urgent risks, misinformation, explicit requests and attempts to bypass safeguards.
+7. Clear notice that AI is not a clinician, counselor or emergency service.
+8. Human referral route; AI must not decide safeguarding cases.
+9. Ongoing monitoring, shutdown mechanism and accountable owner.
+
+AI must not diagnose, prescribe, recommend medication, determine whether abuse occurred, provide individualized clinical advice or replace a trained human.
+
+## 9. Complaints and feedback
+
+Offer at least two safe channels, including one not controlled by the facilitator. Explain who receives complaints, response expectations, confidentiality limits and protection from retaliation. Provide child-friendly and accessible formats. Store complaints in a restricted register. Serious safeguarding complaints go directly to the safeguarding lead and must not be handled solely by the person complained about.
+
+## 10. Approval and review
+
+Adapt this framework to NHE and FR policies, local requirements, donor standards and actual context. Review before launch, quarterly, and after incidents or material changes. Record version, approver, date and changes. This document is not evidence that controls are already operational.
