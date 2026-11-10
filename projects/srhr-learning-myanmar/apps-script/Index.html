@@ -109,10 +109,13 @@
     });
   }
   function logout(){
-    if(!token){sessionStorage.removeItem(TOKEN_KEY);location.reload();return;}
-    callServer('revokeSession',[token],()=>{
-      sessionStorage.removeItem(TOKEN_KEY);token='';currentLevel=null;location.reload();
-    });
+    const oldToken=token;
+    sessionStorage.removeItem(TOKEN_KEY);token='';currentLevel=null;
+    if(!oldToken){location.reload();return;}
+    google.script.run
+      .withSuccessHandler(()=>location.reload())
+      .withFailureHandler(()=>location.reload())
+      .revokeSession(oldToken);
   }
   function refreshDashboard(){
     if(!token)return;
