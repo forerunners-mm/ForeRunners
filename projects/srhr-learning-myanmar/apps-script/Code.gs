@@ -114,9 +114,8 @@ function createAnonymousAccount(accessCode) {
   const attemptKey = 'account_create_attempts_global';
   const attempts = Number(cache.get(attemptKey) || 0);
   if (attempts >= APP.maxAccountAttemptsPerHour) {
-    throw new Error('Account ဖန်တီးမှုကို ယာယီကန့်သတ်ထားပါသည်။ Facilitator ထံ ဆက်သွယ်ပါ။');
+    throw new Error('Access Code စမ်းသပ်မှုကို ယာယီကန့်သတ်ထားပါသည်။ Facilitator ထံ ဆက်သွယ်ပါ။');
   }
-  cache.put(attemptKey, String(attempts + 1), 3600);
 
   const props = PropertiesService.getScriptProperties();
   const code10 = props.getProperty('ACCESS_CODE_10_14');
@@ -128,7 +127,10 @@ function createAnonymousAccount(accessCode) {
   let ageGroup = '';
   if (safeEqual_(accessCode, code10)) ageGroup = '10-14';
   else if (safeEqual_(accessCode, code15)) ageGroup = '15-19';
-  if (!ageGroup) throw new Error('Facilitator Access Code မမှန်ကန်ပါ။ Please check with your facilitator.');
+  if (!ageGroup) {
+    cache.put(attemptKey, String(attempts + 1), 3600);
+    throw new Error('Facilitator Access Code မမှန်ကန်ပါ။ Please check with your facilitator.');
+  }
 
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
@@ -290,6 +292,9 @@ function submitQuiz(token, levelId, answers) {
     answerMap[a.id] = String(a.answer);
   });
   const expectedIds = published.map(r => String(r[0]));
+  if (expectedIds.some(id => !id) || new Set(expectedIds).size !== expectedIds.length) {
+    throw new Error('Published quiz contains missing or duplicate question IDs. Please contact the facilitator.');
+  }
   if (Object.keys(answerMap).length !== expectedIds.length ||
       expectedIds.some(questionId => !Object.prototype.hasOwnProperty.call(answerMap, questionId))) {
     throw new Error('Quiz question IDs do not match the published quiz.');
