@@ -1,82 +1,64 @@
 # SRHR Learning Myanmar
 
 **Learn. Play. Grow.**  
-Digital SRHR learning and community awareness for adolescent girls in six selected wards of Insein Township, Yangon Region, Myanmar.
+A proposed community-led SRHR education and restricted digital learning initiative for adolescent girls in six selected wards of Insein Township, Yangon Region, Myanmar.
+
+> **Status: planning and prototype stage.** This repository does not establish that the project is funded, approved, operational or ready for child-facing deployment.
 
 ## Project snapshot
 
-- **Duration:** 12 months
-- **Target:** 600 adolescent girls aged 10–19
-- **Lead:** Nway Htway Eain Organization (NHE)
-- **Technical support:** ForeRunners Organization (FR)
-- **Proposed budget:** USD 120,000 (planning estimate; subject to donor eligibility and detailed costing)
+- Proposed duration: 12 months
+- Proposed direct reach: 600 adolescent girls aged 10–19
+- Proposed coverage: six selected wards, Insein Township
+- Proposed lead: Nway Htway Eain Organization (NHE), subject to donor eligibility confirmation
+- Proposed technical support: ForeRunners Organization (FR)
+- Indicative planning ceiling: USD 120,000, subject to detailed costing and donor rules
 
-## Partnership roles
+## Roles
 
-NHE leads community entry, participant engagement, awareness sessions, community initiatives, local coordination and referral coordination. FR provides the digital learning platform, learning tools, technical support and digital monitoring. Qualified SRHR professionals must review educational content before publication.
+NHE is proposed to lead community entry, participant engagement, facilitated learning, community initiatives, safeguarding coordination and local referral coordination. FR is proposed to provide digital platform and technical support, privacy-conscious monitoring and technical training. Roles, financial accountability, data access and safeguarding responsibilities must be confirmed in a signed partnership agreement.
 
-## Learning components
+## Learning approach
 
-1. Learning Center — structured lessons.
-2. Quiz Center — reviewed questions with a pass threshold.
-3. Game Center — planned interactive learning games; not yet implemented in this Apps Script pilot.
-4. AI Learning Companion — planned; disabled until approved SRHR sources, safety testing and professional review are completed.
-5. Learner dashboard — anonymous learner ID and progress summary.
+- Ages 10–14: foundational puberty, body awareness, menstrual basics, boundaries and trusted support.
+- Ages 15–19: expanded reproductive health, consent, respectful relationships, rights, safety and service navigation.
+- Facilitated and offline alternatives; device ownership is not required.
+- All SRHR content and quizzes require qualified review before publication.
 
-## Repository structure
+## Digital status
 
-- `docs/PROJECT-CONCEPT.md` — project concept note.
-- `docs/SAFEGUARDING-AND-DATA.md` — minimum safeguarding and privacy requirements.
-- `docs/DEPLOYMENT-GUIDE.md` — Apps Script setup and deployment.
-- `budget/budget.csv` — proposed partner budget.
-- `apps-script/Code.gs` — Apps Script backend.
-- `apps-script/Index.html` — bilingual learner website.
+The Apps Script application is a prototype. It currently supports pseudonymous accounts, published lesson listing, lesson-read recording, quiz scoring and a progress view. It uses a browser-stored session token and is not production-grade authentication.
 
-## Google Apps Script setup
+Not implemented or approved for child-facing use:
+- Age-based account assignment and access enforcement.
+- Admin interface and role-based publishing.
+- AI Learning Companion.
+- Game Center.
+- Rate limiting and independent security assessment.
+- Production-grade authentication and complete retention/deletion workflows.
 
-1. Create a dedicated Google Sheet for this pilot.
-2. Open **Extensions → Apps Script** from that Sheet.
-3. Replace the default script with the contents of `apps-script/Code.gs`.
-4. Add an HTML file named exactly `Index` and paste `apps-script/Index.html`.
-5. Save the project.
-6. Select and run `setupProject()` once from the Apps Script editor. Review and authorize the requested permissions.
-7. Confirm that the Sheets named Users, Levels, QuizQuestions, UserProgress, ActivityLog and Settings were created.
-8. Add SRHR lessons and quiz questions only after qualified review. Follow the column definitions in the Sheets and the deployment guide.
-9. Deploy first to a restricted test group. Do not make it publicly available to children until the safeguarding, privacy, security and referral requirements are approved.
-10. Test with dummy accounts and dummy content.
+**AI chat is disabled for the initial phase.** Do not use real child data or deploy publicly to minors until safeguarding readiness and technical/privacy security reviews are complete.
 
-## Important implementation status
+## Key documents
 
-This is a **pilot MVP**, not a production-ready child-facing service.
+- docs/PROJECT-CONCEPT.md — revised project concept.
+- docs/SAFEGUARDING-AND-DATA.md — safeguarding, consent, disclosure, referral and data framework.
+- docs/DEPLOYMENT-GUIDE.md — restricted pilot deployment and test requirements.
+- docs/MEL-FRAMEWORK.md — proposed monitoring, evaluation and learning framework.
+- docs/BUDGET-NOTES.md — costing assumptions and donor checks.
+- budget/budget.csv — provisional allocation; not a donor-approved detailed budget.
+- apps-script/Code.gs and apps-script/Index.html — current prototype source.
 
-Implemented in this version:
-- Anonymous account creation (pseudonymous learner ID; token hash stored in Sheets).
-- Published lesson listing and lesson display.
-- Lesson-read recording.
-- Quiz retrieval and server-side scoring.
-- 70% quiz pass threshold.
-- Sequential level completion and progress dashboard.
+## Non-negotiable release conditions
 
-Not implemented:
-- AI chat integration.
-- Interactive Game Center.
-- Admin interface / role-based publishing.
-- Rate limiting and advanced abuse protection.
-- Independent security assessment or production-grade authentication.
-- Full offline mode.
+1. NHE eligibility and partner roles confirmed.
+2. Written partnership and data responsibility agreement approved.
+3. Child safeguarding policy, code, focal persons and disclosure SOP approved.
+4. Age-appropriate consent/assent and safe caregiver involvement process approved.
+5. Local referral directory verified and maintained.
+6. SRHR curriculum and quiz content approved by qualified reviewers.
+7. Privacy and security assessment completed; technical risks remediated.
+8. Dummy-data tests passed and release approval documented.
+9. Donor eligibility and detailed budget approved.
 
-Do not claim these features are operational until they have been built and tested.
-
-## Privacy and safeguarding
-
-- Do not collect learner names, phone numbers, addresses, school names or sensitive health/sexual information in this prototype.
-- The anonymous token is stored in the learner's browser local storage. This is a pilot convenience, not strong authentication.
-- Do not use public leaderboards or publish identifiable learner data.
-- Do not store AI chat transcripts by default; AI integration is currently disabled.
-- Obtain appropriate consent/assent and guardian involvement as required and safe.
-- Establish a designated safeguarding focal person and verified referral pathways before involving minors.
-- See `docs/SAFEGUARDING-AND-DATA.md`.
-
-## Budget note
-
-The USD 120,000 partner allocation is a proposed planning estimate, not an approved grant budget. Confirm donor eligibility, quantities, unit costs, staffing and eligible cost rules before submission.
+Until then, keep the platform restricted to dummy-data testing. Never publish participant or safeguarding data in this repository.
