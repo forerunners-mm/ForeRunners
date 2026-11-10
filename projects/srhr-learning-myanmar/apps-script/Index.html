@@ -93,8 +93,9 @@
   const $=id=>document.getElementById(id);
   function status(message){$('status').textContent=message;}
   function fail(err){status((err&&err.message)?err.message:'တစ်စုံတစ်ခု မှားယွင်းနေပါသည်။ Please try again.');}
-  function callServer(method,args,success){
-    const runner=google.script.run.withSuccessHandler(success).withFailureHandler(fail);
+  function callServer(method,args,success,failure){
+    const onFailure=typeof failure==='function'?failure:fail;
+    const runner=google.script.run.withSuccessHandler(success).withFailureHandler(onFailure);
     runner[method].apply(runner,args);
   }
   function createAccount(){
@@ -105,6 +106,9 @@
       token=result.token;sessionStorage.setItem(TOKEN_KEY,token);$('accessCode').value='';
       status('သင့် Learner ID: '+result.learnerId+'\nLearning pathway: '+result.ageGroup+'\\nSession သည် ၁၂ နာရီအကြာတွင် သက်တမ်းကုန်မည်။');
       $('dashboard').classList.remove('hidden');$('createBtn').disabled=false;refreshDashboard();loadLessons();
+    },err=>{
+      $('createBtn').disabled=false;
+      fail(err);
     });
   }
   function logout(){
