@@ -104,7 +104,7 @@
     $('createBtn').disabled=true;status('Account ဖန်တီးနေပါသည်…');
     callServer('createAnonymousAccount',[accessCode],result=>{
       token=result.token;sessionStorage.setItem(TOKEN_KEY,token);$('accessCode').value='';
-      status('သင့် Learner ID: '+result.learnerId+'\\nLearning pathway: '+result.ageGroup+'\\nSession သည် ၁၂ နာရီအကြာတွင် သက်တမ်းကုန်မည်။');
+      status('သင့် Learner ID: '+result.learnerId+'\nLearning pathway: '+result.ageGroup+'\\nSession သည် ၁၂ နာရီအကြာတွင် သက်တမ်းကုန်မည်။');
       $('dashboard').classList.remove('hidden');$('createBtn').disabled=false;refreshDashboard();loadLessons();
     });
   }
