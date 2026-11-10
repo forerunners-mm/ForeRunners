@@ -28,7 +28,7 @@ const SRHR_TOPICS = [
 ];
 
 function doGet() {
-  recordMetric_('VISIT', '');
+  try { recordMetric_('VISIT', ''); } catch (err) { Logger.log('Visit metric unavailable: ' + err.message); }
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle(APP.title)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
