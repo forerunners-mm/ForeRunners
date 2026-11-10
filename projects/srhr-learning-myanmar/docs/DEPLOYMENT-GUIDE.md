@@ -14,7 +14,7 @@ Do not deploy to real participants until the safeguarding readiness gate is sign
 
 The repository Apps Script prototype supports anonymous account creation, pseudonymous IDs, token-hash storage, lesson listing, lesson-read recording, quiz scoring and progress display. It seeds 100 unpublished placeholder levels.
 
-The revised prototype now includes facilitator-issued age-path access codes, server-side pathway checks on lesson access, expiring pseudonymous sessions, session revocation, browser-tab session storage, basic failed-code throttling, quiz question-ID validation and locking around progress writes. These are prototype safeguards only, not production-grade authentication or an independent security assurance.
+The revised prototype now includes facilitator-issued age-path access codes, server-side pathway checks on lesson access, expiring pseudonymous sessions, session revocation, browser-tab session storage, a minimum 32-character access-code requirement; the prototype does not implement application-level failed-code throttling, quiz question-ID validation and locking around progress writes. These are prototype safeguards only, not production-grade authentication or an independent security assurance.
 
 Age assignment is based on which facilitator code is supplied; the system does not verify a learner's age. A facilitator must give the correct pathway code only to the intended group. Access codes are shared group credentials and can be forwarded; rotate them if disclosed. The current implementation does not provide individual invitation codes, verified age/guardian consent, password recovery, a complete admin interface, role-based publishing, robust audit logging, offline synchronization or a full retention/deletion workflow. Do not use it to collect real child records or sensitive information.
 
@@ -24,7 +24,7 @@ Age assignment is based on which facilitator code is supplied; the system does n
 2. Create a dedicated Google Sheet with access limited to named administrators.
 3. Open Apps Script from that Sheet and add the reviewed Code.gs and Index.html.
 4. Run setupProject() once. It adds the new AgeGroup and session-expiry columns to the existing Users and Levels sheets only when the existing headers match; stop if it reports unexpected headers. Existing sessions without expiry values will need to sign in again.
-5. In Apps Script > Project Settings > Script Properties, set ACCESS_CODE_10_14 and ACCESS_CODE_15_19 to separate random codes of at least 8 characters. Never place the actual values in GitHub, the Sheet, client-side HTML or a public document. Share each code only with the responsible facilitator for that age group.
+5. In Apps Script > Project Settings > Script Properties, set ACCESS_CODE_10_14 and ACCESS_CODE_15_19 to separate cryptographically random codes of at least 32 characters (prefer 32+ random bytes encoded as hex). The server rejects configured codes shorter than 32 characters. Never place the actual values in GitHub, the Sheet, client-side HTML or a public document. Share each code only with the responsible facilitator for that age group.
 6. Set the AgeGroup column in each Levels row to exactly 10-14 or 15-19 before setting IsPublished to TRUE. Blank or mismatched pathways are not accessible. Do not reuse one lesson across both pathways unless it has been separately reviewed and intentionally duplicated for each age group.
 7. Keep lesson and quiz data unpublished by default.
 8. Add dummy content only for technical testing.
@@ -54,7 +54,7 @@ Do not turn real personal disclosures into examples without appropriate anonymiz
 |---|---|
 | Valid facilitator code for 10-14 | Account receives only the 10-14 pathway |
 | Valid facilitator code for 15-19 | Account receives only the 15-19 pathway |
-| Invalid facilitator code | Rejected; repeated failures are temporarily throttled |
+| Invalid facilitator code | Rejected; no shared global lockout is triggered |
 | Expired session | Rejected after the configured 12-hour session |
 | Logout | Session is revoked server-side and token cleared from the tab |
 | New anonymous account | Unique pseudonymous ID and token |
@@ -73,7 +73,7 @@ Do not turn real personal disclosures into examples without appropriate anonymiz
 | Shared device | Session reset/sign-out process works and limitations explained |
 | Incident disable | Authorized owner can suspend access promptly |
 
-The current code must be reviewed against these cases. Manual tests are not independent security assurance.
+The prototype has no per-user or per-IP failed-attempt rate limit because Apps Script does not expose a trustworthy client IP to this implementation. High-entropy codes reduce guessing risk but do not replace production-grade rate limiting, monitoring or abuse controls. Test invalid-code rejection without causing a global lockout. The current code must be reviewed against these cases. Manual tests are not independent security assurance.
 
 ## 7. Data and access rules
 

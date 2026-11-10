@@ -27,7 +27,7 @@ NHE is proposed to lead community entry, participant engagement, facilitated lea
 
 ## Digital status
 
-The Apps Script application remains a restricted prototype. The latest code adds facilitator-issued 10–14 and 15–19 pathway codes, server-side lesson-path checks, 12-hour pseudonymous sessions, server-side session revocation, tab-scoped token storage, basic failed-code throttling, quiz ID validation and locking around progress writes. Facilitators must configure ACCESS_CODE_10_14 and ACCESS_CODE_15_19 in Script Properties and assign each published lesson an exact AgeGroup value. The system does not verify a learner's actual age; facilitators must distribute the correct code to the intended group.
+The Apps Script application remains a restricted prototype. The latest code adds facilitator-issued 10–14 and 15–19 pathway codes, server-side lesson-path checks, 12-hour pseudonymous sessions, server-side session revocation, tab-scoped token storage, minimum 32-character facilitator access-code requirement (no application-level failed-code lockout), quiz ID validation and locking around progress writes. Facilitators must configure ACCESS_CODE_10_14 and ACCESS_CODE_15_19 in Script Properties and assign each published lesson an exact AgeGroup value. The system does not verify a learner's actual age; facilitators must distribute the correct code to the intended group.
 
 Still not implemented or approved for child-facing use:
 - Verified age, consent/assent and guardian processes.

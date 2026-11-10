@@ -12,8 +12,7 @@ const APP = Object.freeze({
   totalLevels: 100,
   passMark: 70,
   maxQuizQuestions: 10,
-  sessionHours: 12,
-  maxAccountAttemptsPerHour: 12
+  sessionHours: 12
 });
 
 const SCHEMA = {
@@ -106,21 +105,14 @@ function safeEqual_(a, b) {
  * Never commit real codes to GitHub or place them in the Sheet.
  */
 function createAnonymousAccount(accessCode) {
-  if (typeof accessCode !== 'string' || accessCode.length < 8 || accessCode.length > 128) {
+  if (typeof accessCode !== 'string' || accessCode.length < 32 || accessCode.length > 128) {
     throw new Error('Facilitator Access Code မမှန်ကန်ပါ။ Please check with your facilitator.');
-  }
-
-  const cache = CacheService.getScriptCache();
-  const attemptKey = 'account_create_attempts_global';
-  const attempts = Number(cache.get(attemptKey) || 0);
-  if (attempts >= APP.maxAccountAttemptsPerHour) {
-    throw new Error('Access Code စမ်းသပ်မှုကို ယာယီကန့်သတ်ထားပါသည်။ Facilitator ထံ ဆက်သွယ်ပါ။');
   }
 
   const props = PropertiesService.getScriptProperties();
   const code10 = props.getProperty('ACCESS_CODE_10_14');
   const code15 = props.getProperty('ACCESS_CODE_15_19');
-  if (!code10 || !code15) {
+  if (!code10 || !code15 || code10.length < 32 || code15.length < 32 || code10.length > 128 || code15.length > 128) {
     throw new Error('Access Code များကို စနစ်တွင် မသတ်မှတ်ရသေးပါ။ Facilitator/Administrator ထံ ဆက်သွယ်ပါ။');
   }
 
@@ -128,7 +120,6 @@ function createAnonymousAccount(accessCode) {
   if (safeEqual_(accessCode, code10)) ageGroup = '10-14';
   else if (safeEqual_(accessCode, code15)) ageGroup = '15-19';
   if (!ageGroup) {
-    cache.put(attemptKey, String(attempts + 1), 3600);
     throw new Error('Facilitator Access Code မမှန်ကန်ပါ။ Please check with your facilitator.');
   }
 
